@@ -1,6 +1,4 @@
-{- A proof by induction: everything is zero or a successor. (That's Q's third axiom, which
-   PA proves.) PA has an induction axiom for every predicate; a proof takes the ones it uses
-   as premises. -}
+{- Everything is zero or a successor, by induction. -}
 
 let Zero x
 let Succ x y        {- y is the successor of x -}

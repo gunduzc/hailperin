@@ -1,18 +1,13 @@
-{- IΣ₁: Robinson's Q, plus induction for Σ₁ formulas. Relational, as in q.hai.
-
-   A Σ₁ formula is `exists y $ D` (or several `exists`) with D bounded: built from atoms with
-   the connectives and the bounded quantifiers `AllLe` and `SomeLe` only. IΣ₁ has an induction
-   axiom for every Σ₁ formula. A proof takes the instances it uses, and a reader checks that
-   each is Σ₁; written as `Induction (Sigma D)`, only D is left to check. -}
+{- I\Sigma_1: Q plus induction for \Sigma_1 formulas, written `Induction (Sigma D)` with D bounded. -}
 
 import q
 
-let Le x y          {- x ≤ y -}
+let Le x y          {- x \le y -}
 
 let Iff A B = and (imp A B) (imp B A)
 let LeDef = forall x $ forall y $ Iff (Le x y) (exists z $ Plus z x y)
 
-{- Bounded quantifiers: x ranges over the numbers up to y. -}
+{- Bounded quantifiers. -}
 let AllLe (P x) y = forall x $ imp (Le x y) (P x)
 let SomeLe (P x) y = exists x $ and (Le x y) (P x)
 
@@ -24,7 +19,7 @@ let Induction (P x) =
       (forall y $ forall x $ imp (P x) (Succ x y) (P y))
       (forall x $ P x)
 
-{- IΣ₁'s single axioms. -}
+{- I\Sigma_1's single axioms. -}
 let ISigma1 =
   given q1 : Q1
   given q2 : Q2
@@ -49,7 +44,7 @@ let ISigma1 =
   given eqt : EqTimes
   given le : LeDef
 
-{- 0 + x = x, by induction on the Σ₁ formula "some zero, added to x, gives x". -}
+{- 0 + x = x, by \Sigma_1 induction. -}
 let ZeroPlus x w = and (Zero w) (Plus w x x)
 
 proof zero_plus_exists given all ISigma1 given ind : Induction (Sigma ZeroPlus)
@@ -61,7 +56,7 @@ proof zero_plus_exists given all ISigma1 given ind : Induction (Sigma ZeroPlus)
     shows by intro (and_i (and_e1 hw) (q5 w x y x y sxy (and_e2 hw) sxy)) }
   shows forall x $ Sigma ZeroPlus x by ind base step
 
-{- The same for every zero, which isn't a Σ₁ statement: uniqueness of zero does the rest. -}
+{- 0 + x = x, for every zero. -}
 proof zero_plus given all ISigma1 given ind : Induction (Sigma ZeroPlus)
   have e by zero_plus_exists ISigma1 ind
   shows forall x $ forall z $ imp (Zero z) (Plus z x x) by

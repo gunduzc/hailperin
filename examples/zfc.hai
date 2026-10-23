@@ -1,5 +1,4 @@
-{- Zermelo–Fraenkel set theory with choice. The only primitive is membership; equality is
-   defined as having the same elements. -}
+{- ZFC, with membership as the only primitive. -}
 
 let In x y          {- x is an element of y -}
 
@@ -24,11 +23,9 @@ let Infinity =
                  (forall x $ imp (In x i) (exists s $ and (Successor x s) (In s i)))
 let Foundation =
   forall a $ imp (exists x $ In x a) (exists y $ and (In y a) (not $ exists z $ and (In z y) (In z a)))
-{- Foundation as induction: what holds of a set whenever it holds of its elements holds of
-   every set. Unlike `Foundation`, it doesn't give excluded middle. -}
+{- Foundation as \in-induction. -}
 let EpsInduction (P x) = imp (forall x $ imp (forall y $ imp (In y x) (P y)) (P x)) (forall x $ P x)
-{- Ordered pairs and functions, so choice can be stated with choice functions. Everything is
-   up to equality: a pair of equal sets is the same pair. -}
+{- Ordered pairs and functions, up to equality. -}
 let Single s a = forall w $ Iff (In w s) (Eq w a)                  {- s = {a} -}
 let Doub d a b = forall w $ Iff (In w d) (or (Eq w a) (Eq w b))     {- d = {a, b} -}
 let OPair p a b = forall z $ Iff (In z p) (or (Single z a) (Doub z a b))   {- p = (a, b) -}
@@ -40,10 +37,7 @@ let Choice =
 
 let EM A = or A (not A)
 
-{- The single axioms of the constructive core, then of ZFC. Separation, replacement,
-   ∈-induction and excluded middle have an instance for every formula; a proof takes the ones
-   it uses as premises. Foundation isn't in the core: it gives excluded middle
-   (`em_from_foundation` below). -}
+{- The constructive core, then ZFC. -}
 let Sets =
   given ext : Extensionality
   given empty : EmptySet
@@ -85,7 +79,7 @@ proof empty_unique given all Sets
     forall a b assume ea : Empty a assume eb : Empty b forall z {
       and_i (assume za : In z a { efq (In z b) (ea z za) }) (assume zb : In z b { efq (In z a) (eb z zb) }) }
 
-{- No set is an element of itself, by ∈-induction. Constructive. -}
+{- No set is an element of itself, by \in-induction. Constructive. -}
 proof no_self_member given all Sets given ind : EpsInduction NotSelf
   shows forall x $ not (In x x) by
     ind (forall x assume ih : forall y $ imp (In y x) (NotSelf y) assume xx : In x x { ih x xx xx })
@@ -104,7 +98,7 @@ proof empty_or_not given all Sets given em : forall a $ EM (Inhabited a)
                     (assume n : not (exists x $ In x a) { or_i1 (Empty a) (exists x $ In x a) (none n) })
                     (em a) }
 
-{- Equality is reflexive, symmetric and transitive, and pairs respect it. No axioms needed. -}
+{- Equality, and pairs respecting it. -}
 
 proof eq_refl
   shows forall a $ Eq a a by forall a z { and_i (assume h : In z a { h }) (assume h : In z a { h }) }
@@ -157,11 +151,7 @@ proof maps_move
       have intro : imp (and (OPair p b c) (In p f)) (exists q $ and (OPair q b c) (In q f)) by ex_i
       shows by intro (and_i (pair_move p a b c ab (and_e1 hp)) (and_e2 hp)) }
 
-{- Diaconescu: choice implies excluded middle. No `em` among the premises; only `choice`
-   and separation for `EqOr A`.
-   With 0 = {} and 1 = {0}, take X = {z in {0,1} | z = 0 or A} and Y = {z in {0,1} | z = 1 or A},
-   and choose a from X, b from Y. If a = 1 or b = 0, then A. Otherwise, if A held, X = Y, so
-   the choice function would give a = b, and then 0 = 1. -}
+{- Diaconescu: choice implies excluded middle. -}
 let EqOr A e z = or (Eq z e) A
 
 proof diaconescu given all Sets given choice : Choice given A
@@ -200,9 +190,7 @@ proof diaconescu given all Sets given choice : Choice given A
             shows by he e (and_e1 (oe e) eo) }) }
         shows by or_e (assume ae : Eq a e { or_e (no ae) yes cb }) yes ca } }
 
-{- Foundation implies excluded middle, so it can't be part of the constructive core. With
-   1 = {0}, take C = {z in {0,1} | z = 1 or A}, and y in C with no element in common with C.
-   Then y = 1 or A. If y = 1 and A held, 0 would be in C and in y. -}
+{- Foundation implies excluded middle. -}
 proof em_from_foundation given all Sets given found : Foundation given A
   given sep : forall e $ Separation (EqOr A e)
   shows or A (not A) by
@@ -226,8 +214,7 @@ proof em_from_foundation given all Sets given found : Foundation given A
                       yes
                       (and_e2 (and_e1 (hc y) (and_e1 hy))) } }
 
-{- Reuse: `empty_or_not` was proved with excluded middle as a premise. Diaconescu proves the
-   instances it needs from choice, so the same proof serves without it. -}
+{- `empty_or_not` without excluded middle, via Diaconescu. -}
 proof empty_or_not_from_choice given all Sets given choice : Choice
   given sep : forall a $ forall e $ Separation (EqOr (Inhabited a) e)
   have em by forall a { diaconescu Sets (Inhabited a) choice (sep a) }

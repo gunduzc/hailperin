@@ -1,5 +1,4 @@
-{- Commutativity of addition in Peano arithmetic, relationally. Zero, successor and
-   induction come from pa.hai. Each proof takes the induction axioms it uses as premises. -}
+{- Commutativity of addition in PA, relationally. -}
 
 import pa
 
@@ -22,8 +21,7 @@ let EqSucc = forall x $ forall y $ forall x' $ forall y' $ imp (Eq x x') (Eq y y
 let EqPlus = forall x $ forall y $ forall z $ forall x' $ forall y' $ forall z' $
                imp (Eq x x') (Eq y y') (Eq z z') (Plus x y z) (Plus x' y' z')
 
-{- PA's other axioms, as one set of premises. It asserts nothing until a proof says
-   `given all PA`. -}
+{- PA's other axioms. -}
 let PA =
   given pz : PlusZero
   given ps : PlusSucc

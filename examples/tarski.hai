@@ -1,0 +1,15 @@
+{- Tarski: no predicate satisfies the truth schema at its own liar. -}
+
+let Iff A B = and (imp A B) (imp B A)
+
+{- Some code of L is true. -}
+let Holds (True x) (Code x) = exists c $ and (Code c) (True c)
+
+proof tarski
+  given True x
+  given Code x
+  given L
+  given liar : Iff L (not (Holds True Code))
+  given t_schema : Iff (Holds True Code) L
+  have no : not (Holds True Code) by assume h : Holds True Code { and_e1 liar (and_e1 t_schema h) h }
+  shows absurd by no (and_e2 t_schema (and_e2 liar no))

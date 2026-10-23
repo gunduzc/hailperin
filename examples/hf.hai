@@ -1,7 +1,5 @@
-{- Hereditarily finite sets, intuitionistically: the small set theory SST of Shapiro, McCarty
-   and Rathjen (2024), which is definitionally equivalent to Heyting arithmetic. Every set is
-   built from the empty set by adding one element at a time, so sets can serve as codes.
-   Relational: membership is the only primitive, and equality is having the same elements. -}
+{- Hereditarily finite sets: the intuitionistic small set theory SST (Shapiro, McCarty and
+   Rathjen, 2024). -}
 
 let In x y          {- x is an element of y -}
 
@@ -9,16 +7,14 @@ let Iff A B = and (imp A B) (imp B A)
 let Eq x y = forall z $ Iff (In z x) (In z y)
 let Sub x y = forall z $ imp (In z x) (In z y)
 let Empty x = forall z $ not (In z x)
-let Adj x y z = forall u $ Iff (In u z) (or (In u x) (Eq u y))     {- z = x ∪ {y} -}
+let Adj x y z = forall u $ Iff (In u z) (or (In u x) (Eq u y))     {- z = x \cup {y} -}
 
-{- The axioms. Extensionality is the definition of `Eq`, plus `EqIn`. -}
+{- The axioms. -}
 let EqIn = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
 let EmptyEx = exists x $ Empty x
 let AdjEx = forall x $ forall y $ exists z $ Adj x y z
 
-{- Adduction: what holds of the empty set, and of x ∪ {y} whenever it holds of x and of a new
-   element y, holds of every set. An axiom for every predicate; a proof takes the instances it
-   uses. -}
+{- Adduction: induction by adding one new element at a time. -}
 let Adduction (P x) =
   imp (forall x $ imp (Empty x) (P x))
       (forall x $ forall y $ forall z $ imp (not (In y x)) (P x) (P y) (Adj x y z) (P z))
@@ -50,8 +46,7 @@ proof sub_not_in given all HF given add : Adduction NoSelfSub
 proof no_self_member given all HF given add : Adduction NoSelfSub
   shows forall x $ not (In x x) by forall x { sub_not_in HF add x x (forall u assume h : In u x { h }) }
 
-{- ∈-induction from adduction (SMR, Theorem 6.11), for any predicate P. The induction runs on
-   "P holds of x's elements and of every set equal to x", so P needn't respect equality. -}
+{- \in-induction from adduction (SMR, Theorem 6.11). -}
 let UpTo (P x) x = forall y $ imp (or (In y x) (Eq y x)) (P y)
 
 proof eps_induction given all HF given P x

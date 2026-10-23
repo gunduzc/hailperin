@@ -1,0 +1,59 @@
+{- Quine's New Foundations, finitely axiomatized after Hailperin (1944), in the form used by
+   the Metamath and Lean developments of NF. -}
+
+let In x y          {- x is an element of y -}
+
+let Iff A B = and (imp A B) (imp B A)
+let Eq x y = forall z $ Iff (In z x) (In z y)
+let Sub x y = forall z $ imp (In z x) (In z y)
+let Single s a = forall w $ Iff (In w s) (Eq w a)                         {- s = {a} -}
+let Doub d a b = forall w $ Iff (In w d) (or (Eq w a) (Eq w b))           {- d = {a, b} -}
+let OPair p a b = forall z $ Iff (In z p) (or (Single z a) (Doub z a b))  {- p = (a, b) -}
+let PairIn a b x = exists p $ and (OPair p a b) (In p x)                  {- (a, b) in x -}
+let SinglesIn a b x = exists s $ exists t $ and (Single s a) (Single t b) (PairIn s t x)
+let Triple q a b c = exists s $ exists ss $ exists p $                    {- q = ({{a}}, (b, c)) -}
+  and (Single s a) (Single ss s) (OPair p b c) (OPair q ss p)
+let TripleIn a b c x = exists q $ and (Triple q a b c) (In q x)
+
+let Extensionality = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
+let AntiIntersection = forall x $ forall y $ exists z $ forall w $ Iff (In w z) (not (and (In w x) (In w y)))
+let Singleton = forall x $ exists y $ Single y x
+let CardinalOne = exists x $ forall y $ Iff (In y x) (exists z $ Single y z)
+let CrossProduct = forall x $ exists y $ forall z $ Iff (In z y) (exists w $ exists t $ and (OPair z w t) (In t x))
+let Converse = forall x $ exists y $ forall z $ forall w $ Iff (PairIn z w y) (PairIn w z x)
+let SingletonImage = forall x $ exists y $ forall z $ forall w $ Iff (SinglesIn z w y) (PairIn z w x)
+let InsertionTwo = forall x $ exists y $ forall z $ forall w $ forall t $ Iff (TripleIn z w t y) (PairIn z t x)
+let InsertionThree = forall x $ exists y $ forall z $ forall w $ forall t $ Iff (TripleIn z w t y) (PairIn z w x)
+let TypeLowering =
+  forall x $ exists y $ forall z $ Iff (In z y) (forall w $ exists s $ and (Single s z) (PairIn w s x))
+let Inclusion = exists x $ forall y $ forall z $ Iff (PairIn y z x) (Sub y z)
+
+let NF =
+  given ext : Extensionality
+  given anti : AntiIntersection
+  given single : Singleton
+  given one : CardinalOne
+  given cross : CrossProduct
+  given conv : Converse
+  given simage : SingletonImage
+  given ins2 : InsertionTwo
+  given ins3 : InsertionThree
+  given lower : TypeLowering
+  given incl : Inclusion
+
+{- There is a universal set: 1 | (1 | 1). Constructive. -}
+proof universe given all NF
+  shows exists v $ forall w $ In w v by
+    obtain u hu from one
+    obtain c hc from anti u u
+    obtain v hv from anti u c {
+      have every : forall w $ In w v by forall w {
+        and_e2 (hv w) (assume k : and (In w u) (In w c) {
+          and_e1 (hc w) (and_e2 k) (and_i (and_e1 k) (and_e1 k)) }) }
+      shows exists v' $ forall w $ In w v' by ex_i every }
+
+{- So some set is an element of itself, unlike in ZFC. -}
+proof self_member given all NF
+  shows exists v $ In v v by
+    obtain v hv from universe NF {
+      shows exists u $ In u u by ex_i (hv v) }

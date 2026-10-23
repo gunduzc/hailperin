@@ -1,9 +1,8 @@
-{- Classical logic as crutches: excluded middle enters as a premise, so every classical
-   proof says exactly which instances it leans on, and callers inherit them. -}
+{- Classical logic: excluded middle as hypotheses. -}
 
 let EM A = or A (not A)
 
-{- Intuitionistic library: no crutches. -}
+{- Intuitionistic lemmas. -}
 
 proof id
   given A
@@ -17,7 +16,7 @@ proof trans
   given bc : imp B C
   shows imp A C by imp2 A B C (imp1 (imp B C) A bc) ab
 
-{- From X → Y, get (A → X) → (A → Y). -}
+{- From X -> Y, get (A -> X) -> (A -> Y). -}
 proof postcomp
   given A
   given X
@@ -38,7 +37,7 @@ proof dni
   given A
   shows imp A (not (not A)) by swap (id (not A))
 
-{- Peirce's law leans on one crutch: excluded middle for A. -}
+{- Peirce's law, from excluded middle for A. -}
 proof peirce
   given A
   given B
@@ -48,7 +47,7 @@ proof peirce
   have no : imp (not A) A by trans g f
   shows A by or_e (id A) no em
 
-{- Double negation elimination via Peirce: the crutch is inherited, so it must be asked for. -}
+{- Double negation elimination, via Peirce. -}
 proof dne
   given A
   given em : EM A

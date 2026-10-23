@@ -1,10 +1,10 @@
-{- Robinson arithmetic Q, relationally: functions are relations, equality is a predicate. -}
+{- Robinson arithmetic Q, relationally. -}
 
 let Eq x y
 let Zero x
 let Succ x y        {- y is the successor of x -}
 let Plus x y z      {- z is x + y -}
-let Times x y z     {- z is x · y -}
+let Times x y z     {- z is x \cdot y -}
 
 let Q1 = forall x $ forall y $ imp (Succ x y) (not $ Zero y)
 let Q2 = forall x $ forall y $ forall a $ forall b $ imp (Succ x a) (Succ y b) (Eq a b) (Eq x y)
@@ -16,7 +16,7 @@ let Q6 = forall x $ forall z $ imp (Zero z) (Times x z z)
 let Q7 = forall x $ forall y $ forall s $ forall p $ forall q $
            imp (Succ y s) (Times x y p) (Plus p x q) (Times x s q)
 
-{- What function symbols used to give for free: values exist and are unique. -}
+{- Values exist and are unique. -}
 let ZeroEx  = exists z $ Zero z
 let ZeroUn  = forall a $ forall b $ imp (Zero a) (Zero b) (Eq a b)
 let SuccEx  = forall x $ exists y $ Succ x y
@@ -26,7 +26,7 @@ let PlusUn  = forall x $ forall y $ forall a $ forall b $ imp (Plus x y a) (Plus
 let TimesEx = forall x $ forall y $ exists z $ Times x y z
 let TimesUn = forall x $ forall y $ forall a $ forall b $ imp (Times x y a) (Times x y b) (Eq a b)
 
-{- What built-in equality used to give for free. -}
+{- Equality. -}
 let EqRefl  = forall x $ Eq x x
 let EqEq    = forall x $ forall y $ forall x' $ forall y' $ imp (Eq x x') (Eq y y') (Eq x y) (Eq x' y')
 let EqZero  = forall x $ forall x' $ imp (Eq x x') (Zero x) (Zero x')

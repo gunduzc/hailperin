@@ -27,7 +27,7 @@ proof trans_under
   have k2 : forall x $ imp (imp (A x) (B x) (C x)) (imp (A x) (B x)) (A x) (C x) by imp2
   shows forall x $ imp (A x) (C x) by dist (dist k2 (dist k1 bc)) ab
 
-{- Socrates is a predicate: whatever is Socrates is mortal. Nothing is assumed to exist. -}
+{- Whatever is Socrates is mortal. -}
 let Man x
 let Mortal x
 let Socrates x
@@ -37,7 +37,7 @@ proof syllogism
   given soc : forall x $ imp (Socrates x) (Man x)
   shows forall x $ imp (Socrates x) (Mortal x) by trans_under soc men
 
-{- Using an existential: if every P gives Q, and some P exists, then Q. -}
+{- If every P gives Q and some P exists, then Q. -}
 proof use_exists
   given P x
   given Q
@@ -49,7 +49,7 @@ proof id
   given A
   shows imp A A by imp2 A (imp A A) A (imp1 A (imp A A)) (imp1 A A)
 
-{- Excluded middle as a premise: a classical step, visible in the signature. -}
+{- Excluded middle as a hypothesis. -}
 let EM A = or A (not A)
 
 proof dne_from_em
