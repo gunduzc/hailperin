@@ -1,0 +1,10 @@
+{- The textbook derivation of "if everything is P, something is P": instantiate at a free
+   `y`, then generalize to `exists`. Theorems are closed, so `y` has to be bound, and the
+   result is false in the empty domain anyway. -}
+let P x
+
+proof textbook
+  given h : forall x $ P x
+  have a : imp (forall x $ P x) (P y) by inst
+  have b : imp (P y) (exists x $ P x) by ex_i
+  shows exists x $ P x by b (a h)

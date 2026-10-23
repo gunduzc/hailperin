@@ -1,0 +1,5 @@
+{- The right side of `|>` takes exactly one `_`. -}
+proof p
+  given A
+  given a : A
+  shows A by a |> imp1 _ _

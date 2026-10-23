@@ -1,0 +1,60 @@
+{- Propositional and quantifier basics. -}
+
+proof and_comm
+  given A
+  given B
+  given ab : and A B
+  have a : A by and_e1 ab
+  have b : B by and_e2 ab
+  shows and B A by and_i b a
+
+proof trans
+  given A
+  given B
+  given C
+  given ab : imp A B
+  given bc : imp B C
+  shows imp A C by imp2 A B C (imp1 (imp B C) A bc) ab
+
+{- Chaining two implications under a forall. -}
+proof trans_under
+  given A x
+  given B x
+  given C x
+  given ab : forall x $ imp (A x) (B x)
+  given bc : forall x $ imp (B x) (C x)
+  have k1 : forall x $ imp (imp (B x) (C x)) (A x) (B x) (C x) by imp1
+  have k2 : forall x $ imp (imp (A x) (B x) (C x)) (imp (A x) (B x)) (A x) (C x) by imp2
+  shows forall x $ imp (A x) (C x) by dist (dist k2 (dist k1 bc)) ab
+
+{- Socrates is a predicate: whatever is Socrates is mortal. Nothing is assumed to exist. -}
+let Man x
+let Mortal x
+let Socrates x
+
+proof syllogism
+  given men : forall x $ imp (Man x) (Mortal x)
+  given soc : forall x $ imp (Socrates x) (Man x)
+  shows forall x $ imp (Socrates x) (Mortal x) by trans_under soc men
+
+{- Using an existential: if every P gives Q, and some P exists, then Q. -}
+proof use_exists
+  given P x
+  given Q
+  given f : forall x $ imp (P x) Q
+  given e : exists x $ P x
+  shows Q by ex_e f e
+
+proof id
+  given A
+  shows imp A A by imp2 A (imp A A) A (imp1 A (imp A A)) (imp1 A A)
+
+{- Excluded middle as a premise: a classical step, visible in the signature. -}
+let EM A = or A (not A)
+
+proof dne_from_em
+  given A
+  given em : EM A
+  given nna : not (not A)
+  have no : imp (not A) A by trans nna (efq A)
+  shows A by or_e (id A) no em

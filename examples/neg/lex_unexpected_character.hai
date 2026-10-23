@@ -1,0 +1,4 @@
+{- Logic is written in words: `imp`, not `->`. -}
+let A
+let B
+let F = A -> B

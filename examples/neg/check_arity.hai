@@ -1,0 +1,5 @@
+let R x y
+
+proof p
+  given h : forall x $ R x
+  shows absurd by h

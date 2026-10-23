@@ -1,0 +1,234 @@
+{- Zermelo–Fraenkel set theory with choice. The only primitive is membership; equality is
+   defined as having the same elements. -}
+
+let In x y          {- x is an element of y -}
+
+let Iff A B = and (imp A B) (imp B A)
+let Eq x y = forall z $ Iff (In z x) (In z y)
+let Sub x y = forall z $ imp (In z x) (In z y)
+let Empty x = forall z $ not (In z x)
+let Successor x s = forall z $ Iff (In z s) (or (In z x) (Eq z x))
+
+{- The axioms. -}
+let Extensionality = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
+let EmptySet = exists x $ Empty x
+let Pairing = forall a $ forall b $ exists p $ forall z $ Iff (In z p) (or (Eq z a) (Eq z b))
+let Union = forall a $ exists u $ forall z $ Iff (In z u) (exists y $ and (In y a) (In z y))
+let Power = forall a $ exists p $ forall z $ Iff (In z p) (Sub z a)
+let Separation (P x) = forall a $ exists s $ forall z $ Iff (In z s) (and (In z a) (P z))
+let Replacement (R x y) =
+  forall a $ imp (forall x $ imp (In x a) (exists y $ and (R x y) (forall y' $ imp (R x y') (Eq y y'))))
+                 (exists b $ forall y $ Iff (In y b) (exists x $ and (In x a) (R x y)))
+let Infinity =
+  exists i $ and (exists e $ and (Empty e) (In e i))
+                 (forall x $ imp (In x i) (exists s $ and (Successor x s) (In s i)))
+let Foundation =
+  forall a $ imp (exists x $ In x a) (exists y $ and (In y a) (not $ exists z $ and (In z y) (In z a)))
+{- Foundation as induction: what holds of a set whenever it holds of its elements holds of
+   every set. Unlike `Foundation`, it doesn't give excluded middle. -}
+let EpsInduction (P x) = imp (forall x $ imp (forall y $ imp (In y x) (P y)) (P x)) (forall x $ P x)
+{- Ordered pairs and functions, so choice can be stated with choice functions. Everything is
+   up to equality: a pair of equal sets is the same pair. -}
+let Single s a = forall w $ Iff (In w s) (Eq w a)                  {- s = {a} -}
+let Doub d a b = forall w $ Iff (In w d) (or (Eq w a) (Eq w b))     {- d = {a, b} -}
+let OPair p a b = forall z $ Iff (In z p) (or (Single z a) (Doub z a b))   {- p = (a, b) -}
+let Maps f a b = exists p $ and (OPair p a b) (In p f)              {- f contains (a, b) -}
+let Choice =
+  forall s $ imp (forall x $ imp (In x s) (exists y $ In y x))
+                 (exists f $ forall x $ imp (In x s)
+                    (exists y $ and (In y x) (Maps f x y) (forall y' $ imp (Maps f x y') (Eq y y'))))
+
+let EM A = or A (not A)
+
+{- The single axioms of the constructive core, then of ZFC. Separation, replacement,
+   ∈-induction and excluded middle have an instance for every formula; a proof takes the ones
+   it uses as premises. Foundation isn't in the core: it gives excluded middle
+   (`em_from_foundation` below). -}
+let Sets =
+  given ext : Extensionality
+  given empty : EmptySet
+  given pair : Pairing
+  given union : Union
+  given power : Power
+  given inf : Infinity
+
+let ZFC =
+  given all Sets
+  given found : Foundation
+  given choice : Choice
+
+let NotSelf x = not (In x x)
+
+{- Russell: there is no set of all sets. Constructive. -}
+proof russell given all Sets given sep : Separation NotSelf
+  shows not (exists u $ forall x $ In x u) by
+    assume h : exists u $ forall x $ In x u
+    obtain u hu from h
+    obtain s hs from sep u {
+      have nx : not (In s s) by assume x : In s s { and_e2 (and_e1 (hs s) x) x }
+      shows by nx (and_e2 (hs s) (and_i (hu s) nx)) }
+
+{- Every set has a subset that isn't one of its elements. Constructive. -}
+proof subset_outside given all Sets given sep : Separation NotSelf
+  shows forall a $ exists s $ and (Sub s a) (not (In s a)) by
+    forall a obtain s hs from sep a {
+      have sub : Sub s a by forall z assume zs : In z s { and_e1 (and_e1 (hs z) zs) }
+      have out : not (In s a) by assume sa : In s a {
+        have nx : not (In s s) by assume x : In s s { and_e2 (and_e1 (hs s) x) x }
+        shows by nx (and_e2 (hs s) (and_i sa nx)) }
+      have intro : imp (and (Sub s a) (not (In s a))) (exists t $ and (Sub t a) (not (In t a))) by ex_i
+      shows by intro (and_i sub out) }
+
+{- The empty set is unique. Constructive. -}
+proof empty_unique given all Sets
+  shows forall a $ forall b $ imp (Empty a) (Empty b) (Eq a b) by
+    forall a b assume ea : Empty a assume eb : Empty b forall z {
+      and_i (assume za : In z a { efq (In z b) (ea z za) }) (assume zb : In z b { efq (In z a) (eb z zb) }) }
+
+{- No set is an element of itself, by ∈-induction. Constructive. -}
+proof no_self_member given all Sets given ind : EpsInduction NotSelf
+  shows forall x $ not (In x x) by
+    ind (forall x assume ih : forall y $ imp (In y x) (NotSelf y) assume xx : In x x { ih x xx xx })
+
+{- Every set is empty or has an element. Needs excluded middle. -}
+let Inhabited a = exists x $ In x a
+
+proof empty_or_not given all Sets given em : forall a $ EM (Inhabited a)
+  shows forall a $ or (Empty a) (exists x $ In x a) by
+    forall a {
+      have none : imp (not (exists x $ In x a)) (Empty a) by
+        assume n : not (exists x $ In x a) forall x assume h : In x a {
+          have intro : imp (In x a) (exists y $ In y a) by ex_i
+          shows by n (intro h) }
+      shows by or_e (assume e : exists x $ In x a { or_i2 (Empty a) (exists x $ In x a) e })
+                    (assume n : not (exists x $ In x a) { or_i1 (Empty a) (exists x $ In x a) (none n) })
+                    (em a) }
+
+{- Equality is reflexive, symmetric and transitive, and pairs respect it. No axioms needed. -}
+
+proof eq_refl
+  shows forall a $ Eq a a by forall a z { and_i (assume h : In z a { h }) (assume h : In z a { h }) }
+
+proof eq_sym
+  shows forall a $ forall b $ imp (Eq a b) (Eq b a) by
+    forall a b assume e : Eq a b forall z { and_i (and_e2 (e z)) (and_e1 (e z)) }
+
+proof eq_trans
+  shows forall a $ forall b $ forall c $ imp (Eq a b) (Eq b c) (Eq a c) by
+    forall a b c assume ab : Eq a b assume bc : Eq b c forall z {
+      and_i (assume h : In z a { and_e1 (bc z) (and_e1 (ab z) h) })
+            (assume h : In z c { and_e2 (ab z) (and_e2 (bc z) h) }) }
+
+proof single_move
+  shows forall s $ forall a $ forall b $ imp (Eq a b) (Single s a) (Single s b) by
+    forall s a b assume ab : Eq a b assume sa : Single s a forall w {
+      and_i (assume h : In w s { eq_trans w a b (and_e1 (sa w) h) ab })
+            (assume h : Eq w b { and_e2 (sa w) (eq_trans w b a h (eq_sym a b ab)) }) }
+
+proof doub_move
+  shows forall d $ forall a $ forall b $ forall c $ imp (Eq a b) (Doub d a c) (Doub d b c) by
+    forall d a b c assume ab : Eq a b assume da : Doub d a c forall w {
+      and_i (assume h : In w d {
+               or_e (assume e : Eq w a { or_i1 (Eq w b) (Eq w c) (eq_trans w a b e ab) })
+                    (assume e : Eq w c { or_i2 (Eq w b) (Eq w c) e })
+                    (and_e1 (da w) h) })
+            (assume h : or (Eq w b) (Eq w c) {
+               or_e (assume e : Eq w b { and_e2 (da w) (or_i1 (Eq w a) (Eq w c) (eq_trans w b a e (eq_sym a b ab))) })
+                    (assume e : Eq w c { and_e2 (da w) (or_i2 (Eq w a) (Eq w c) e) })
+                    h }) }
+
+proof pair_move
+  shows forall p $ forall a $ forall b $ forall c $ imp (Eq a b) (OPair p a c) (OPair p b c) by
+    forall p a b c assume ab : Eq a b assume pa : OPair p a c {
+      have ba : Eq b a by eq_sym a b ab
+      shows by forall z {
+        and_i (assume h : In z p {
+                 or_e (assume s1 : Single z a { or_i1 (Single z b) (Doub z b c) (single_move z a b ab s1) })
+                      (assume d1 : Doub z a c { or_i2 (Single z b) (Doub z b c) (doub_move z a b c ab d1) })
+                      (and_e1 (pa z) h) })
+              (assume h : or (Single z b) (Doub z b c) {
+                 or_e (assume s1 : Single z b { and_e2 (pa z) (or_i1 (Single z a) (Doub z a c) (single_move z b a ba s1)) })
+                      (assume d1 : Doub z b c { and_e2 (pa z) (or_i2 (Single z a) (Doub z a c) (doub_move z b a c ba d1)) })
+                      h }) } }
+
+proof maps_move
+  shows forall f $ forall a $ forall b $ forall c $ imp (Eq a b) (Maps f a c) (Maps f b c) by
+    forall f a b c assume ab : Eq a b assume m : Maps f a c obtain p hp from m {
+      have intro : imp (and (OPair p b c) (In p f)) (exists q $ and (OPair q b c) (In q f)) by ex_i
+      shows by intro (and_i (pair_move p a b c ab (and_e1 hp)) (and_e2 hp)) }
+
+{- Diaconescu: choice implies excluded middle. No `em` among the premises; only `choice`
+   and separation for `EqOr A`.
+   With 0 = {} and 1 = {0}, take X = {z in {0,1} | z = 0 or A} and Y = {z in {0,1} | z = 1 or A},
+   and choose a from X, b from Y. If a = 1 or b = 0, then A. Otherwise, if A held, X = Y, so
+   the choice function would give a = b, and then 0 = 1. -}
+let EqOr A e z = or (Eq z e) A
+
+proof diaconescu given all Sets given choice : Choice given A
+  given sep : forall e $ Separation (EqOr A e)
+  shows or A (not A) by
+    obtain e he from empty
+    obtain o ho from pair e e
+    obtain u hu from pair e o
+    obtain x hx from sep e u
+    obtain y hy from sep o u
+    obtain s hs from pair x y {
+      have eu : In e u by and_e2 (hu e) (or_i1 (Eq e e) (Eq e o) (eq_refl e))
+      have ou : In o u by and_e2 (hu o) (or_i2 (Eq o e) (Eq o o) (eq_refl o))
+      have ein : In e x by and_e2 (hx e) (and_i eu (or_i1 (Eq e e) A (eq_refl e)))
+      have oin : In o y by and_e2 (hy o) (and_i ou (or_i1 (Eq o o) A (eq_refl o)))
+      have inh : forall w $ imp (In w s) (exists v $ In v w) by forall w assume ws : In w s {
+        have ie : imp (In e w) (exists v $ In v w) by ex_i
+        have io : imp (In o w) (exists v $ In v w) by ex_i
+        shows by or_e (assume q : Eq w x { ie (and_e2 (q e) ein) })
+                      (assume q : Eq w y { io (and_e2 (q o) oin) })
+                      (and_e1 (hs w) ws) }
+      have xs : In x s by and_e2 (hs x) (or_i1 (Eq x x) (Eq x y) (eq_refl x))
+      have ys : In y s by and_e2 (hs y) (or_i2 (Eq y x) (Eq y y) (eq_refl y))
+      shows by obtain f hf from choice s inh obtain a ha from hf x xs obtain b hb from hf y ys {
+        have ca : or (Eq a e) A by and_e2 (and_e1 (hx a) (and_e1 ha))
+        have cb : or (Eq b o) A by and_e2 (and_e1 (hy b) (and_e1 hb))
+        have yes : imp A (or A (not A)) by assume h : A { or_i1 A (not A) h }
+        have no : imp (Eq a e) (Eq b o) (or A (not A)) by assume ae : Eq a e assume bo : Eq b o {
+          or_i2 A (not A) (assume h : A {
+            have exy : Eq x y by forall z {
+              and_i (assume zx : In z x { and_e2 (hy z) (and_i (and_e1 (and_e1 (hx z) zx)) (or_i2 (Eq z o) A h)) })
+                    (assume zy : In z y { and_e2 (hx z) (and_i (and_e1 (and_e1 (hy z) zy)) (or_i2 (Eq z e) A h)) }) }
+            have ba : Eq b a by and_e2 (and_e2 hb) a (maps_move f x y a exy (and_e1 (and_e2 ha)))
+            have oe : Eq o e by eq_trans o b e (eq_sym b o bo) (eq_trans b a e ba ae)
+            have eo : In e o by and_e2 (ho e) (or_i1 (Eq e e) (Eq e e) (eq_refl e))
+            shows by he e (and_e1 (oe e) eo) }) }
+        shows by or_e (assume ae : Eq a e { or_e (no ae) yes cb }) yes ca } }
+
+{- Foundation implies excluded middle, so it can't be part of the constructive core. With
+   1 = {0}, take C = {z in {0,1} | z = 1 or A}, and y in C with no element in common with C.
+   Then y = 1 or A. If y = 1 and A held, 0 would be in C and in y. -}
+proof em_from_foundation given all Sets given found : Foundation given A
+  given sep : forall e $ Separation (EqOr A e)
+  shows or A (not A) by
+    obtain e he from empty
+    obtain o ho from pair e e
+    obtain u hu from pair e o
+    obtain c hc from sep o u {
+      have eu : In e u by and_e2 (hu e) (or_i1 (Eq e e) (Eq e o) (eq_refl e))
+      have ou : In o u by and_e2 (hu o) (or_i2 (Eq o e) (Eq o o) (eq_refl o))
+      have oc : In o c by and_e2 (hc o) (and_i ou (or_i1 (Eq o o) A (eq_refl o)))
+      have ne : imp (In o c) (exists x $ In x c) by ex_i
+      have eo : In e o by and_e2 (ho e) (or_i1 (Eq e e) (Eq e e) (eq_refl e))
+      have yes : imp A (or A (not A)) by assume h : A { or_i1 A (not A) h }
+      shows by obtain y hy from found c (ne oc) {
+        have yo : imp (Eq y o) (not A) by assume q : Eq y o assume h : A {
+          have ey : In e y by and_e2 (q e) eo
+          have ec : In e c by and_e2 (hc e) (and_i eu (or_i2 (Eq e o) A h))
+          have intro : imp (and (In e y) (In e c)) (exists z $ and (In z y) (In z c)) by ex_i
+          shows by and_e2 hy (intro (and_i ey ec)) }
+        shows by or_e (assume q : Eq y o { or_i2 A (not A) (yo q) })
+                      yes
+                      (and_e2 (and_e1 (hc y) (and_e1 hy))) } }
+
+{- Reuse: `empty_or_not` was proved with excluded middle as a premise. Diaconescu proves the
+   instances it needs from choice, so the same proof serves without it. -}
+proof empty_or_not_from_choice given all Sets given choice : Choice
+  given sep : forall a $ forall e $ Separation (EqOr (Inhabited a) e)
+  have em by forall a { diaconescu Sets (Inhabited a) choice (sep a) }
+  shows forall a $ or (Empty a) (exists x $ In x a) by empty_or_not Sets em

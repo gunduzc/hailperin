@@ -1,0 +1,56 @@
+{- Classical logic as crutches: excluded middle enters as a premise, so every classical
+   proof says exactly which instances it leans on, and callers inherit them. -}
+
+let EM A = or A (not A)
+
+{- Intuitionistic library: no crutches. -}
+
+proof id
+  given A
+  shows imp A A by imp2 A (imp A A) A (imp1 A (imp A A)) (imp1 A A)
+
+proof trans
+  given A
+  given B
+  given C
+  given ab : imp A B
+  given bc : imp B C
+  shows imp A C by imp2 A B C (imp1 (imp B C) A bc) ab
+
+{- From X → Y, get (A → X) → (A → Y). -}
+proof postcomp
+  given A
+  given X
+  given Y
+  given xy : imp X Y
+  shows imp (imp A X) (imp A Y) by imp2 A X Y (imp1 (imp X Y) A xy)
+
+{- Swap two hypotheses. -}
+proof swap
+  given X
+  given A
+  given Y
+  given ab : imp X (imp A Y)
+  shows imp A (imp X Y) by trans (imp1 A X) (imp2 X A Y ab)
+
+{- Double negation introduction is intuitionistic. -}
+proof dni
+  given A
+  shows imp A (not (not A)) by swap (id (not A))
+
+{- Peirce's law leans on one crutch: excluded middle for A. -}
+proof peirce
+  given A
+  given B
+  given em : EM A
+  given f : imp (imp A B) A
+  have g  : imp (not A) (imp A B) by postcomp A absurd B (efq B)
+  have no : imp (not A) A by trans g f
+  shows A by or_e (id A) no em
+
+{- Double negation elimination via Peirce: the crutch is inherited, so it must be asked for. -}
+proof dne
+  given A
+  given em : EM A
+  given nna : not (not A)
+  shows A by peirce em (trans nna (efq A))

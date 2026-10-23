@@ -1,0 +1,42 @@
+{- forall, assume and obtain blocks, and applying evidence to individuals. -}
+
+proof trans
+  given A
+  given B
+  given C
+  given ab : imp A B
+  given bc : imp B C
+  shows imp A C by imp2 A B C (imp1 (imp B C) A bc) ab
+
+let Man x
+let Mortal x
+let Socrates x
+
+proof syllogism
+  given men : forall x $ imp (Man x) (Mortal x)
+  given soc : forall x $ imp (Socrates x) (Man x)
+  shows forall x $ imp (Socrates x) (Mortal x) by forall x { trans (soc x) (men x) }
+
+proof swap
+  given R x y
+  given h : forall x $ forall y $ R x y
+  shows forall y $ forall x $ R x y by forall y x { h x y }
+
+proof assume_demo
+  given A
+  given B
+  shows imp A B A by assume a : A { assume b : B { a } }
+
+proof obtain_demo
+  given P x
+  given Q
+  given f : forall x $ imp (P x) Q
+  given e : exists x $ P x
+  shows Q by obtain w pw from e { f w pw }
+
+proof mixed
+  given P x
+  given R x y
+  given h : forall x $ imp (P x) (forall y $ R x y)
+  shows forall y $ forall x $ imp (P x) (R x y) by
+    forall y x { assume p : P x { h x p y } }

@@ -1,0 +1,3 @@
+{- No top-level theorems or axioms: only `let` and `proof`. -}
+let A
+shows imp A A by imp1 A A

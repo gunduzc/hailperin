@@ -1,0 +1,6 @@
+{- A one-place predicate argument can't be a statement. -}
+let Induction (P x) = forall x $ P x
+
+proof p
+  given ind : Induction absurd
+  shows absurd by ind

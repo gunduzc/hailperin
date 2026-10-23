@@ -1,0 +1,69 @@
+{- IΣ₁: Robinson's Q, plus induction for Σ₁ formulas. Relational, as in q.hai.
+
+   A Σ₁ formula is `exists y $ D` (or several `exists`) with D bounded: built from atoms with
+   the connectives and the bounded quantifiers `AllLe` and `SomeLe` only. IΣ₁ has an induction
+   axiom for every Σ₁ formula. A proof takes the instances it uses, and a reader checks that
+   each is Σ₁; written as `Induction (Sigma D)`, only D is left to check. -}
+
+import q
+
+let Le x y          {- x ≤ y -}
+
+let Iff A B = and (imp A B) (imp B A)
+let LeDef = forall x $ forall y $ Iff (Le x y) (exists z $ Plus z x y)
+
+{- Bounded quantifiers: x ranges over the numbers up to y. -}
+let AllLe (P x) y = forall x $ imp (Le x y) (P x)
+let SomeLe (P x) y = exists x $ and (Le x y) (P x)
+
+{- `Sigma D x`: some y has D x y. -}
+let Sigma (D a b) x = exists y $ D x y
+
+let Induction (P x) =
+  imp (forall x $ imp (Zero x) (P x))
+      (forall y $ forall x $ imp (P x) (Succ x y) (P y))
+      (forall x $ P x)
+
+{- IΣ₁'s single axioms. -}
+let ISigma1 =
+  given q1 : Q1
+  given q2 : Q2
+  given q3 : Q3
+  given q4 : Q4
+  given q5 : Q5
+  given q6 : Q6
+  given q7 : Q7
+  given zex : ZeroEx
+  given zun : ZeroUn
+  given sex : SuccEx
+  given sun : SuccUn
+  given pex : PlusEx
+  given pun : PlusUn
+  given tex : TimesEx
+  given tun : TimesUn
+  given refl : EqRefl
+  given eqeq : EqEq
+  given eqz : EqZero
+  given eqs : EqSucc
+  given eqp : EqPlus
+  given eqt : EqTimes
+  given le : LeDef
+
+{- 0 + x = x, by induction on the Σ₁ formula "some zero, added to x, gives x". -}
+let ZeroPlus x w = and (Zero w) (Plus w x x)
+
+proof zero_plus_exists given all ISigma1 given ind : Induction (Sigma ZeroPlus)
+  have base by forall x assume zx : Zero x {
+    have intro : imp (ZeroPlus x x) (exists w $ ZeroPlus x w) by ex_i
+    shows by intro (and_i zx (q4 x x zx)) }
+  have step by forall y x assume ih : Sigma ZeroPlus x assume sxy : Succ x y obtain w hw from ih {
+    have intro : imp (ZeroPlus y w) (exists v $ ZeroPlus y v) by ex_i
+    shows by intro (and_i (and_e1 hw) (q5 w x y x y sxy (and_e2 hw) sxy)) }
+  shows forall x $ Sigma ZeroPlus x by ind base step
+
+{- The same for every zero, which isn't a Σ₁ statement: uniqueness of zero does the rest. -}
+proof zero_plus given all ISigma1 given ind : Induction (Sigma ZeroPlus)
+  have e by zero_plus_exists ISigma1 ind
+  shows forall x $ forall z $ imp (Zero z) (Plus z x x) by
+    forall x z assume zz : Zero z obtain w hw from e x {
+      eqp w x x z x x (zun w z (and_e1 hw) zz) (refl x) (refl x) (and_e2 hw) }

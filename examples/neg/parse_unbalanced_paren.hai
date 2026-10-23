@@ -1,0 +1,4 @@
+proof p
+  given A
+  given B
+  shows imp A B A by (imp1 A B

@@ -1,0 +1,1 @@
+failure: line 2: import cycle: import_self → import_self

@@ -1,0 +1,4 @@
+{- Every `have` and `shows` needs `by` and its evidence. -}
+proof p
+  given A
+  shows imp A A

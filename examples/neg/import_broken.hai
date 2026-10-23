@@ -1,0 +1,4 @@
+{- An error in an imported file names that file. -}
+import check_arity
+
+let A

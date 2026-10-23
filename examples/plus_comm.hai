@@ -1,0 +1,82 @@
+{- Commutativity of addition in Peano arithmetic, relationally. Zero, successor and
+   induction come from pa.hai. Each proof takes the induction axioms it uses as premises. -}
+
+import pa
+
+let Eq x y
+let Plus x y z      {- z is x + y -}
+
+{- PA's axioms for addition -}
+let PlusZero = forall x $ forall z $ imp (Zero z) (Plus x z x)          {- x + 0 = x -}
+let PlusSucc = forall x $ forall y $ forall s $ forall p $ forall q $
+                 imp (Succ y s) (Plus x y p) (Succ p q) (Plus x s q)   {- x + S y = S (x + y) -}
+
+{- what function symbols and built-in equality give for free -}
+let ZeroUn = forall a $ forall b $ imp (Zero a) (Zero b) (Eq a b)
+let SuccEx = forall x $ exists y $ Succ x y
+let SuccUn = forall x $ forall a $ forall b $ imp (Succ x a) (Succ x b) (Eq a b)
+let PlusEx = forall x $ forall y $ exists z $ Plus x y z
+let PlusUn = forall x $ forall y $ forall a $ forall b $ imp (Plus x y a) (Plus x y b) (Eq a b)
+let EqRefl = forall x $ Eq x x
+let EqSucc = forall x $ forall y $ forall x' $ forall y' $ imp (Eq x x') (Eq y y') (Succ x y) (Succ x' y')
+let EqPlus = forall x $ forall y $ forall z $ forall x' $ forall y' $ forall z' $
+               imp (Eq x x') (Eq y y') (Eq z z') (Plus x y z) (Plus x' y' z')
+
+{- PA's other axioms, as one set of premises. It asserts nothing until a proof says
+   `given all PA`. -}
+let PA =
+  given pz : PlusZero
+  given ps : PlusSucc
+  given zu : ZeroUn
+  given pu : PlusUn
+  given su : SuccUn
+  given pe : PlusEx
+  given se : SuccEx
+  given es : EqSucc
+  given ep : EqPlus
+  given refl : EqRefl
+
+{- 0 + x = x -}
+let ZeroLeft x = forall w $ imp (Zero w) (Plus w x x)
+
+proof zero_left given all PA given ind : Induction ZeroLeft
+  have base by forall x assume zx : Zero x forall w assume zw : Zero w {
+    ep w x w w x x (refl w) (refl x) (zu w x zw zx) (pz w x zx) }
+  have step by forall y x assume ih : ZeroLeft x assume sxy : Succ x y forall w assume zw : Zero w {
+    ps w x y x y sxy (ih w zw) sxy }
+  shows forall x $ ZeroLeft x by ind base step
+
+{- (x + 1) + y = (x + y) + 1 -}
+let SuccLeft y = forall x $ forall s $ forall p $ forall q $
+                   imp (Succ x s) (Plus x y p) (Succ p q) (Plus s y q)
+
+proof succ_left given all PA given ind : Induction SuccLeft
+  have rw by forall x y a b assume e : Eq a b { ep x y a x y b (refl x) (refl y) e }
+  have base by forall y assume zy : Zero y forall x s p q
+    assume sxs : Succ x s assume pxyp : Plus x y p assume spq : Succ p q {
+      have exp by pu x y x p (pz x y zy) pxyp
+      have esq by su p s q (es x s p s exp (refl s) sxs) spq
+      shows by rw s y s q esq (pz s y zy) }
+  have step by forall t y assume ih : SuccLeft y assume syt : Succ y t forall x s p' q'
+    assume sxs : Succ x s assume pxtp : Plus x t p' assume spq : Succ p' q'
+    obtain p pxyp from pe x y obtain r spr from se p {
+      have epr by pu x t p' r pxtp (ps x y t p r syt pxyp spr)
+      shows by ps s y t r q' syt (ih x s p r sxs pxyp spr) (es p' q' r q' epr (refl q') spq) }
+  shows forall y $ SuccLeft y by ind base step
+
+{- x + y = y + x -}
+let Comm x = forall y $ forall z $ imp (Plus x y z) (Plus y x z)
+
+proof plus_comm given all PA
+  given izl : Induction ZeroLeft
+  given isl : Induction SuccLeft
+  given ind : Induction Comm
+  have zl by zero_left PA izl
+  have sl by succ_left PA isl
+  have rw by forall x y a b assume e : Eq a b { ep x y a x y b (refl x) (refl y) e }
+  have base by forall x assume zx : Zero x forall y z assume pxyz : Plus x y z {
+    rw y x y z (pu x y y z (zl y x zx) pxyz) (pz y x zx) }
+  have step by forall t x assume ih : Comm x assume sxt : Succ x t forall y z assume ptyz : Plus t y z
+    obtain p pxyp from pe x y obtain q spq from se p {
+      rw y t q z (pu t y q z (sl y x t p q sxt pxyp spq) ptyz) (ps y x t p q sxt (ih y p pxyp) spq) }
+  shows forall x $ forall y $ forall z $ imp (Plus x y z) (Plus y x z) by ind base step

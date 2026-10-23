@@ -1,0 +1,7 @@
+{- Reported at the line where the comment opens. -}
+let A
+
+{- this one {- is closed -}
+   but this one is not
+
+proof p

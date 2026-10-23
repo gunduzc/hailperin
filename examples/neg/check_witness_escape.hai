@@ -1,0 +1,6 @@
+{- The witness of `obtain` only lives inside its block. -}
+proof p
+  given P x
+  given e : exists x $ P x
+  have h by obtain w pw from e { pw }
+  shows absurd by h

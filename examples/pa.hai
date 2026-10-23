@@ -1,0 +1,43 @@
+{- A proof by induction: everything is zero or a successor. (That's Q's third axiom, which
+   PA proves.) PA has an induction axiom for every predicate; a proof takes the ones it uses
+   as premises. -}
+
+let Zero x
+let Succ x y        {- y is the successor of x -}
+
+let Induction (P x) =
+  imp (forall x $ imp (Zero x) (P x))
+      (forall y $ forall x $ imp (P x) (Succ x y) (P y))
+      (forall x $ P x)
+
+{- Modus ponens under two foralls. -}
+proof mp2
+  given A x y
+  given B x y
+  given ab : forall y $ forall x $ imp (A x y) (B x y)
+  given a  : forall y $ forall x $ A x y
+  have d : forall y $ imp (forall x $ imp (A x y) (B x y)) (imp (forall x $ A x y) (forall x $ B x y)) by dist
+  shows forall y $ forall x $ B x y by dist (dist d ab) a
+
+{- Chaining under two foralls. -}
+proof trans2
+  given A x y
+  given B x y
+  given C x y
+  given ab : forall y $ forall x $ imp (A x y) (B x y)
+  given bc : forall y $ forall x $ imp (B x y) (C x y)
+  have k1 : forall y $ forall x $ imp (imp (B x y) (C x y)) (A x y) (B x y) (C x y) by imp1
+  have k2 : forall y $ forall x $ imp (imp (A x y) (B x y) (C x y)) (imp (A x y) (B x y)) (A x y) (C x y) by imp2
+  shows forall y $ forall x $ imp (A x y) (C x y) by mp2 (mp2 k2 (mp2 k1 bc)) ab
+
+let ZeroOrSucc x = or (Zero x) (exists p $ Succ p x)
+
+proof zero_or_succ
+  given ind : Induction ZeroOrSucc
+  have base : forall x $ imp (Zero x) (ZeroOrSucc x) by or_i1
+  have e1   : forall y $ forall x $ imp (Succ x y) (exists p $ Succ p y) by ex_i
+  have o2   : forall y $ forall x $ imp (exists p $ Succ p y) (ZeroOrSucc y) by or_i2
+  have t    : forall y $ forall x $ imp (Succ x y) (ZeroOrSucc y) by trans2 e1 o2
+  have k    : forall y $ forall x $ imp (imp (Succ x y) (ZeroOrSucc y)) (ZeroOrSucc x) (Succ x y) (ZeroOrSucc y) by imp1
+  have step : forall y $ forall x $ imp (ZeroOrSucc x) (Succ x y) (ZeroOrSucc y) by mp2 k t
+  shows forall x $ ZeroOrSucc x by ind base step

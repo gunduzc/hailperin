@@ -1,0 +1,2 @@
+{- A file can't import itself. -}
+import import_self

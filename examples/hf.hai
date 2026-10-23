@@ -1,0 +1,77 @@
+{- Hereditarily finite sets, intuitionistically: the small set theory SST of Shapiro, McCarty
+   and Rathjen (2024), which is definitionally equivalent to Heyting arithmetic. Every set is
+   built from the empty set by adding one element at a time, so sets can serve as codes.
+   Relational: membership is the only primitive, and equality is having the same elements. -}
+
+let In x y          {- x is an element of y -}
+
+let Iff A B = and (imp A B) (imp B A)
+let Eq x y = forall z $ Iff (In z x) (In z y)
+let Sub x y = forall z $ imp (In z x) (In z y)
+let Empty x = forall z $ not (In z x)
+let Adj x y z = forall u $ Iff (In u z) (or (In u x) (Eq u y))     {- z = x ∪ {y} -}
+
+{- The axioms. Extensionality is the definition of `Eq`, plus `EqIn`. -}
+let EqIn = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
+let EmptyEx = exists x $ Empty x
+let AdjEx = forall x $ forall y $ exists z $ Adj x y z
+
+{- Adduction: what holds of the empty set, and of x ∪ {y} whenever it holds of x and of a new
+   element y, holds of every set. An axiom for every predicate; a proof takes the instances it
+   uses. -}
+let Adduction (P x) =
+  imp (forall x $ imp (Empty x) (P x))
+      (forall x $ forall y $ forall z $ imp (not (In y x)) (P x) (P y) (Adj x y z) (P z))
+      (forall x $ P x)
+
+let HF =
+  given eqin : EqIn
+  given empty : EmptyEx
+  given adj : AdjEx
+
+proof eq_refl
+  shows forall x $ Eq x x by forall x z { and_i (assume h : In z x { h }) (assume h : In z x { h }) }
+
+{- No set is an element of a subset of itself (SMR, Proposition 2.2). -}
+let NoSelfSub x = forall z $ imp (Sub x z) (not (In z x))
+
+proof sub_not_in given all HF given add : Adduction NoSelfSub
+  have base by forall x assume ex : Empty x forall z assume s : Sub x z assume zx : In z x { ex z zx }
+  have step by forall x y w assume ny : not (In y x) assume hx : NoSelfSub x assume hy : NoSelfSub y
+    assume a : Adj x y w forall z assume s : Sub w z assume zw : In z w {
+      have sxz : Sub x z by forall u assume ux : In u x { s u (and_e2 (a u) (or_i1 (In u x) (Eq u y) ux)) }
+      have ezy : Eq z y by or_e (assume zx : In z x { efq (Eq z y) (hx z sxz zx) }) (assume e : Eq z y { e })
+                                (and_e1 (a z) zw)
+      have yz : In y z by s y (and_e2 (a y) (or_i2 (In y x) (Eq y y) (eq_refl y)))
+      shows by hy y (forall u assume h : In u y { h }) (and_e1 (ezy y) yz) }
+  shows forall x $ NoSelfSub x by add base step
+
+{- No set is an element of itself (SMR, Corollary 2.3). -}
+proof no_self_member given all HF given add : Adduction NoSelfSub
+  shows forall x $ not (In x x) by forall x { sub_not_in HF add x x (forall u assume h : In u x { h }) }
+
+{- ∈-induction from adduction (SMR, Theorem 6.11), for any predicate P. The induction runs on
+   "P holds of x's elements and of every set equal to x", so P needn't respect equality. -}
+let UpTo (P x) x = forall y $ imp (or (In y x) (Eq y x)) (P y)
+
+proof eps_induction given all HF given P x
+  given add : Adduction (UpTo P)
+  given step : forall x $ imp (forall y $ imp (In y x) (P y)) (P x)
+  have base by forall x assume ex : Empty x forall y assume h : or (In y x) (Eq y x) {
+    have none : forall z $ imp (In z y) (P z) by forall z assume zy : In z y {
+      or_e (assume yx : In y x { efq (P z) (ex y yx) })
+           (assume e : Eq y x { efq (P z) (ex z (and_e1 (e z) zy)) })
+           h }
+    shows by step y none }
+  have grow by forall x b w assume nb : not (In b x) assume hx : UpTo P x assume hb : UpTo P b
+    assume a : Adj x b w {
+      have below : forall y $ imp (In y w) (P y) by forall y assume yw : In y w {
+        or_e (assume yx : In y x { hx y (or_i1 (In y x) (Eq y x) yx) })
+             (assume e : Eq y b { hb y (or_i2 (In y b) (Eq y b) e) })
+             (and_e1 (a y) yw) }
+      shows forall y $ imp (or (In y w) (Eq y w)) (P y) by forall y assume h : or (In y w) (Eq y w) {
+        or_e (assume yw : In y w { below y yw })
+             (assume e : Eq y w { step y (forall z assume zy : In z y { below z (and_e1 (e z) zy) }) })
+             h } }
+  have every by add base grow
+  shows forall x $ P x by forall x { every x x (or_i2 (In x x) (Eq x x) (eq_refl x)) }

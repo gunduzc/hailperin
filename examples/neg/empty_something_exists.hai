@@ -1,0 +1,6 @@
+{- Standard logic proves that something exists; here it has to be a premise. -}
+let True = imp absurd absurd
+
+proof something
+  have t : True by efq absurd
+  shows exists x $ True by ex_i t
