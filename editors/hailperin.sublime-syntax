@@ -1,0 +1,146 @@
+%YAML 1.2
+---
+name: hailperin
+file_extensions: [hai]
+scope: source.hailperin
+
+variables:
+  name_char: '[\p{L}\p{N}_'']'
+  begin: '(?<!{{name_char}})'
+  end: '(?!{{name_char}})'
+  upper: '{{begin}}\p{Lu}{{name_char}}*'
+  name: '{{begin}}\p{L}{{name_char}}*'
+  keyword: '(?:import|let|proof|given|have|shows|by|assume|obtain|from|all)'
+  connective: '(?:and|or|imp|not|forall|exists)'
+  rule: '(?:mp|imp1|imp2|and_i|and_e1|and_e2|or_i1|or_i2|or_e|efq|dist|vac|inst|ex_i|ex_e)'
+  reserved: '{{begin}}(?:{{keyword}}|{{connective}}|absurd|{{rule}}){{end}}'
+
+contexts:
+  main:
+    - include: comments
+    - include: declarations
+    - include: binders
+    - include: words
+    - include: symbols
+
+  comments:
+    - match: '\{-'
+      scope: comment.block.hailperin punctuation.definition.comment.begin.hailperin
+      push: comment_body
+
+  comment_body:
+    - meta_scope: comment.block.hailperin
+    - match: '-\}'
+      scope: punctuation.definition.comment.end.hailperin
+      pop: true
+    - match: '\{-'
+      scope: punctuation.definition.comment.begin.hailperin
+      push: comment_body
+
+  # Color the name being introduced, not just the keyword.
+  declarations:
+    - match: '{{begin}}(import)\s+({{name}})'
+      captures:
+        1: keyword.control.import.hailperin
+        2: entity.name.namespace.hailperin
+    - match: '{{begin}}(let)\s+({{upper}})'
+      captures:
+        1: keyword.declaration.hailperin
+        2: entity.name.type.hailperin
+      push: let_params
+    - match: '{{begin}}(let)\s+({{name}})'
+      captures:
+        1: keyword.declaration.hailperin
+        2: entity.name.function.hailperin
+      push: let_params
+    - match: '{{begin}}(proof)\s+({{name}})'
+      captures:
+        1: keyword.declaration.hailperin
+        2: entity.name.function.hailperin
+    - match: '{{begin}}(given)\s+(all)\s+({{name}})'
+      captures:
+        1: keyword.other.hailperin
+        2: keyword.other.hailperin
+        3: entity.other.inherited-class.hailperin
+    - match: '{{begin}}(given)\s+(?!{{reserved}})({{name}})'
+      captures:
+        1: keyword.other.hailperin
+        2: variable.parameter.hailperin
+    - match: '{{begin}}(have)\s+(?!{{reserved}})({{name}})'
+      captures:
+        1: keyword.other.hailperin
+        2: variable.other.definition.hailperin
+
+  # `let Name x (P y) = …`: the parameters, up to `=` or the next keyword.
+  let_params:
+    - include: comments
+    - match: '(?==)'
+      pop: true
+    - match: '(?={{reserved}})'
+      pop: true
+    - match: '{{name}}'
+      scope: variable.parameter.hailperin
+    - match: '\('
+      scope: punctuation.section.parens.begin.hailperin
+    - match: '\)'
+      scope: punctuation.section.parens.end.hailperin
+    - match: '(?=\S)'
+      pop: true
+
+  # Bound names after `forall`, `exists`, `assume` and `obtain`. Individuals and evidence are
+  # lowercase; anything else ends the binders.
+  binders:
+    - match: '{{begin}}(forall|exists){{end}}'
+      scope: keyword.operator.word.quantifier.hailperin
+      push: bound_names
+    - match: '{{begin}}(assume|obtain){{end}}'
+      scope: keyword.other.hailperin
+      push: bound_names
+
+  bound_names:
+    - include: comments
+    - match: '(?={{reserved}})'
+      pop: true
+    - match: '{{begin}}\p{Ll}{{name_char}}*'
+      scope: variable.parameter.hailperin
+    - match: '(?=\S)'
+      pop: true
+
+  words:
+    - match: '{{begin}}(let|proof){{end}}'
+      scope: keyword.declaration.hailperin
+    - match: '{{begin}}{{keyword}}{{end}}'
+      scope: keyword.other.hailperin
+    - match: '{{begin}}{{connective}}{{end}}'
+      scope: keyword.operator.word.hailperin
+    - match: '{{begin}}absurd{{end}}'
+      scope: constant.language.hailperin
+    - match: '{{begin}}{{rule}}{{end}}'
+      scope: support.function.builtin.hailperin
+    - match: '{{upper}}'
+      scope: storage.type.hailperin
+    - match: '{{name}}'
+      scope: variable.other.hailperin
+
+  symbols:
+    - match: '\$'
+      scope: keyword.operator.application.hailperin
+    - match: '\|>'
+      scope: keyword.operator.pipe.hailperin
+    - match: '='
+      scope: keyword.operator.assignment.hailperin
+    - match: ':'
+      scope: punctuation.separator.type.hailperin
+    - match: '_(?!{{name_char}})'
+      scope: variable.language.hole.hailperin
+    - match: '\('
+      scope: punctuation.section.parens.begin.hailperin
+    - match: '\)'
+      scope: punctuation.section.parens.end.hailperin
+    - match: '\{'
+      scope: punctuation.section.braces.begin.hailperin
+    - match: '\}'
+      scope: punctuation.section.braces.end.hailperin
+    # What the lexer rejects: `.` (reserved), names starting with `_`, a stray `-}`.
+    - match: '_{{name_char}}+|\.|-\}|[^\s]'
+      scope: invalid.illegal.hailperin
