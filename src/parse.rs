@@ -7,11 +7,11 @@ pub enum Expr {
     Name(String, usize),
     Hole(usize),
     App(Box<Expr>, Vec<Expr>),
-    /// `forall x y { … }`: inside, the variables are arbitrary individuals.
+    /// `forall x y { ... }`: inside, the variables are arbitrary individuals.
     Forall { vars: Vec<String>, body: Block, line: usize },
-    /// `assume h : A { … }`: inside, `h` is evidence for `A`.
+    /// `assume h : A { ... }`: inside, `h` is evidence for `A`.
     Assume { name: String, hyp: Box<Expr>, body: Block, line: usize },
-    /// `obtain x h from e { … }`: `e` proves `exists x $ A x`; inside, `h` proves `A x`.
+    /// `obtain x h from e { ... }`: `e` proves `exists x $ A x`; inside, `h` proves `A x`.
     Obtain { var: String, name: String, from: Box<Expr>, body: Block, line: usize },
 }
 
@@ -61,34 +61,6 @@ impl Expr {
     }
 }
 
-/// Expressions print as written, with `$` before a final argument that is an application.
-impl std::fmt::Display for Expr {
-    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
-        let atom = |e: &Expr, f: &mut std::fmt::Formatter| match e {
-            Expr::Name(..) | Expr::Hole(_) => write!(f, "{e}"),
-            _ => write!(f, "({e})"),
-        };
-        match self {
-            Expr::Name(n, _) => write!(f, "{n}"),
-            Expr::Hole(_) => write!(f, "_"),
-            Expr::App(..) => {
-                let (head, args) = self.spine();
-                atom(head, f)?;
-                for (i, a) in args.iter().enumerate() {
-                    if i + 1 == args.len() && matches!(a, Expr::App(..)) {
-                        write!(f, " $ {a}")?;
-                    } else {
-                        write!(f, " ")?;
-                        atom(a, f)?;
-                    }
-                }
-                Ok(())
-            }
-            Expr::Forall { .. } | Expr::Assume { .. } | Expr::Obtain { .. } => write!(f, "{{ … }}"),
-        }
-    }
-}
-
 /// A parameter of a `let`: `P`, or `(P x y)` to give its arity.
 #[derive(Clone, Debug)]
 pub struct ParamDecl {
@@ -100,7 +72,7 @@ pub struct ParamDecl {
 #[derive(Clone, Debug)]
 pub enum Item {
     Let { name: String, params: Vec<ParamDecl>, body: Option<Expr>, line: usize },
-    /// `let NAME = given … given …`: a named set of premises.
+    /// `let NAME = given ... given ...`: a named set of hypotheses.
     Set { name: String, parts: Vec<Part>, line: usize },
     Proof { name: String, parts: Vec<Part>, line: usize },
 }
@@ -108,9 +80,9 @@ pub enum Item {
 #[derive(Clone, Debug)]
 pub enum Part {
     Param { name: String, arity: usize, line: usize },
-    /// `given all SET`: every `given` of a set of premises.
+    /// `given all SET`: every `given` of a set of hypotheses.
     All { set: String, line: usize },
-    Premise { name: String, stmt: Expr, line: usize },
+    Hyp { name: String, stmt: Expr, line: usize },
     Have(Step),
     Shows { stmt: Expr, by: Expr, line: usize },
 }
@@ -162,8 +134,8 @@ impl Parser<'_> {
         Error::new(self.line(), msg)
     }
 
-    fn eat(&mut self, s: Sym) -> bool {
-        if self.peek() == Some(&Tok::Sym(s)) {
+    fn eat(&mut self, t: impl Into<Tok>) -> bool {
+        if self.peek() == Some(&t.into()) {
             self.pos += 1;
             true
         } else {
@@ -171,21 +143,22 @@ impl Parser<'_> {
         }
     }
 
-    fn expect(&mut self, s: Sym, what: &str) -> Result<(), Error> {
-        if self.eat(s) {
+    fn expect(&mut self, t: impl Into<Tok>, what: &str) -> Result<(), Error> {
+        if self.eat(t) {
             Ok(())
         } else {
             Err(self.err(format!("expected {what}")))
         }
     }
 
-    fn expect_kw(&mut self, k: Kw, what: &str) -> Result<(), Error> {
-        if self.peek() == Some(&Tok::Kw(k)) {
+    /// Skips the names ahead and counts them: a parameter's arity.
+    fn count_names(&mut self) -> usize {
+        let mut n = 0;
+        while matches!(self.peek(), Some(Tok::Name(_))) {
             self.pos += 1;
-            Ok(())
-        } else {
-            Err(self.err(format!("expected {what}")))
+            n += 1;
         }
+        n
     }
 
     fn name(&mut self) -> Result<String, Error> {
@@ -205,13 +178,13 @@ impl Parser<'_> {
             Some(Tok::Kw(Kw::Let)) => {
                 self.pos += 1;
                 let name = self.name()?;
-                let params = self.params(|t| t == &Tok::Sym(Sym::Equals))?;
+                let params = self.params()?;
                 if !self.eat(Sym::Equals) {
                     return Ok(Item::Let { name, params, body: None, line });
                 }
                 if self.peek() == Some(&Tok::Kw(Kw::Given)) {
                     if !params.is_empty() {
-                        return Err(Error::new(line, "a set of premises takes no parameters"));
+                        return Err(Error::new(line, "a set of hypotheses takes no parameters"));
                     }
                     let mut parts = Vec::new();
                     while self.peek() == Some(&Tok::Kw(Kw::Given)) {
@@ -235,22 +208,17 @@ impl Parser<'_> {
         }
     }
 
-    /// Parameters up to a token where `stop` holds or that can't start a parameter.
-    fn params(&mut self, stop: impl Fn(&Tok) -> bool) -> Result<Vec<ParamDecl>, Error> {
+    /// Parameters, up to a token that can't start one.
+    fn params(&mut self) -> Result<Vec<ParamDecl>, Error> {
         let mut params = Vec::new();
         loop {
             let line = self.line();
             match self.peek() {
-                Some(t) if stop(t) => break,
                 Some(Tok::Name(_)) => params.push(ParamDecl { name: self.name()?, arity: None, line }),
                 Some(Tok::Sym(Sym::LParen)) => {
                     self.pos += 1;
                     let name = self.name()?;
-                    let mut arity = 0;
-                    while matches!(self.peek(), Some(Tok::Name(_))) {
-                        self.pos += 1;
-                        arity += 1;
-                    }
+                    let arity = self.count_names();
                     self.expect(Sym::RParen, "`)`")?;
                     params.push(ParamDecl { name, arity: Some(arity), line });
                 }
@@ -265,26 +233,20 @@ impl Parser<'_> {
         match self.peek() {
             Some(Tok::Kw(Kw::Given)) => {
                 self.pos += 1;
-                if self.peek() == Some(&Tok::Kw(Kw::All)) {
-                    self.pos += 1;
+                if self.eat(Kw::All) {
                     return Ok(Part::All { set: self.name()?, line });
                 }
                 let name = self.name()?;
                 if self.eat(Sym::Colon) {
-                    return Ok(Part::Premise { name, stmt: self.expr()?, line });
+                    return Ok(Part::Hyp { name, stmt: self.expr()?, line });
                 }
-                let mut arity = 0;
-                while matches!(self.peek(), Some(Tok::Name(_))) {
-                    self.pos += 1;
-                    arity += 1;
-                }
-                Ok(Part::Param { name, arity, line })
+                Ok(Part::Param { name, arity: self.count_names(), line })
             }
             Some(Tok::Kw(Kw::Have)) => Ok(Part::Have(self.step()?)),
             Some(Tok::Kw(Kw::Shows)) => {
                 self.pos += 1;
                 let stmt = self.expr()?;
-                self.expect_kw(Kw::By, "`by`")?;
+                self.expect(Kw::By, "`by`")?;
                 Ok(Part::Shows { stmt, by: self.expr()?, line })
             }
             _ => Err(self.err("expected `given`, `have` or `shows`")),
@@ -293,10 +255,10 @@ impl Parser<'_> {
 
     fn step(&mut self) -> Result<Step, Error> {
         let line = self.line();
-        self.expect_kw(Kw::Have, "`have`")?;
+        self.expect(Kw::Have, "`have`")?;
         let name = self.name()?;
         let stmt = if self.eat(Sym::Colon) { Some(self.expr()?) } else { None };
-        self.expect_kw(Kw::By, "`by`")?;
+        self.expect(Kw::By, "`by`")?;
         Ok(Step { name, stmt, by: self.expr()?, line })
     }
 
@@ -307,21 +269,20 @@ impl Parser<'_> {
             steps.push(self.step()?);
         }
         let mut stmt = None;
-        if self.peek() == Some(&Tok::Kw(Kw::Shows)) {
-            self.pos += 1;
+        if self.eat(Kw::Shows) {
             if self.peek() != Some(&Tok::Kw(Kw::By)) {
                 stmt = Some(Box::new(self.expr()?));
             }
-            self.expect_kw(Kw::By, "`by`")?;
+            self.expect(Kw::By, "`by`")?;
         } else if !steps.is_empty() {
-            return Err(self.err("after `have` steps, a block ends with `shows … by …`"));
+            return Err(self.err("after `have` steps, a block ends with `shows ... by ...`"));
         }
         let result = Box::new(self.expr()?);
         self.expect(Sym::RBrace, "`}`")?;
         Ok(Block { steps, stmt, result })
     }
 
-    /// `forall x y` followed by `{` or another binder starts a block; `forall x $ …` is a
+    /// `forall x y` followed by `{` or another binder starts a block; `forall x $ ...` is a
     /// formula.
     fn at_forall_binder(&self) -> bool {
         let is_forall = |t: Option<&Token>| matches!(t.map(|t| &t.tok), Some(Tok::Name(n)) if n == "forall");
@@ -344,8 +305,8 @@ impl Parser<'_> {
         self.at_forall_binder() || matches!(self.peek(), Some(Tok::Kw(Kw::Assume | Kw::Obtain)))
     }
 
-    /// One or more binders, then one block: `forall x assume h : A forall y { … }` is the
-    /// same as `forall x { assume h : A { forall y { … } } }`.
+    /// One or more binders, then one block: `forall x assume h : A forall y { ... }` is the
+    /// same as `forall x { assume h : A { forall y { ... } } }`.
     fn binder_chain(&mut self) -> Result<Expr, Error> {
         let mut binders = Vec::new();
         while self.at_binder() {
@@ -362,7 +323,7 @@ impl Parser<'_> {
                     self.pos += 1;
                     let var = self.name()?;
                     let name = self.name()?;
-                    self.expect_kw(Kw::From, "`from`")?;
+                    self.expect(Kw::From, "`from`")?;
                     let from = self.expr()?;
                     binders.push((line, Binder::Obtain(var, name, from)));
                 }
@@ -395,7 +356,8 @@ impl Parser<'_> {
         while self.eat(Sym::Pipe) {
             let line = self.line();
             let rhs = self.dollar()?;
-            let (plugged, holes) = plug(rhs, &e);
+            let mut holes = 0;
+            let plugged = plug(rhs, &e, &mut holes);
             if holes != 1 {
                 return Err(Error::new(line, format!("the right side of `|>` needs exactly one `_`, found {holes}")));
             }
@@ -456,61 +418,35 @@ impl Parser<'_> {
     }
 }
 
-/// Replaces every hole in `e` with `with`, returning the result and the number of holes.
-fn plug(e: Expr, with: &Expr) -> (Expr, usize) {
-    let block = |b: Block, n: &mut usize| {
-        let steps = b
+/// Replaces every hole in `e` with `with`, counting them in `n`.
+fn plug(e: Expr, with: &Expr, n: &mut usize) -> Expr {
+    let block = |b: Block, n: &mut usize| Block {
+        steps: b
             .steps
             .into_iter()
-            .map(|s| {
-                let stmt = s.stmt.map(|x| {
-                    let (x, k) = plug(x, with);
-                    *n += k;
-                    x
-                });
-                let (by, k) = plug(s.by, with);
-                *n += k;
-                Step { stmt, by, ..s }
-            })
-            .collect();
-        let stmt = b.stmt.map(|x| {
-            let (x, k) = plug(*x, with);
-            *n += k;
-            Box::new(x)
-        });
-        let (result, k) = plug(*b.result, with);
-        *n += k;
-        Block { steps, stmt, result: Box::new(result) }
+            .map(|s| Step { stmt: s.stmt.map(|x| plug(x, with, n)), by: plug(s.by, with, n), ..s })
+            .collect(),
+        stmt: b.stmt.map(|x| Box::new(plug(*x, with, n))),
+        result: Box::new(plug(*b.result, with, n)),
     };
     match e {
-        Expr::Forall { vars, body, line } => {
-            let mut n = 0;
-            let body = block(body, &mut n);
-            (Expr::Forall { vars, body, line }, n)
-        }
+        Expr::Forall { vars, body, line } => Expr::Forall { vars, body: block(body, n), line },
         Expr::Assume { name, hyp, body, line } => {
-            let (hyp, mut n) = plug(*hyp, with);
-            let body = block(body, &mut n);
-            (Expr::Assume { name, hyp: Box::new(hyp), body, line }, n)
+            let hyp = Box::new(plug(*hyp, with, n));
+            Expr::Assume { name, hyp, body: block(body, n), line }
         }
         Expr::Obtain { var, name, from, body, line } => {
-            let (from, mut n) = plug(*from, with);
-            let body = block(body, &mut n);
-            (Expr::Obtain { var, name, from: Box::new(from), body, line }, n)
+            let from = Box::new(plug(*from, with, n));
+            Expr::Obtain { var, name, from, body: block(body, n), line }
         }
-        Expr::Hole(_) => (with.clone(), 1),
-        Expr::Name(..) => (e, 0),
+        Expr::Hole(_) => {
+            *n += 1;
+            with.clone()
+        }
+        Expr::Name(..) => e,
         Expr::App(h, args) => {
-            let (h, mut n) = plug(*h, with);
-            let args = args
-                .into_iter()
-                .map(|a| {
-                    let (a, k) = plug(a, with);
-                    n += k;
-                    a
-                })
-                .collect();
-            (Expr::App(Box::new(h), args), n)
+            let h = Box::new(plug(*h, with, n));
+            Expr::App(h, args.into_iter().map(|a| plug(a, with, n)).collect())
         }
     }
 }
@@ -532,8 +468,12 @@ mod tests {
         }
     }
 
+    fn parsed(src: &str) -> Vec<Item> {
+        parse(&lex(src).unwrap()).unwrap().items
+    }
+
     fn expr(src: &str) -> String {
-        let items = parse(&lex(&format!("let X = {src}")).unwrap()).unwrap().items;
+        let items = parsed(&format!("let X = {src}"));
         let Item::Let { body: Some(b), .. } = &items[0] else { panic!() };
         show(b)
     }
@@ -555,13 +495,13 @@ mod tests {
     fn items_and_parts() {
         let src = "let Succ x y\nlet Ind (P x) = P\nproof p given A given P x given h : A \
                    have k : A by h shows A by k";
-        let items = parse(&lex(src).unwrap()).unwrap().items;
+        let items = parsed(src);
         assert!(matches!(&items[0], Item::Let { params, body: None, .. } if params.len() == 2));
         assert!(matches!(&items[1], Item::Let { params, .. } if params[0].arity == Some(1)));
         let Item::Proof { parts, .. } = &items[2] else { panic!() };
         assert!(matches!(&parts[0], Part::Param { arity: 0, .. }));
         assert!(matches!(&parts[1], Part::Param { arity: 1, .. }));
-        assert!(matches!(&parts[2], Part::Premise { .. }));
+        assert!(matches!(&parts[2], Part::Hyp { .. }));
         assert!(matches!(&parts[3], Part::Have(Step { stmt: Some(_), .. })));
         assert!(matches!(&parts[4], Part::Shows { .. }));
     }
@@ -570,7 +510,7 @@ mod tests {
     fn blocks() {
         let src = "proof p shows A by forall x y { have a by h x shows by trans a b } \
                    proof q shows A by assume h : A { obtain x k from e { k } }";
-        let items = parse(&lex(src).unwrap()).unwrap().items;
+        let items = parsed(src);
         let Item::Proof { parts, .. } = &items[0] else { panic!() };
         let Part::Shows { by: Expr::Forall { vars, body, .. }, .. } = &parts[0] else { panic!() };
         assert_eq!(vars, &["x", "y"]);
@@ -578,17 +518,17 @@ mod tests {
         let Item::Proof { parts, .. } = &items[1] else { panic!() };
         let Part::Shows { by: Expr::Assume { body, .. }, .. } = &parts[0] else { panic!() };
         assert!(matches!(&*body.result, Expr::Obtain { var, .. } if var == "x"));
-        // `forall x $ …` is still a formula.
+        // `forall x $ ...` is still a formula.
         assert_eq!(expr("forall x $ A"), "(forall x A)");
         // A chain of binders is the same as nested blocks.
-        let chained = parse(&lex("proof p shows A by forall x assume h : P x forall y z { h }").unwrap()).unwrap().items;
-        let nested = parse(&lex("proof p shows A by forall x { assume h : P x { forall y z { h } } }").unwrap()).unwrap().items;
+        let chained = parsed("proof p shows A by forall x assume h : P x forall y z { h }");
+        let nested = parsed("proof p shows A by forall x { assume h : P x { forall y z { h } } }");
         assert_eq!(format!("{chained:?}"), format!("{nested:?}"));
     }
 
     #[test]
-    fn premise_sets() {
-        let items = parse(&lex("let S = given A given a : A let T = given all S proof p given all T shows A by a").unwrap()).unwrap().items;
+    fn hypothesis_sets() {
+        let items = parsed("let S = given A given a : A let T = given all S proof p given all T shows A by a");
         assert!(matches!(&items[0], Item::Set { parts, .. } if parts.len() == 2));
         assert!(matches!(&items[1], Item::Set { parts, .. } if matches!(&parts[0], Part::All { set, .. } if set == "S")));
         assert!(matches!(&items[2], Item::Proof { parts, .. } if matches!(&parts[0], Part::All { .. })));
@@ -605,8 +545,8 @@ mod tests {
 
     #[test]
     fn whitespace_independent() {
-        let a = parse(&lex("proof p given A shows A by x").unwrap()).unwrap().items;
-        let b = parse(&lex("proof p\n  given A\n  shows A\n    by x").unwrap()).unwrap().items;
+        let a = parsed("proof p given A shows A by x");
+        let b = parsed("proof p\n  given A\n  shows A\n    by x");
         assert_eq!(format!("{a:?}").replace(char::is_numeric, ""), format!("{b:?}").replace(char::is_numeric, ""));
     }
 }

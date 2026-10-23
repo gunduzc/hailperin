@@ -2,7 +2,6 @@ pub mod check;
 pub mod kernel;
 pub mod lexer;
 pub mod parse;
-pub mod syntax;
 
 use std::collections::BTreeSet;
 use std::fmt;
@@ -33,7 +32,7 @@ impl fmt::Display for Error {
 
 /// What `verify_in` reports for each item of the checked file, as soon as it is checked: the
 /// item, and the proof's name and conclusion if it is a proof.
-pub type Report<'a> = &'a mut dyn FnMut(&parse::Item, Option<&(String, syntax::Formula)>);
+pub type Report<'a> = &'a mut dyn FnMut(&parse::Item, Option<&(String, kernel::formula::Formula)>);
 
 /// Checks `src`, whose imports are found in `dir`. `path` is the file's own path, if it has
 /// one, so that importing it back is caught as a cycle.
@@ -48,7 +47,7 @@ pub fn verify_in(src: &str, dir: &Path, path: Option<&Path>, report: Report) -> 
 }
 
 /// Checks a whole file, returning each proof's name and conclusion in order.
-pub fn verify(src: &str) -> Result<Vec<(String, syntax::Formula)>, Error> {
+pub fn verify(src: &str) -> Result<Vec<(String, kernel::formula::Formula)>, Error> {
     let mut proved = Vec::new();
     verify_in(src, Path::new("."), None, &mut |_, p| proved.extend(p.cloned()))?;
     Ok(proved)
@@ -83,15 +82,16 @@ impl Loader {
         if let Some(i) = self.open.iter().position(|(p, _)| *p == canon) {
             let mut cycle: Vec<&str> = self.open[i..].iter().map(|(_, n)| n.as_str()).collect();
             cycle.push(name);
-            return Err(err(format!("import cycle: {}", cycle.join(" → "))));
+            return Err(err(format!("import cycle: {}", cycle.join(" -> "))));
         }
         if self.done.contains(&canon) {
             return Ok(());
         }
         let src = std::fs::read_to_string(&canon).map_err(|e| err(format!("can't import `{name}`: {e}")))?;
         self.open.push((canon.clone(), name.clone()));
-        // Every import is next to the file importing it, so the file name alone is unambiguous.
-        self.source(&src, dir, &mut |_, _| {}).map_err(|mut e| {
+        // The import's own imports are next to it, wherever a symlink pointed to it from.
+        let here = canon.parent().unwrap_or(dir);
+        self.source(&src, here, &mut |_, _| {}).map_err(|mut e| {
             e.file.get_or_insert_with(|| format!("{name}.hai"));
             e
         })?;

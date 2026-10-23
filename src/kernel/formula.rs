@@ -18,8 +18,8 @@ pub enum Formula {
 /// the caller's; whoever instantiates with the template closes over them.
 #[derive(Clone, Debug)]
 pub struct Template {
-    pub holes: Vec<String>,
-    pub body: Formula,
+    holes: Vec<String>,
+    body: Formula,
 }
 
 pub fn imp(a: Formula, b: Formula) -> Formula {
@@ -79,11 +79,11 @@ impl Formula {
         }
     }
 
-    /// The predicate names the formula mentions.
-    pub fn preds(&self) -> BTreeSet<String> {
+    /// Each predicate the formula mentions, with the number of arguments it's given.
+    pub fn preds(&self) -> BTreeSet<(String, usize)> {
         match self {
             Formula::Absurd => BTreeSet::new(),
-            Formula::Atom(p, _) => BTreeSet::from([p.clone()]),
+            Formula::Atom(p, args) => BTreeSet::from([(p.clone(), args.len())]),
             Formula::And(a, b) | Formula::Or(a, b) | Formula::Imp(a, b) => &a.preds() | &b.preds(),
             Formula::All(_, a) | Formula::Ex(_, a) => a.preds(),
         }
@@ -108,9 +108,13 @@ impl Formula {
             Formula::Or(a, b) => or(a.subst_vars(s), b.subst_vars(s)),
             Formula::Imp(a, b) => imp(a.subst_vars(s), b.subst_vars(s)),
             Formula::All(x, a) | Formula::Ex(x, a) => {
-                let mut s: Vec<(String, String)> = s.iter().filter(|(v, _)| v != x && a.is_free(v)).cloned().collect();
+                let fv = a.free_vars();
+                let mut s: Vec<(String, String)> = s.iter().filter(|(v, _)| v != x && fv.contains(v)).cloned().collect();
+                if s.is_empty() {
+                    return self.clone();
+                }
                 let (x, a) = if s.iter().any(|(_, y)| y == x) {
-                    let mut avoid = a.free_vars();
+                    let mut avoid = fv;
                     avoid.extend(s.iter().map(|(_, y)| y.clone()));
                     let z = fresh(x, &avoid);
                     s.push((x.clone(), z.clone()));
@@ -134,10 +138,7 @@ impl Formula {
     /// Simultaneously replaces predicates by templates. Binders that would capture a
     /// template's free variables are renamed. Fails on an arity mismatch.
     pub fn subst_preds(&self, map: &[(String, Template)]) -> Result<Formula, String> {
-        let mut extras = BTreeSet::new();
-        for (_, t) in map {
-            extras.extend(t.extras());
-        }
+        let extras = map.iter().flat_map(|(_, t)| t.extras()).collect();
         self.subst_preds_in(map, &extras)
     }
 
@@ -150,8 +151,7 @@ impl Formula {
                     if t.holes.len() != args.len() {
                         return Err(format!("`{p}` takes {} argument(s), got {}", t.holes.len(), args.len()));
                     }
-                    let s: Vec<(String, String)> = t.holes.iter().cloned().zip(args.iter().cloned()).collect();
-                    t.body.subst_vars(&s)
+                    t.apply(args)
                 }
             },
             Formula::And(a, b) => and(a.subst_preds_in(map, extras)?, b.subst_preds_in(map, extras)?),
@@ -178,6 +178,34 @@ impl Formula {
 }
 
 impl Template {
+    /// A template's holes must be distinct.
+    pub fn new(holes: Vec<String>, body: Formula) -> Result<Template, String> {
+        let distinct: BTreeSet<&String> = holes.iter().collect();
+        if distinct.len() != holes.len() {
+            return Err("a template's holes must be distinct".into());
+        }
+        Ok(Template { holes, body })
+    }
+
+    /// A statement: a template with no holes.
+    pub fn statement(body: Formula) -> Template {
+        Template { holes: Vec::new(), body }
+    }
+
+    pub fn holes(&self) -> &[String] {
+        &self.holes
+    }
+
+    pub fn body(&self) -> &Formula {
+        &self.body
+    }
+
+    /// The body with `args` for the holes.
+    pub fn apply(&self, args: &[String]) -> Formula {
+        let s: Vec<(String, String)> = self.holes.iter().cloned().zip(args.iter().cloned()).collect();
+        self.body.subst_vars(&s)
+    }
+
     /// Free variables other than the holes.
     pub fn extras(&self) -> BTreeSet<String> {
         let mut fv = self.body.free_vars();
@@ -297,16 +325,21 @@ mod tests {
     #[test]
     fn subst_preds_avoids_capture() {
         // forall y $ P y, with P := (R y _), must not let the template's y be captured.
-        let t = Template { holes: vec!["_h0".into()], body: atom("R", &["y", "_h0"]) };
+        let t = Template::new(vec!["_h0".into()], atom("R", &["y", "_h0"])).unwrap();
         let f = all("y", atom("P", &["y"])).subst_preds(&[("P".into(), t)]).unwrap();
         assert_eq!(f.to_string(), "forall y' $ R y y'");
     }
 
     #[test]
     fn subst_preds_checks_arity() {
-        let t = Template { holes: vec![], body: atom("Q", &[]) };
+        let t = Template::statement(atom("Q", &[]));
         let e = atom("P", &["x"]).subst_preds(&[("P".into(), t)]).unwrap_err();
         assert_eq!(e, "`P` takes 0 argument(s), got 1");
+    }
+
+    #[test]
+    fn template_holes_are_distinct() {
+        assert!(Template::new(vec!["_h0".into(), "_h0".into()], atom("R", &["_h0", "_h0"])).is_err());
     }
 
     #[test]

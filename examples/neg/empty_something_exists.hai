@@ -1,4 +1,4 @@
-{- Standard logic proves that something exists; here it has to be a premise. -}
+{- Standard logic proves that something exists; here it has to be a hypothesis. -}
 let True = imp absurd absurd
 
 proof something

@@ -1,10 +1,13 @@
-//! The trusted kernel. `Thm` and `Lemma` can only be made here.
+//! The trusted kernel: everything under `src/kernel/` is trusted, and nothing else is.
+//! `Thm` and `Lemma` can only be made here; `formula` is the formula code their checks rely on.
 //!
-//! A `Thm` is a closed formula together with the premises it rests on. The only rule is
+//! A `Thm` is a closed formula together with the hypotheses it rests on. The only rule is
 //! modus ponens; axioms are closures of the instances built by `axiom`. A `Lemma` is a
 //! checked proof, used afterwards by uniform substitution into its signature.
 
-use crate::syntax::{all, and, ex, imp, or, Formula, Template};
+pub mod formula;
+
+use formula::{all, and, ex, imp, or, Formula, Template};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Debug)]
@@ -13,11 +16,11 @@ pub struct Thm {
     hyps: Vec<Formula>,
 }
 
-/// A checked proof: for any templates for its parameters, its premises give its conclusion.
+/// A checked proof: for any templates for its parameters, its hypotheses give its conclusion.
 #[derive(Clone, Debug)]
 pub struct Lemma {
     params: Vec<(String, usize)>,
-    premises: Vec<Formula>,
+    hyps: Vec<Formula>,
     concl: Formula,
 }
 
@@ -51,10 +54,6 @@ impl Thm {
     pub fn concl(&self) -> &Formula {
         &self.concl
     }
-
-    pub fn hyps(&self) -> &[Formula] {
-        &self.hyps
-    }
 }
 
 fn bind(params: &[(String, usize)], templates: &[Template]) -> Result<Vec<(String, Template)>, String> {
@@ -62,43 +61,37 @@ fn bind(params: &[(String, usize)], templates: &[Template]) -> Result<Vec<(Strin
         return Err(format!("expected {} predicate argument(s), got {}", params.len(), templates.len()));
     }
     for ((p, n), t) in params.iter().zip(templates) {
-        if t.holes.len() != *n {
-            return Err(format!("`{p}` takes {n} argument(s), but the template takes {}", t.holes.len()));
+        if t.holes().len() != *n {
+            return Err(format!("`{p}` takes {n} argument(s), but the template takes {}", t.holes().len()));
         }
     }
     Ok(params.iter().map(|(p, _)| p.clone()).zip(templates.iter().cloned()).collect())
 }
 
-/// The prefix an instance is closed over: the caller's, which must cover the templates'
-/// free variables, or else those variables in order.
-fn choose_prefix(templates: &[Template], prefix: Option<&[String]>) -> Result<Vec<String>, String> {
-    let mut extras = BTreeSet::new();
-    for t in templates {
-        extras.extend(t.extras());
+/// The prefix an instance is closed over binds each variable once, including every free
+/// variable of the templates.
+fn check_prefix(templates: &[Template], prefix: &[String]) -> Result<(), String> {
+    if let Some(x) = templates.iter().flat_map(Template::extras).find(|x| !prefix.contains(x)) {
+        return Err(format!("`{x}` is free in an argument but not bound by the prefix"));
     }
-    match prefix {
-        None => Ok(extras.into_iter().collect()),
-        Some(p) => {
-            if let Some(x) = extras.iter().find(|x| !p.contains(x)) {
-                return Err(format!("`{x}` is free in an argument but not bound by the prefix"));
-            }
-            let distinct: BTreeSet<&String> = p.iter().collect();
-            if distinct.len() != p.len() {
-                return Err("the prefix binds a variable twice".into());
-            }
-            Ok(p.to_vec())
-        }
+    if !distinct(prefix) {
+        return Err("the prefix binds a variable twice".into());
     }
+    Ok(())
 }
 
-fn union(a: &[Formula], b: &[Formula]) -> Vec<Formula> {
-    let mut out = a.to_vec();
-    for h in b {
-        if !out.contains(h) {
-            out.push(h.clone());
+fn distinct<T: Ord>(xs: impl IntoIterator<Item = T>) -> bool {
+    let mut seen = BTreeSet::new();
+    xs.into_iter().all(|x| seen.insert(x))
+}
+
+/// Adds the hypotheses in `more` that `hyps` doesn't have yet.
+fn add_hyps(hyps: &mut Vec<Formula>, more: &[Formula]) {
+    for h in more {
+        if !hyps.contains(h) {
+            hyps.push(h.clone());
         }
     }
-    out
 }
 
 /// The closure of an axiom instance under `prefix`, outermost first.
@@ -162,60 +155,73 @@ pub fn mp(a: &Thm, ab: &Thm) -> Result<Thm, String> {
     if **p != a.concl {
         return Err(format!("{} needs {p}, but got {}", ab.concl, a.concl));
     }
-    Ok(Thm { concl: (**q).clone(), hyps: union(&a.hyps, &ab.hyps) })
+    let mut hyps = a.hyps.clone();
+    add_hyps(&mut hyps, &ab.hyps);
+    Ok(Thm { concl: (**q).clone(), hyps })
 }
 
-/// A premise of the proof being checked.
+/// A hypothesis of the proof being checked.
 pub fn assume(f: &Formula) -> Result<Thm, String> {
-    closed(f, "this premise")?;
+    closed(f, "this hypothesis")?;
     Ok(Thm { concl: f.clone(), hyps: vec![f.clone()] })
 }
 
 impl Lemma {
-    /// Checks that `body` proves `concl` from `premises` only.
-    pub fn new(params: Vec<(String, usize)>, premises: Vec<Formula>, concl: Formula, body: &Thm) -> Result<Lemma, String> {
-        closed(&concl, "the conclusion")?;
+    /// Checks that `body` proves `concl` from its hypotheses `hyps` only, that the parameters are
+    /// distinct and used with their arities, and that everything is closed.
+    pub fn new(params: Vec<(String, usize)>, hyps: Vec<Formula>, concl: Formula, body: &Thm) -> Result<Lemma, String> {
+        if !distinct(params.iter().map(|(p, _)| p)) {
+            return Err("a parameter appears twice".into());
+        }
+        for f in hyps.iter().chain([&concl]) {
+            closed(f, "a hypothesis or the conclusion")?;
+            for (p, k) in f.preds() {
+                if let Some((_, n)) = params.iter().find(|(q, n)| *q == p && n != &k) {
+                    return Err(format!("`{p}` takes {n} argument(s), but is given {k}"));
+                }
+            }
+        }
         if body.concl != concl {
             return Err(format!("the proof gives {}, not {concl}", body.concl));
         }
         for h in &body.hyps {
-            if !premises.contains(h) {
-                return Err("the proof uses an assumption that isn't one of its premises".into());
+            if !hyps.contains(h) {
+                return Err("the proof uses an assumption that isn't one of its hypotheses".into());
             }
         }
-        Ok(Lemma { params, premises, concl })
+        Ok(Lemma { params, hyps, concl })
     }
 
     pub fn params(&self) -> &[(String, usize)] {
         &self.params
     }
 
-    pub fn premises(&self) -> &[Formula] {
-        &self.premises
+    pub fn hyps(&self) -> &[Formula] {
+        &self.hyps
     }
 
     pub fn concl(&self) -> &Formula {
         &self.concl
     }
 
-    /// Uniform substitution: the instance of the conclusion, given matching premises.
-    /// Everything is closed over `prefix` (by default, the templates' free variables), which
+    /// Uniform substitution: the instance of the conclusion, given matching hypotheses.
+    /// Everything is closed over `prefix`, which binds the templates' free variables and
     /// may bind more variables than occur, in any order.
-    pub fn apply(&self, templates: &[Template], prefix: Option<&[String]>, args: &[&Thm]) -> Result<Thm, String> {
+    pub fn apply(&self, templates: &[Template], prefix: &[String], args: &[&Thm]) -> Result<Thm, String> {
         let map = bind(&self.params, templates)?;
-        let prefix = choose_prefix(templates, prefix)?;
-        if args.len() != self.premises.len() {
-            return Err(format!("expected {} piece(s) of evidence, got {}", self.premises.len(), args.len()));
+        check_prefix(templates, prefix)?;
+        if args.len() != self.hyps.len() {
+            return Err(format!("expected {} piece(s) of evidence, got {}", self.hyps.len(), args.len()));
         }
         let mut hyps = Vec::new();
-        for (i, (premise, t)) in self.premises.iter().zip(args).enumerate() {
-            let want = premise.subst_preds(&map)?.close(&prefix);
+        for (i, (hyp, t)) in self.hyps.iter().zip(args).enumerate() {
+            let want = hyp.subst_preds(&map)?.close(prefix);
             if *t.concl() != want {
                 return Err(format!("evidence {} should prove {want}, but proves {}", i + 1, t.concl()));
             }
-            hyps = union(&hyps, &t.hyps);
+            add_hyps(&mut hyps, &t.hyps);
         }
-        let concl = self.concl.subst_preds(&map)?.close(&prefix);
+        let concl = self.concl.subst_preds(&map)?.close(prefix);
         Ok(Thm { concl, hyps })
     }
 }
@@ -276,14 +282,30 @@ mod tests {
     }
 
     #[test]
+    fn lemma_checks_its_signature() {
+        let a = atom("A", &[]);
+        let th = assume(&a).unwrap();
+        let twice = vec![("A".into(), 0), ("A".into(), 0)];
+        assert_eq!(Lemma::new(twice, vec![a.clone()], a.clone(), &th).unwrap_err(), "a parameter appears twice");
+        let e = Lemma::new(vec![("A".into(), 1)], vec![a.clone()], a.clone(), &th).unwrap_err();
+        assert_eq!(e, "`A` takes 1 argument(s), but is given 0");
+        let open = atom("P", &["w"]);
+        let e = Lemma::new(vec![], vec![a.clone(), open], a, &th).unwrap_err();
+        assert_eq!(e, "a hypothesis or the conclusion has `w` free: formulas must be closed");
+    }
+
+    #[test]
     fn lemma_apply_substitutes() {
         // From P, get P: instantiate P := Q x, closed over x.
         let p = atom("P", &[]);
         let th = assume(&p).unwrap();
         let lemma = Lemma::new(vec![("P".into(), 0)], vec![p.clone()], p, &th).unwrap();
-        let t = Template { holes: vec![], body: atom("Q", &["x"]) };
+        let t = Template::statement(atom("Q", &["x"]));
         let ev = assume(&all("x", atom("Q", &["x"]))).unwrap();
-        let out = lemma.apply(&[t], None, &[&ev]).unwrap();
+        let out = lemma.apply(&[t], &["x".into()], &[&ev]).unwrap();
         assert_eq!(out.concl().to_string(), "forall x $ Q x");
+        // The prefix must bind the template's free variables.
+        let t = Template::statement(atom("Q", &["x"]));
+        assert!(lemma.apply(&[t], &[], &[&ev]).is_err());
     }
 }

@@ -16,41 +16,34 @@ fn ok(src: &str) -> Vec<String> {
 
 #[test]
 fn not_an_instance() {
-    let e = err("proof bogus given A given B shows imp A B by imp1");
-    assert_eq!(e, "bogus: imp A B is not an instance of `imp1`");
+    assert_eq!(err("proof bogus given A given B shows imp A B by imp1"), "bogus: imp A B is not an instance of `imp1`");
 }
 
 #[test]
 fn inst_needs_its_forall() {
     // false in the empty domain
-    let e = err("proof bad shows imp (forall x $ absurd) absurd by inst");
-    assert_eq!(e, "bad: imp (forall x $ absurd) absurd is not an instance of `inst`");
+    assert_eq!(err("proof bad shows imp (forall x $ absurd) absurd by inst"), "bad: imp (forall x $ absurd) absurd is not an instance of `inst`");
 }
 
 #[test]
 fn something_exists_is_not_free() {
-    let e = err("proof bad shows exists x $ imp absurd absurd by ex_i");
-    assert_eq!(e, "bad: exists x $ imp absurd absurd is not an instance of `ex_i`");
+    assert_eq!(err("proof bad shows exists x $ imp absurd absurd by ex_i"), "bad: exists x $ imp absurd absurd is not an instance of `ex_i`");
 }
 
 #[test]
 fn side_conditions() {
-    let e = err("let Man x\nproof bad have v : forall x $ imp (Man x) (forall x $ Man x) by vac shows absurd by v");
-    assert_eq!(e, "bad: forall x $ imp (Man x) (forall x $ Man x) is not an instance of `vac`");
-    let e = err("let P x\nproof bad given f : forall x $ imp (P x) (P x) shows absurd by ex_e f");
-    assert_eq!(e, "bad: ex_e: `x` is free in P x");
+    assert_eq!(err("let Man x\nproof bad have v : forall x $ imp (Man x) (forall x $ Man x) by vac shows absurd by v"), "bad: forall x $ imp (Man x) (forall x $ Man x) is not an instance of `vac`");
+    assert_eq!(err("let P x\nproof bad given f : forall x $ imp (P x) (P x) shows absurd by ex_e f"), "bad: ex_e: `x` is free in P x");
 }
 
 #[test]
 fn modus_ponens_must_fit() {
-    let e = err("proof bad given A given B given a : A given f : imp B A shows A by f a");
-    assert_eq!(e, "bad: imp B A needs B, but got A");
+    assert_eq!(err("proof bad given A given B given a : A given f : imp B A shows A by f a"), "bad: imp B A needs B, but got A");
 }
 
 #[test]
 fn formulas_are_closed() {
-    let e = err("let Man x\nproof bad given h : Man x shows absurd by h");
-    assert_eq!(e, "bad: `x` is free: bind it with `forall` or `exists`");
+    assert_eq!(err("let Man x\nproof bad given h : Man x shows absurd by h"), "bad: `x` is free: bind it with `forall` or `exists`");
 }
 
 #[test]
@@ -71,12 +64,11 @@ fn proof_structure() {
 }
 
 #[test]
-fn calls_check_their_premises() {
+fn calls_check_their_hypotheses() {
     let prelude = "proof keep given A given a : A shows A by a\n";
     // Inferring A from the evidence works; a mismatched explicit A does not.
     assert_eq!(ok(&format!("{prelude}proof p given B given b : B shows B by keep b")).len(), 2);
-    let e = err(&format!("{prelude}proof p given B given C given b : B shows C by keep C b"));
-    assert_eq!(e, "p: keep: evidence 1 should prove C, but proves B");
+    assert_eq!(err(&format!("{prelude}proof p given B given C given b : B shows C by keep C b")), "p: keep: evidence 1 should prove C, but proves B");
 }
 
 const PA: &str = "let Zero x\nlet Succ x y\n\
@@ -84,8 +76,8 @@ const PA: &str = "let Zero x\nlet Succ x y\n\
                     (forall y $ forall x $ imp (P x) (Succ x y) (P y)) (forall x $ P x)\n";
 
 #[test]
-fn induction_instances_are_premises() {
-    // A proof over any P takes induction for P as a premise, and a caller passes its instance on.
+fn induction_instances_are_hypotheses() {
+    // A proof over any P takes induction for P as a hypothesis, and a caller passes its instance on.
     let src = format!(
         "{PA}proof use given P x given ind : Induction P given b : forall x $ imp (Zero x) (P x) \
            given s : forall y $ forall x $ imp (P x) (Succ x y) (P y) \
@@ -104,13 +96,6 @@ fn induction_instances_are_premises() {
 }
 
 #[test]
-fn schematic_premises_are_gone() {
-    // A proof takes the instances it uses, never a premise for every predicate.
-    let e = err("let All (P x) = forall x $ P x\nproof p given s <(P x)> : All P shows imp absurd absurd by efq absurd");
-    assert_eq!(e, "unexpected character `<`");
-}
-
-#[test]
 fn templates_close_over_their_variables() {
     // A two-place relation with its first argument fixed, as a one-place predicate.
     let src = "let R x y\n\
@@ -123,8 +108,7 @@ fn templates_close_over_their_variables() {
 fn predicate_arguments_are_predicates() {
     let pre = "let Q x\nlet All (P x) = forall x $ P x\nproof keep given A given a : A shows A by a\nlet F = All ";
     assert_eq!(err(&format!("{pre}absurd")), "`absurd` is a statement, but a 1-place predicate is needed");
-    let e = err(&format!("{pre}(not Q)"));
-    assert_eq!(e, "`not` can't be a 1-place predicate argument; give it a name with `let`");
+    assert_eq!(err(&format!("{pre}(not Q)")), "`not` can't be a 1-place predicate argument; give it a name with `let`");
     assert_eq!(err(&format!("{pre}imp1")), "`imp1` is built in, not a predicate");
     assert_eq!(err(&format!("{pre}keep")), "`keep` is a proof, not a predicate");
     assert_eq!(err(&format!("{pre}x")), "`x` is lowercase, so it isn't a predicate");
@@ -140,7 +124,7 @@ fn no_capture_through_definitions() {
 }
 
 #[test]
-fn classical_premises_are_inherited() {
+fn classical_hypotheses_are_inherited() {
     // A proof that uses excluded middle can't be called without supplying it.
     let src = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/examples/classical.hai")).unwrap();
     let cut = src.find("proof dne\n").unwrap();
@@ -158,17 +142,14 @@ fn quantifiers_can_be_swapped() {
 
 #[test]
 fn obtained_witness_stays_inside() {
-    let e = err("proof bad given P x given e : exists x $ P x shows absurd by obtain w pw from e { pw }");
-    assert_eq!(e, "bad: this proves P w, not absurd");
-    let e = err("let P x\nproof bad given e : exists x $ P x have h by obtain w pw from e { pw } shows absurd by h");
-    assert_eq!(e, "bad: the result of `obtain` can't mention `w`: P w");
+    assert_eq!(err("proof bad given P x given e : exists x $ P x shows absurd by obtain w pw from e { pw }"), "bad: this proves P w, not absurd");
+    assert_eq!(err("let P x\nproof bad given e : exists x $ P x have h by obtain w pw from e { pw } shows absurd by h"), "bad: the result of `obtain` can't mention `w`: P w");
 }
 
 #[test]
 fn blocks_check_their_names_and_shapes() {
     assert_eq!(err("proof bad given h : absurd shows absurd by forall h { h }"), "bad: `h` is already used in this proof");
-    let e = err("proof bad given A shows imp A A by forall x { x }");
-    assert_eq!(e, "bad: `x` is not defined");
+    assert_eq!(err("proof bad given A shows imp A A by forall x { x }"), "bad: `x` is not defined");
 }
 
 #[test]
@@ -192,33 +173,30 @@ fn templates_may_mention_variables_under_assumptions() {
 }
 
 #[test]
-fn premise_sets() {
+fn hypothesis_sets() {
     let base = "let S = given A given a : A\nlet T = given all S given B\nproof keep given all T shows A by a\n";
-    // Passing the outer set passes the inner one's premises too.
+    // Passing the outer set passes the inner one's hypotheses too.
     assert_eq!(ok(&format!("{base}proof again given all T shows A by keep T")).len(), 2);
     // Passing just the inner set leaves the rest to be given explicitly.
     assert_eq!(ok(&format!("{base}proof third given all S given C shows A by keep S C")).len(), 2);
-    // Passing it needs every premise in scope under its name.
-    let e = err(&format!("{base}proof p given A shows A by keep S"));
-    assert_eq!(e, "p: passing that set needs evidence named `a` here");
+    // Passing it needs every hypothesis in scope under its name.
+    assert_eq!(err(&format!("{base}proof p given A shows A by keep S")), "p: passing that set needs evidence named `a` here");
     // A set is not a statement.
-    assert_eq!(err(&format!("{base}let F = imp S S")), "`S` is a set of premises, not a statement");
+    assert_eq!(err(&format!("{base}let F = imp S S")), "`S` is a set of hypotheses, not a statement");
 }
 
 #[test]
 fn inst_and_ex_i_never_capture() {
     // Instantiating `x` at `y` under `exists y` would turn "everyone has a y" into "some y has itself".
-    let e = err("let R x y\nproof bad shows forall y $ imp (forall x $ exists y $ R x y) (exists y $ R y y) by inst");
-    assert_eq!(e, "bad: forall y $ imp (forall x $ exists y $ R x y) (exists y $ R y y) is not an instance of `inst`");
-    let e = err("let R x y\nproof bad shows forall y $ imp (forall y $ R y y) (exists x $ forall y $ R x y) by ex_i");
-    assert_eq!(e, "bad: forall y $ imp (forall y $ R y y) (exists x $ forall y $ R x y) is not an instance of `ex_i`");
+    assert_eq!(err("let R x y\nproof bad shows forall y $ imp (forall x $ exists y $ R x y) (exists y $ R y y) by inst"), "bad: forall y $ imp (forall x $ exists y $ R x y) (exists y $ R y y) is not an instance of `inst`");
+    assert_eq!(err("let R x y\nproof bad shows forall y $ imp (forall y $ R y y) (exists x $ forall y $ R x y) by ex_i"), "bad: forall y $ imp (forall y $ R y y) (exists x $ forall y $ R x y) is not an instance of `ex_i`");
 }
 
 #[test]
 fn no_recursion_or_forward_references() {
     assert_eq!(err("let F = F"), "`F` is not defined");
     assert_eq!(err("let F x = F x"), "`F` is not defined");
-    assert_eq!(err("let S = given all S"), "S: `S` is not a set of premises");
+    assert_eq!(err("let S = given all S"), "S: `S` is not a set of hypotheses");
     assert_eq!(err("proof p given A given a : A shows A by p a"), "p: `p` is not defined");
     let src = "proof p given A given a : A shows A by q a\nproof q given A given a : A shows A by a";
     assert_eq!(err(src), "p: `q` is not defined");
@@ -227,14 +205,10 @@ fn no_recursion_or_forward_references() {
 #[test]
 fn names_stay_in_their_blocks() {
     let pre = "let P x\nproof bad given h : forall x $ P x ";
-    let e = err(&format!("{pre}have k : forall y $ P y by forall y {{ h y }} shows forall z $ P z by h y"));
-    assert_eq!(e, "bad: `y` is not defined");
-    let e = err("proof bad given A have k : imp A A by assume a : A { a } shows A by a");
-    assert_eq!(e, "bad: `a` is not defined");
-    let e = err("proof bad given A have k : imp A A by assume c : A { have b : A by c shows A by b } shows A by b");
-    assert_eq!(e, "bad: `b` is not defined");
-    let e = err("let P x\nproof bad given e : exists x $ P x shows forall z $ P z by forall z obtain z h from e { h }");
-    assert_eq!(e, "bad: `z` is already used in this proof");
+    assert_eq!(err(&format!("{pre}have k : forall y $ P y by forall y {{ h y }} shows forall z $ P z by h y")), "bad: `y` is not defined");
+    assert_eq!(err("proof bad given A have k : imp A A by assume a : A { a } shows A by a"), "bad: `a` is not defined");
+    assert_eq!(err("proof bad given A have k : imp A A by assume c : A { have b : A by c shows A by b } shows A by b"), "bad: `b` is not defined");
+    assert_eq!(err("let P x\nproof bad given e : exists x $ P x shows forall z $ P z by forall z obtain z h from e { h }"), "bad: `z` is already used in this proof");
     // Sibling blocks may reuse a name.
     let src = format!("{pre}have k : forall y $ P y by forall y {{ h y }} shows forall y $ P y by forall y {{ h y }}");
     assert_eq!(ok(&src), ["bad: forall y $ P y"]);
@@ -242,8 +216,7 @@ fn names_stay_in_their_blocks() {
 
 #[test]
 fn theorems_take_no_predicates() {
-    let e = err("let P x\nproof bad given h : forall x $ P x given Q x shows forall x $ Q x by h Q");
-    assert_eq!(e, "bad: `h` is a theorem; it takes only evidence and individuals");
+    assert_eq!(err("let P x\nproof bad given h : forall x $ P x given Q x shows forall x $ Q x by h Q"), "bad: `h` is a theorem; it takes only evidence and individuals");
 }
 
 #[test]
@@ -303,8 +276,7 @@ fn axioms_on_evidence_use_the_stated_result() {
 
 #[test]
 fn fixed_axiom_instances_report_why_they_fail() {
-    let e = err("let P x\nlet Q\nproof p have k by imp1 (P z) Q shows imp absurd absurd by efq absurd");
-    assert_eq!(e, "p: this axiom instance has `z` free: formulas must be closed");
+    assert_eq!(err("let P x\nlet Q\nproof p have k by imp1 (P z) Q shows imp absurd absurd by efq absurd"), "p: this axiom instance has `z` free: formulas must be closed");
 }
 
 #[test]

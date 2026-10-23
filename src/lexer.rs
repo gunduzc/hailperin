@@ -35,6 +35,18 @@ pub enum Sym {
     RBrace,
 }
 
+impl From<Kw> for Tok {
+    fn from(k: Kw) -> Tok {
+        Tok::Kw(k)
+    }
+}
+
+impl From<Sym> for Tok {
+    fn from(s: Sym) -> Tok {
+        Tok::Sym(s)
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Token {
     pub tok: Tok,
@@ -158,5 +170,7 @@ mod tests {
         assert_eq!(lex("A.B").unwrap_err().msg, "`.` is reserved for qualified names");
         assert_eq!(lex("_x").unwrap_err().msg, "names must start with a letter");
         assert_eq!(lex("a -} b").unwrap_err().msg, "`-}` without a matching `{-`");
+        // `<` and `>` were for schematic hypotheses, which are gone.
+        assert_eq!(lex("given s <A>").unwrap_err().msg, "unexpected character `<`");
     }
 }

@@ -79,24 +79,24 @@ fn cases(dir: &str, pinned: Option<&str>) -> Vec<(PathBuf, String)> {
     cases
 }
 
-#[test]
-fn every_example_passes() {
-    for (path, expected) in cases("examples", None) {
+/// Runs every case in `dir`, which must exit with `code` and print what it's pinned to.
+fn check_dir(dir: &str, pinned: Option<&str>, code: i32) {
+    for (path, expected) in cases(dir, pinned) {
         let r = run(&[path.to_str().unwrap()]);
-        assert_eq!(r.code, Some(0), "{}: should pass, printed:\n{}", path.display(), r.stdout);
+        assert_eq!(r.code, Some(code), "{}: should exit with {code}, printed:\n{}", path.display(), r.stdout);
         assert_eq!(r.stdout, expected, "{}: output differs", path.display());
         assert!(r.stderr.is_empty(), "{}: wrote to stderr", path.display());
     }
 }
 
 #[test]
+fn every_example_passes() {
+    check_dir("examples", None, 0);
+}
+
+#[test]
 fn every_negative_fails_as_pinned() {
-    for (path, expected) in cases("examples/neg", Some("err")) {
-        let r = run(&[path.to_str().unwrap()]);
-        assert_eq!(r.code, Some(1), "{}: should fail, printed:\n{}", path.display(), r.stdout);
-        assert_eq!(r.stdout, expected, "{}: output differs", path.display());
-        assert!(r.stderr.is_empty(), "{}: wrote to stderr", path.display());
-    }
+    check_dir("examples/neg", Some("err"), 1);
 }
 
 #[test]

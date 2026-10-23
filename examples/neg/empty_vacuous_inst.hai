@@ -1,5 +1,4 @@
-{- Dropping a vacuous `forall`. In the empty domain `forall x $ absurd` is true, so this
-   is false there. -}
+{- Dropping a vacuous `forall`. -}
 proof vacuous
   given A
   shows imp (forall x $ A) A by inst

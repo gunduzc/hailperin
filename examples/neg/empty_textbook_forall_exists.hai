@@ -1,6 +1,4 @@
-{- The textbook derivation of "if everything is P, something is P": instantiate at a free
-   `y`, then generalize to `exists`. Theorems are closed, so `y` has to be bound, and the
-   result is false in the empty domain anyway. -}
+{- The textbook "if everything is P, something is P". -}
 let P x
 
 proof textbook
