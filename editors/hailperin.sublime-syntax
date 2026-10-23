@@ -71,7 +71,7 @@ contexts:
         1: keyword.other.hailperin
         2: variable.other.definition.hailperin
 
-  # `let Name x (P y) = …`: the parameters, up to `=` or the next keyword.
+  # `let Name x (P y) = ...`: the parameters, up to `=` or the next keyword.
   let_params:
     - include: comments
     - match: '(?==)'
