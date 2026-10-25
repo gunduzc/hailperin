@@ -1,151 +1,218 @@
 //! Formulas. Terms are variables only; `==` is alpha-equivalence; substitution never captures.
+//!
+//! A formula is a shared, immutable tree. Each node carries its free variables, so closedness
+//! and capture checks are lookups, and a substitution copies only the path to what it changes.
 
+use std::cmp::Ordering;
 use std::collections::BTreeSet;
 use std::fmt;
+use std::rc::Rc;
+
+/// A variable or predicate name. Shared, so copying one costs nothing.
+pub type Name = Rc<str>;
 
 #[derive(Clone, Debug)]
-pub enum Formula {
-    Absurd,
-    Atom(String, Vec<String>),
-    And(Box<Formula>, Box<Formula>),
-    Or(Box<Formula>, Box<Formula>),
-    Imp(Box<Formula>, Box<Formula>),
-    All(String, Box<Formula>),
-    Ex(String, Box<Formula>),
+pub struct Formula(Rc<Inner>);
+
+#[derive(Debug)]
+struct Inner {
+    node: Node,
+    /// The free variables, sorted, without repeats.
+    free: Vec<Name>,
 }
 
-/// A predicate given as a formula with holes. Free variables other than the holes are
-/// the caller's; whoever instantiates with the template closes over them.
+#[derive(Debug)]
+pub enum Node {
+    Absurd,
+    Atom(Name, Vec<Name>),
+    And(Formula, Formula),
+    Or(Formula, Formula),
+    Imp(Formula, Formula),
+    All(Name, Formula),
+    Ex(Name, Formula),
+}
+
+/// A predicate given as a formula with holes. Free variables other than the holes, the
+/// extras, are the caller's; whoever instantiates with the template closes over them.
 #[derive(Clone, Debug)]
 pub struct Template {
-    holes: Vec<String>,
+    holes: Vec<Name>,
     body: Formula,
+    extras: Vec<Name>,
+}
+
+pub fn absurd() -> Formula {
+    Formula::new(Node::Absurd)
+}
+
+pub fn atom(p: &str, args: &[Name]) -> Formula {
+    Formula::new(Node::Atom(p.into(), args.to_vec()))
 }
 
 pub fn imp(a: Formula, b: Formula) -> Formula {
-    Formula::Imp(Box::new(a), Box::new(b))
+    Formula::new(Node::Imp(a, b))
 }
 
 pub fn and(a: Formula, b: Formula) -> Formula {
-    Formula::And(Box::new(a), Box::new(b))
+    Formula::new(Node::And(a, b))
 }
 
 pub fn or(a: Formula, b: Formula) -> Formula {
-    Formula::Or(Box::new(a), Box::new(b))
+    Formula::new(Node::Or(a, b))
 }
 
-pub fn all(x: &str, a: Formula) -> Formula {
-    Formula::All(x.to_string(), Box::new(a))
+pub fn all(x: &Name, a: Formula) -> Formula {
+    Formula::new(Node::All(x.clone(), a))
 }
 
-pub fn ex(x: &str, a: Formula) -> Formula {
-    Formula::Ex(x.to_string(), Box::new(a))
+pub fn ex(x: &Name, a: Formula) -> Formula {
+    Formula::new(Node::Ex(x.clone(), a))
 }
 
 /// Hole names start with `_`, which user names can't.
-pub fn hole_names(n: usize) -> Vec<String> {
-    (0..n).map(|i| format!("_h{i}")).collect()
+pub fn hole_names(n: usize) -> Vec<Name> {
+    (0..n).map(|i| format!("_h{i}").into()).collect()
 }
 
 /// `base` with primes added until it clashes with nothing in `avoid`.
-pub fn fresh(base: &str, avoid: &BTreeSet<String>) -> String {
+pub fn fresh(base: &str, avoid: &BTreeSet<&str>) -> Name {
     let mut name = base.to_string();
-    while avoid.contains(&name) {
+    while avoid.contains(name.as_str()) {
         name.push('\'');
     }
-    name
+    name.into()
+}
+
+/// The sorted union of two sorted lists.
+fn merge(a: &[Name], b: &[Name]) -> Vec<Name> {
+    let mut out = Vec::with_capacity(a.len() + b.len());
+    let (mut i, mut j) = (0, 0);
+    while i < a.len() && j < b.len() {
+        match a[i].cmp(&b[j]) {
+            Ordering::Less => {
+                out.push(a[i].clone());
+                i += 1;
+            }
+            Ordering::Greater => {
+                out.push(b[j].clone());
+                j += 1;
+            }
+            Ordering::Equal => {
+                out.push(a[i].clone());
+                i += 1;
+                j += 1;
+            }
+        }
+    }
+    out.extend_from_slice(&a[i..]);
+    out.extend_from_slice(&b[j..]);
+    out
 }
 
 impl Formula {
-    pub fn free_vars(&self) -> BTreeSet<String> {
-        let mut out = BTreeSet::new();
-        self.collect_free(&mut Vec::new(), &mut out);
-        out
+    fn new(node: Node) -> Formula {
+        let free = match &node {
+            Node::Absurd => Vec::new(),
+            Node::Atom(_, args) => {
+                let mut v = args.clone();
+                v.sort();
+                v.dedup();
+                v
+            }
+            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => merge(&a.0.free, &b.0.free),
+            Node::All(x, a) | Node::Ex(x, a) => a.0.free.iter().filter(|v| *v != x).cloned().collect(),
+        };
+        Formula(Rc::new(Inner { node, free }))
     }
 
-    fn collect_free(&self, bound: &mut Vec<String>, out: &mut BTreeSet<String>) {
-        match self {
-            Formula::Absurd => {}
-            Formula::Atom(_, args) => out.extend(args.iter().filter(|a| !bound.contains(a)).cloned()),
-            Formula::And(a, b) | Formula::Or(a, b) | Formula::Imp(a, b) => {
-                a.collect_free(bound, out);
-                b.collect_free(bound, out);
-            }
-            Formula::All(x, a) | Formula::Ex(x, a) => {
-                bound.push(x.clone());
-                a.collect_free(bound, out);
-                bound.pop();
-            }
-        }
+    pub fn node(&self) -> &Node {
+        &self.0.node
     }
 
-    /// Each predicate the formula mentions, with the number of arguments it's given.
-    pub fn preds(&self) -> BTreeSet<(String, usize)> {
-        match self {
-            Formula::Absurd => BTreeSet::new(),
-            Formula::Atom(p, args) => BTreeSet::from([(p.clone(), args.len())]),
-            Formula::And(a, b) | Formula::Or(a, b) | Formula::Imp(a, b) => &a.preds() | &b.preds(),
-            Formula::All(_, a) | Formula::Ex(_, a) => a.preds(),
-        }
+    /// Whether both are the same tree in memory, which makes them equal.
+    fn same(&self, other: &Formula) -> bool {
+        Rc::ptr_eq(&self.0, &other.0)
+    }
+
+    /// The free variables, sorted.
+    pub fn free_vars(&self) -> &[Name] {
+        &self.0.free
     }
 
     pub fn is_free(&self, x: &str) -> bool {
-        self.free_vars().contains(x)
+        self.0.free.binary_search_by(|v| (**v).cmp(x)).is_ok()
     }
 
-    /// Simultaneously replaces free variables, renaming binders that would capture.
-    pub fn subst_vars(&self, s: &[(String, String)]) -> Formula {
-        match self {
-            Formula::Absurd => Formula::Absurd,
-            Formula::Atom(p, args) => {
-                let args = args
-                    .iter()
-                    .map(|a| s.iter().find(|(x, _)| x == a).map_or_else(|| a.clone(), |(_, y)| y.clone()))
-                    .collect();
-                Formula::Atom(p.clone(), args)
+    /// Each predicate the formula mentions, with the number of arguments it's given.
+    pub fn preds(&self) -> BTreeSet<(&str, usize)> {
+        let mut out = BTreeSet::new();
+        self.collect_preds(&mut out);
+        out
+    }
+
+    fn collect_preds<'a>(&'a self, out: &mut BTreeSet<(&'a str, usize)>) {
+        match self.node() {
+            Node::Absurd => {}
+            Node::Atom(p, args) => {
+                out.insert((p, args.len()));
             }
-            Formula::And(a, b) => and(a.subst_vars(s), b.subst_vars(s)),
-            Formula::Or(a, b) => or(a.subst_vars(s), b.subst_vars(s)),
-            Formula::Imp(a, b) => imp(a.subst_vars(s), b.subst_vars(s)),
-            Formula::All(x, a) | Formula::Ex(x, a) => {
-                let fv = a.free_vars();
-                let mut s: Vec<(String, String)> = s.iter().filter(|(v, _)| v != x && fv.contains(v)).cloned().collect();
-                if s.is_empty() {
-                    return self.clone();
-                }
-                let (x, a) = if s.iter().any(|(_, y)| y == x) {
-                    let mut avoid = fv;
-                    avoid.extend(s.iter().map(|(_, y)| y.clone()));
-                    let z = fresh(x, &avoid);
-                    s.push((x.clone(), z.clone()));
-                    (z, a.subst_vars(&s))
-                } else {
-                    (x.clone(), a.subst_vars(&s))
-                };
-                self.rebind(&x, a)
+            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => {
+                a.collect_preds(out);
+                b.collect_preds(out);
             }
+            Node::All(_, a) | Node::Ex(_, a) => a.collect_preds(out),
         }
     }
 
-    /// The same quantifier as `self` (which must be one) over `x` and `body`.
-    fn rebind(&self, x: &str, body: Formula) -> Formula {
-        match self {
-            Formula::Ex(..) => ex(x, body),
-            _ => all(x, body),
+    /// Simultaneously replaces free variables, renaming binders that would capture.
+    pub fn subst_vars(&self, s: &[(Name, Name)]) -> Formula {
+        // Pairs that change nothing are dropped: a substitution that changes nothing copies nothing.
+        if s.iter().all(|(x, y)| x == y) {
+            return self.clone();
+        }
+        let s: Vec<(Name, Name)> = s.iter().filter(|(x, y)| x != y).cloned().collect();
+        self.subst_vars_in(&s)
+    }
+
+    fn subst_vars_in(&self, s: &[(Name, Name)]) -> Formula {
+        if !s.iter().any(|(x, _)| self.is_free(x)) {
+            return self.clone();
+        }
+        match self.node() {
+            Node::Absurd => self.clone(),
+            Node::Atom(p, args) => {
+                let args = args.iter().map(|a| s.iter().find(|(x, _)| x == a).map_or(a, |(_, y)| y).clone()).collect();
+                Formula::new(Node::Atom(p.clone(), args))
+            }
+            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => {
+                Formula::new(binary(self.node(), a.subst_vars_in(s), b.subst_vars_in(s)))
+            }
+            Node::All(x, a) | Node::Ex(x, a) => {
+                // The pair for `x` itself stops here. A pair whose target is `x` would capture.
+                let mut s: Vec<(Name, Name)> = s.iter().filter(|(v, _)| v != x && a.is_free(v)).cloned().collect();
+                if s.iter().any(|(_, y)| y == x) {
+                    let mut avoid: BTreeSet<&str> = a.free_vars().iter().map(|v| &**v).collect();
+                    avoid.extend(s.iter().map(|(_, y)| &**y));
+                    let z = fresh(x, &avoid);
+                    s.push((x.clone(), z.clone()));
+                    return Formula::new(quantifier(self.node(), z, a.subst_vars_in(&s)));
+                }
+                Formula::new(quantifier(self.node(), x.clone(), a.subst_vars_in(&s)))
+            }
         }
     }
 
     /// Simultaneously replaces predicates by templates. Binders that would capture a
     /// template's free variables are renamed. Fails on an arity mismatch.
-    pub fn subst_preds(&self, map: &[(String, Template)]) -> Result<Formula, String> {
-        let extras = map.iter().flat_map(|(_, t)| t.extras()).collect();
+    pub fn subst_preds(&self, map: &[(&str, &Template)]) -> Result<Formula, String> {
+        let extras: BTreeSet<&str> = map.iter().flat_map(|(_, t)| t.extras()).map(|v| &**v).collect();
         self.subst_preds_in(map, &extras)
     }
 
-    fn subst_preds_in(&self, map: &[(String, Template)], extras: &BTreeSet<String>) -> Result<Formula, String> {
-        Ok(match self {
-            Formula::Absurd => Formula::Absurd,
-            Formula::Atom(p, args) => match map.iter().find(|(q, _)| q == p) {
+    fn subst_preds_in(&self, map: &[(&str, &Template)], extras: &BTreeSet<&str>) -> Result<Formula, String> {
+        Ok(match self.node() {
+            Node::Absurd => self.clone(),
+            Node::Atom(p, args) => match map.iter().find(|(q, _)| &**p == *q) {
                 None => self.clone(),
                 Some((_, t)) => {
                     if t.holes.len() != args.len() {
@@ -154,45 +221,74 @@ impl Formula {
                     t.apply(args)
                 }
             },
-            Formula::And(a, b) => and(a.subst_preds_in(map, extras)?, b.subst_preds_in(map, extras)?),
-            Formula::Or(a, b) => or(a.subst_preds_in(map, extras)?, b.subst_preds_in(map, extras)?),
-            Formula::Imp(a, b) => imp(a.subst_preds_in(map, extras)?, b.subst_preds_in(map, extras)?),
-            Formula::All(x, a) | Formula::Ex(x, a) => {
-                if extras.contains(x) {
-                    let mut avoid = a.free_vars();
-                    avoid.extend(extras.iter().cloned());
-                    let z = fresh(x, &avoid);
-                    let a = a.subst_vars(&[(x.clone(), z.clone())]);
-                    self.rebind(&z, a.subst_preds_in(map, extras)?)
+            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => {
+                let (a2, b2) = (a.subst_preds_in(map, extras)?, b.subst_preds_in(map, extras)?);
+                if a.same(&a2) && b.same(&b2) {
+                    self.clone()
                 } else {
-                    self.rebind(x, a.subst_preds_in(map, extras)?)
+                    Formula::new(binary(self.node(), a2, b2))
+                }
+            }
+            Node::All(x, a) | Node::Ex(x, a) => {
+                if extras.contains(&**x) {
+                    let mut avoid: BTreeSet<&str> = a.free_vars().iter().map(|v| &**v).collect();
+                    avoid.extend(extras.iter().copied());
+                    let z = fresh(x, &avoid);
+                    let a = a.subst_vars_in(&[(x.clone(), z.clone())]);
+                    Formula::new(quantifier(self.node(), z, a.subst_preds_in(map, extras)?))
+                } else {
+                    let body = a.subst_preds_in(map, extras)?;
+                    if a.same(&body) {
+                        self.clone()
+                    } else {
+                        Formula::new(quantifier(self.node(), x.clone(), body))
+                    }
                 }
             }
         })
     }
 
     /// Wraps `forall`s around `self`, the first variable outermost.
-    pub fn close(self, prefix: &[String]) -> Formula {
+    pub fn close(self, prefix: &[Name]) -> Formula {
         prefix.iter().rev().fold(self, |body, x| all(x, body))
+    }
+}
+
+/// The connective of `like` over `a` and `b`.
+fn binary(like: &Node, a: Formula, b: Formula) -> Node {
+    match like {
+        Node::And(..) => Node::And(a, b),
+        Node::Or(..) => Node::Or(a, b),
+        _ => Node::Imp(a, b),
+    }
+}
+
+/// The quantifier of `like`, binding `x` over `body`.
+fn quantifier(like: &Node, x: Name, body: Formula) -> Node {
+    match like {
+        Node::Ex(..) => Node::Ex(x, body),
+        _ => Node::All(x, body),
     }
 }
 
 impl Template {
     /// A template's holes must be distinct.
-    pub fn new(holes: Vec<String>, body: Formula) -> Result<Template, String> {
-        let distinct: BTreeSet<&String> = holes.iter().collect();
+    pub fn new(holes: Vec<Name>, body: Formula) -> Result<Template, String> {
+        let distinct: BTreeSet<&Name> = holes.iter().collect();
         if distinct.len() != holes.len() {
             return Err("a template's holes must be distinct".into());
         }
-        Ok(Template { holes, body })
+        let extras = body.free_vars().iter().filter(|v| !holes.contains(v)).cloned().collect();
+        Ok(Template { holes, body, extras })
     }
 
     /// A statement: a template with no holes.
     pub fn statement(body: Formula) -> Template {
-        Template { holes: Vec::new(), body }
+        let extras = body.free_vars().to_vec();
+        Template { holes: Vec::new(), body, extras }
     }
 
-    pub fn holes(&self) -> &[String] {
+    pub fn holes(&self) -> &[Name] {
         &self.holes
     }
 
@@ -201,18 +297,14 @@ impl Template {
     }
 
     /// The body with `args` for the holes.
-    pub fn apply(&self, args: &[String]) -> Formula {
-        let s: Vec<(String, String)> = self.holes.iter().cloned().zip(args.iter().cloned()).collect();
+    pub fn apply(&self, args: &[Name]) -> Formula {
+        let s: Vec<(Name, Name)> = self.holes.iter().cloned().zip(args.iter().cloned()).collect();
         self.body.subst_vars(&s)
     }
 
-    /// Free variables other than the holes.
-    pub fn extras(&self) -> BTreeSet<String> {
-        let mut fv = self.body.free_vars();
-        for h in &self.holes {
-            fv.remove(h);
-        }
-        fv
+    /// Free variables other than the holes, sorted.
+    pub fn extras(&self) -> &[Name] {
+        &self.extras
     }
 }
 
@@ -224,9 +316,13 @@ impl PartialEq for Formula {
 
 impl Eq for Formula {}
 
-/// `env` pairs up the binders passed so far on each side, innermost last.
-fn alpha(a: &Formula, b: &Formula, env: &mut Vec<(String, String)>) -> bool {
-    let var = |x: &String, y: &String, env: &[(String, String)]| {
+/// `env` pairs up the binders passed so far on each side, innermost last. One tree on both
+/// sides is equal to itself unless a binder passed so far renames one of its free variables.
+fn alpha(a: &Formula, b: &Formula, env: &mut Vec<(Name, Name)>) -> bool {
+    if a.same(b) && env.iter().all(|(l, r)| l == r || !(a.is_free(l) || a.is_free(r))) {
+        return true;
+    }
+    let var = |x: &Name, y: &Name, env: &[(Name, Name)]| {
         let i = env.iter().rposition(|(l, _)| l == x);
         let j = env.iter().rposition(|(_, r)| r == y);
         match (i, j) {
@@ -235,15 +331,15 @@ fn alpha(a: &Formula, b: &Formula, env: &mut Vec<(String, String)>) -> bool {
             _ => false,
         }
     };
-    match (a, b) {
-        (Formula::Absurd, Formula::Absurd) => true,
-        (Formula::Atom(p, xs), Formula::Atom(q, ys)) => {
+    match (a.node(), b.node()) {
+        (Node::Absurd, Node::Absurd) => true,
+        (Node::Atom(p, xs), Node::Atom(q, ys)) => {
             p == q && xs.len() == ys.len() && xs.iter().zip(ys).all(|(x, y)| var(x, y, env))
         }
-        (Formula::And(a1, a2), Formula::And(b1, b2))
-        | (Formula::Or(a1, a2), Formula::Or(b1, b2))
-        | (Formula::Imp(a1, a2), Formula::Imp(b1, b2)) => alpha(a1, b1, env) && alpha(a2, b2, env),
-        (Formula::All(x, p), Formula::All(y, q)) | (Formula::Ex(x, p), Formula::Ex(y, q)) => {
+        (Node::And(a1, a2), Node::And(b1, b2)) | (Node::Or(a1, a2), Node::Or(b1, b2)) | (Node::Imp(a1, a2), Node::Imp(b1, b2)) => {
+            alpha(a1, b1, env) && alpha(a2, b2, env)
+        }
+        (Node::All(x, p), Node::All(y, q)) | (Node::Ex(x, p), Node::Ex(y, q)) => {
             env.push((x.clone(), y.clone()));
             let same = alpha(p, q, env);
             env.pop();
@@ -260,8 +356,8 @@ impl fmt::Display for Formula {
             write!(f, "{op} {}", Arg(a))?;
             let mut rest = b;
             loop {
-                match (op, rest) {
-                    ("and", Formula::And(x, y)) | ("or", Formula::Or(x, y)) | ("imp", Formula::Imp(x, y)) => {
+                match (op, rest.node()) {
+                    ("and", Node::And(x, y)) | ("or", Node::Or(x, y)) | ("imp", Node::Imp(x, y)) => {
                         write!(f, " {}", Arg(x))?;
                         rest = y;
                     }
@@ -269,17 +365,17 @@ impl fmt::Display for Formula {
                 }
             }
         };
-        match self {
-            Formula::Absurd => write!(f, "absurd"),
-            Formula::Atom(p, args) => {
+        match self.node() {
+            Node::Absurd => write!(f, "absurd"),
+            Node::Atom(p, args) => {
                 write!(f, "{p}")?;
                 args.iter().try_for_each(|a| write!(f, " {a}"))
             }
-            Formula::And(a, b) => chain(f, "and", a, b),
-            Formula::Or(a, b) => chain(f, "or", a, b),
-            Formula::Imp(a, b) => chain(f, "imp", a, b),
-            Formula::All(x, a) => write!(f, "forall {x} $ {a}"),
-            Formula::Ex(x, a) => write!(f, "exists {x} $ {a}"),
+            Node::And(a, b) => chain(f, "and", a, b),
+            Node::Or(a, b) => chain(f, "or", a, b),
+            Node::Imp(a, b) => chain(f, "imp", a, b),
+            Node::All(x, a) => write!(f, "forall {x} $ {a}"),
+            Node::Ex(x, a) => write!(f, "exists {x} $ {a}"),
         }
     }
 }
@@ -289,10 +385,10 @@ struct Arg<'a>(&'a Formula);
 
 impl fmt::Display for Arg<'_> {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self.0 {
-            Formula::Absurd => write!(f, "absurd"),
-            Formula::Atom(_, args) if args.is_empty() => write!(f, "{}", self.0),
-            other => write!(f, "({other})"),
+        match self.0.node() {
+            Node::Absurd => write!(f, "absurd"),
+            Node::Atom(_, args) if args.is_empty() => write!(f, "{}", self.0),
+            _ => write!(f, "({})", self.0),
         }
     }
 }
@@ -301,50 +397,87 @@ impl fmt::Display for Arg<'_> {
 mod tests {
     use super::*;
 
-    fn atom(p: &str, args: &[&str]) -> Formula {
-        Formula::Atom(p.into(), args.iter().map(|a| a.to_string()).collect())
+    fn n(x: &str) -> Name {
+        x.into()
+    }
+
+    fn at(p: &str, args: &[&str]) -> Formula {
+        atom(p, &args.iter().map(|a| n(a)).collect::<Vec<_>>())
+    }
+
+    fn pair(x: &str, y: &str) -> (Name, Name) {
+        (n(x), n(y))
+    }
+
+    #[test]
+    fn free_variables_are_kept() {
+        let f = imp(at("P", &["x", "y"]), all(&n("y"), at("Q", &["y", "z"])));
+        assert_eq!(f.free_vars().iter().map(|v| &**v).collect::<Vec<_>>(), ["x", "y", "z"]);
+        assert!(f.is_free("z") && !f.is_free("w"));
+        assert!(!all(&n("x"), at("P", &["x"])).is_free("x"));
     }
 
     #[test]
     fn alpha_equivalence() {
-        assert_eq!(all("x", atom("P", &["x"])), all("y", atom("P", &["y"])));
-        assert_ne!(all("x", atom("P", &["y"])), all("y", atom("P", &["y"])));
-        let a = all("x", all("x", atom("R", &["x", "x"])));
-        assert_eq!(a, all("y", all("z", atom("R", &["z", "z"]))));
-        assert_ne!(a, all("y", all("z", atom("R", &["y", "z"]))));
+        assert_eq!(all(&n("x"), at("P", &["x"])), all(&n("y"), at("P", &["y"])));
+        assert_ne!(all(&n("x"), at("P", &["y"])), all(&n("y"), at("P", &["y"])));
+        let a = all(&n("x"), all(&n("x"), at("R", &["x", "x"])));
+        assert_eq!(a, all(&n("y"), all(&n("z"), at("R", &["z", "z"]))));
+        assert_ne!(a, all(&n("y"), all(&n("z"), at("R", &["y", "z"]))));
+    }
+
+    #[test]
+    fn shared_subtrees_still_compare_under_renaming() {
+        // forall x y. R x y vs forall y x. R x y, with the body shared: not equal.
+        let body = at("R", &["x", "y"]);
+        let a = all(&n("x"), all(&n("y"), body.clone()));
+        let b = all(&n("y"), all(&n("x"), body.clone()));
+        assert_ne!(a, b);
+        // With a body the renaming doesn't touch, the shared tree is equal to itself.
+        let body = at("R", &["z"]);
+        assert_eq!(all(&n("x"), body.clone()), all(&n("y"), body));
     }
 
     #[test]
     fn subst_vars_avoids_capture() {
-        let a = ex("y", atom("R", &["x", "y"]));
-        let b = a.subst_vars(&[("x".into(), "y".into())]);
+        let a = ex(&n("y"), at("R", &["x", "y"]));
+        let b = a.subst_vars(&[pair("x", "y")]);
         assert_eq!(b.to_string(), "exists y' $ R y y'");
-        assert_eq!(atom("R", &["x", "y"]).subst_vars(&[("x".into(), "y".into()), ("y".into(), "x".into())]).to_string(), "R y x");
+        assert_eq!(at("R", &["x", "y"]).subst_vars(&[pair("x", "y"), pair("y", "x")]).to_string(), "R y x");
+    }
+
+    #[test]
+    fn subst_vars_shares_what_it_leaves() {
+        let f = imp(at("P", &["x"]), all(&n("y"), at("Q", &["y"])));
+        let g = f.subst_vars(&[pair("x", "z")]);
+        let (Node::Imp(_, fb), Node::Imp(_, gb)) = (f.node(), g.node()) else { panic!() };
+        assert!(fb.same(gb));
+        assert!(f.subst_vars(&[pair("w", "z")]).same(&f));
     }
 
     #[test]
     fn subst_preds_avoids_capture() {
         // forall y $ P y, with P := (R y _), must not let the template's y be captured.
-        let t = Template::new(vec!["_h0".into()], atom("R", &["y", "_h0"])).unwrap();
-        let f = all("y", atom("P", &["y"])).subst_preds(&[("P".into(), t)]).unwrap();
+        let t = Template::new(vec![n("_h0")], at("R", &["y", "_h0"])).unwrap();
+        let f = all(&n("y"), at("P", &["y"])).subst_preds(&[("P", &t)]).unwrap();
         assert_eq!(f.to_string(), "forall y' $ R y y'");
     }
 
     #[test]
     fn subst_preds_checks_arity() {
-        let t = Template::statement(atom("Q", &[]));
-        let e = atom("P", &["x"]).subst_preds(&[("P".into(), t)]).unwrap_err();
+        let t = Template::statement(at("Q", &[]));
+        let e = at("P", &["x"]).subst_preds(&[("P", &t)]).unwrap_err();
         assert_eq!(e, "`P` takes 0 argument(s), got 1");
     }
 
     #[test]
     fn template_holes_are_distinct() {
-        assert!(Template::new(vec!["_h0".into(), "_h0".into()], atom("R", &["_h0", "_h0"])).is_err());
+        assert!(Template::new(vec![n("_h0"), n("_h0")], at("R", &["_h0", "_h0"])).is_err());
     }
 
     #[test]
     fn display_flattens_chains() {
-        let f = imp(atom("A", &[]), imp(atom("B", &[]), and(atom("C", &["x"]), atom("D", &[]))));
+        let f = imp(at("A", &[]), imp(at("B", &[]), and(at("C", &["x"]), at("D", &[]))));
         assert_eq!(f.to_string(), "imp A B (and (C x) D)");
     }
 }

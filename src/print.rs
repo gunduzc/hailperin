@@ -1,6 +1,6 @@
 //! Formulas in the file's own syntax, for messages. `imp A absurd` prints as `not A`.
 
-use crate::kernel::formula::Formula;
+use crate::kernel::formula::{Formula, Node};
 
 /// Precedence levels: 0 formula (`->`, quantifiers), 1 `or`, 2 `and`, 3 `not`, 4 atoms.
 pub fn show(f: &Formula) -> String {
@@ -19,49 +19,49 @@ fn write(f: &Formula, level: u8, out: &mut String) {
             inner(out);
         }
     };
-    match f {
-        Formula::Absurd => out.push_str("absurd"),
-        Formula::Atom(p, args) => {
+    match f.node() {
+        Node::Absurd => out.push_str("absurd"),
+        Node::Atom(p, args) => {
             out.push_str(p);
             for a in args {
                 out.push(' ');
                 out.push_str(a);
             }
         }
-        Formula::Imp(a, b) if matches!(**b, Formula::Absurd) => {
+        Node::Imp(a, b) if matches!(b.node(), Node::Absurd) => {
             out.push_str("not ");
             write(a, 3, out);
         }
-        Formula::Imp(a, b) => paren(level > 0, out, &|out| {
+        Node::Imp(a, b) => paren(level > 0, out, &|out| {
             write(a, 1, out);
             out.push_str(" -> ");
             write(b, 0, out);
         }),
-        Formula::Or(a, b) => paren(level > 1, out, &|out| {
+        Node::Or(a, b) => paren(level > 1, out, &|out| {
             write(a, 2, out);
             out.push_str(" or ");
             write(b, 1, out);
         }),
-        Formula::And(a, b) => paren(level > 2, out, &|out| {
+        Node::And(a, b) => paren(level > 2, out, &|out| {
             write(a, 3, out);
             out.push_str(" and ");
             write(b, 2, out);
         }),
-        Formula::All(..) | Formula::Ex(..) => paren(level > 0, out, &|out| {
-            let (kw, is_all) = match f {
-                Formula::All(..) => ("forall", true),
+        Node::All(..) | Node::Ex(..) => paren(level > 0, out, &|out| {
+            let (kw, is_all) = match f.node() {
+                Node::All(..) => ("forall", true),
                 _ => ("exists", false),
             };
             out.push_str(kw);
             let mut cur = f;
             loop {
-                match cur {
-                    Formula::All(x, body) if is_all => {
+                match cur.node() {
+                    Node::All(x, body) if is_all => {
                         out.push(' ');
                         out.push_str(x);
                         cur = body;
                     }
-                    Formula::Ex(x, body) if !is_all => {
+                    Node::Ex(x, body) if !is_all => {
                         out.push(' ');
                         out.push_str(x);
                         cur = body;
@@ -78,10 +78,14 @@ fn write(f: &Formula, level: u8, out: &mut String) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::kernel::formula::{all, and, ex, imp, or};
+    use crate::kernel::formula::{absurd, all, and, ex, imp, or, Name};
 
     fn atom(p: &str, args: &[&str]) -> Formula {
-        Formula::Atom(p.into(), args.iter().map(|a| a.to_string()).collect())
+        crate::kernel::formula::atom(p, &args.iter().map(|a| Name::from(*a)).collect::<Vec<_>>())
+    }
+
+    fn n(x: &str) -> Name {
+        x.into()
     }
 
     #[test]
@@ -89,12 +93,12 @@ mod tests {
         let (a, b, c) = (atom("A", &[]), atom("B", &[]), atom("P", &["x"]));
         assert_eq!(show(&imp(a.clone(), imp(b.clone(), a.clone()))), "A -> B -> A");
         assert_eq!(show(&imp(imp(a.clone(), b.clone()), a.clone())), "(A -> B) -> A");
-        assert_eq!(show(&imp(a.clone(), Formula::Absurd)), "not A");
-        assert_eq!(show(&imp(and(a.clone(), b.clone()), Formula::Absurd)), "not (A and B)");
+        assert_eq!(show(&imp(a.clone(), absurd())), "not A");
+        assert_eq!(show(&imp(and(a.clone(), b.clone()), absurd())), "not (A and B)");
         assert_eq!(show(&or(and(a.clone(), b.clone()), c.clone())), "A and B or P x");
         assert_eq!(show(&and(a.clone(), or(b.clone(), c.clone()))), "A and (B or P x)");
-        assert_eq!(show(&all("x", all("y", imp(c.clone(), b.clone())))), "forall x y. P x -> B");
-        assert_eq!(show(&imp(all("x", c.clone()), ex("y", c.clone()))), "(forall x. P x) -> exists y. P x");
-        assert_eq!(show(&and(a.clone(), all("x", c.clone()))), "A and (forall x. P x)");
+        assert_eq!(show(&all(&n("x"), all(&n("y"), imp(c.clone(), b.clone())))), "forall x y. P x -> B");
+        assert_eq!(show(&imp(all(&n("x"), c.clone()), ex(&n("y"), c.clone()))), "(forall x. P x) -> exists y. P x");
+        assert_eq!(show(&and(a.clone(), all(&n("x"), c.clone()))), "A and (forall x. P x)");
     }
 }

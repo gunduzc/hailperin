@@ -46,7 +46,7 @@ These fourteen and modus ponens are the kernel. Everything below is translated i
 
 A file is ASCII, comments included. Whitespace only separates tokens. Comments are `{- ... -}` and nest.
 
-**Names.** Uppercase: predicates, definitions, theories. Lowercase: variables, labels, theorems, rules. A name matches `letter (letter | digit | '_' (letter | digit))*`. Reserved: `theorem theory define include import in assume lemma by forall exists and or not absurd`.
+**Names.** Uppercase: predicates, definitions, theories. Lowercase: variables, labels, theorems, rules. A name matches `letter (letter | digit | '_' (letter | digit))*`. Reserved: `theorem theory define include import in assume lemma by forall exists and or not absurd`, and the rule names, `auto` among them.
 
 ```
 file     ::= import* item*
@@ -158,6 +158,7 @@ theorem socrates_is_mortal
 | `exists_e e h c` | `e : exists x. A`, `h` assumes `A[w/x]`, `c : C` | `C`. Closes `w` and `h`. `w` not free in `C` or any other open assumption |
 | `t a...` | theorem `t`, lines for its leading antecedents | the rest of `t`. Leading `forall`s are instantiated by matching the lines and the stated formula |
 | `l` | line `l` | `L` restated, folded or unfolded |
+| `auto` | | reserved for a tool that fills lines in. The checker refuses it |
 
 A theory member, or a theorem with its antecedents supplied, is a line. Citing either with lines instantiates its leading `forall`s: each variable takes what the lines, or the stated formula, have in its place, and `forall_e` serves the variables neither fixes. `Plus w w w by Q.pz zw` finds `z := w` from the line and `x := w` from the stated formula. `not A` is `A -> absurd`, so `imp_i` and `imp_e` serve it.
 

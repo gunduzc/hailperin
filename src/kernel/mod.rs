@@ -7,7 +7,7 @@
 
 pub mod formula;
 
-use formula::{all, and, ex, imp, or, Formula, Template};
+use formula::{absurd, all, and, ex, imp, or, Formula, Name, Node, Template};
 use std::collections::BTreeSet;
 
 #[derive(Clone, Debug)]
@@ -36,15 +36,15 @@ pub enum Axiom {
     OrI2(Formula, Formula),
     OrE(Formula, Formula, Formula),
     Efq(Formula),
-    Dist(String, Formula, Formula),
-    Vac(String, Formula),
-    Inst(String, String, Formula),
-    ExI(String, String, Formula),
-    ExE(String, Formula, Formula),
+    Dist(Name, Formula, Formula),
+    Vac(Name, Formula),
+    Inst(Name, Name, Formula),
+    ExI(Name, Name, Formula),
+    ExE(Name, Formula, Formula),
 }
 
 fn closed(f: &Formula, what: &str) -> Result<(), String> {
-    match f.free_vars().into_iter().next() {
+    match f.free_vars().first() {
         Some(x) => Err(format!("{what} has `{x}` free: formulas must be closed")),
         None => Ok(()),
     }
@@ -56,7 +56,7 @@ impl Thm {
     }
 }
 
-fn bind(params: &[(String, usize)], templates: &[Template]) -> Result<Vec<(String, Template)>, String> {
+fn bind<'a>(params: &'a [(String, usize)], templates: &[&'a Template]) -> Result<Vec<(&'a str, &'a Template)>, String> {
     if params.len() != templates.len() {
         return Err(format!("expected {} predicate argument(s), got {}", params.len(), templates.len()));
     }
@@ -65,13 +65,13 @@ fn bind(params: &[(String, usize)], templates: &[Template]) -> Result<Vec<(Strin
             return Err(format!("`{p}` takes {n} argument(s), but the template takes {}", t.holes().len()));
         }
     }
-    Ok(params.iter().map(|(p, _)| p.clone()).zip(templates.iter().cloned()).collect())
+    Ok(params.iter().map(|(p, _)| p.as_str()).zip(templates.iter().copied()).collect())
 }
 
 /// The prefix an instance is closed over binds each variable once, including every free
 /// variable of the templates.
-fn check_prefix(templates: &[Template], prefix: &[String]) -> Result<(), String> {
-    if let Some(x) = templates.iter().flat_map(Template::extras).find(|x| !prefix.contains(x)) {
+fn check_prefix(templates: &[&Template], prefix: &[Name]) -> Result<(), String> {
+    if let Some(x) = templates.iter().flat_map(|t| t.extras()).find(|x| !prefix.contains(x)) {
         return Err(format!("`{x}` is free in an argument but not bound by the prefix"));
     }
     if !distinct(prefix) {
@@ -95,7 +95,7 @@ fn add_hyps(hyps: &mut Vec<Formula>, more: &[Formula]) {
 }
 
 /// The closure of an axiom instance under `prefix`, outermost first.
-pub fn axiom(ax: Axiom, prefix: &[String]) -> Result<Thm, String> {
+pub fn axiom(ax: Axiom, prefix: &[Name]) -> Result<Thm, String> {
     let instance = match ax {
         Axiom::Imp1(a, b) => imp(a.clone(), imp(b, a)),
         Axiom::Imp2(a, b, c) => imp(
@@ -111,7 +111,7 @@ pub fn axiom(ax: Axiom, prefix: &[String]) -> Result<Thm, String> {
             imp(a.clone(), c.clone()),
             imp(imp(b.clone(), c.clone()), imp(or(a, b), c)),
         ),
-        Axiom::Efq(a) => imp(Formula::Absurd, a),
+        Axiom::Efq(a) => imp(absurd(), a),
         Axiom::Dist(x, a, b) => imp(all(&x, imp(a.clone(), b.clone())), imp(all(&x, a), all(&x, b))),
         Axiom::Vac(x, a) => {
             if a.is_free(&x) {
@@ -149,15 +149,15 @@ pub fn axiom(ax: Axiom, prefix: &[String]) -> Result<Thm, String> {
 
 /// From `A` and `imp A B`, `B`.
 pub fn mp(a: &Thm, ab: &Thm) -> Result<Thm, String> {
-    let Formula::Imp(p, q) = &ab.concl else {
+    let Node::Imp(p, q) = ab.concl.node() else {
         return Err(format!("{} is not an implication", ab.concl));
     };
-    if **p != a.concl {
+    if *p != a.concl {
         return Err(format!("{} needs {p}, but got {}", ab.concl, a.concl));
     }
     let mut hyps = a.hyps.clone();
     add_hyps(&mut hyps, &ab.hyps);
-    Ok(Thm { concl: (**q).clone(), hyps })
+    Ok(Thm { concl: q.clone(), hyps })
 }
 
 /// A hypothesis of the proof being checked.
@@ -176,7 +176,7 @@ impl Lemma {
         for f in hyps.iter().chain([&concl]) {
             closed(f, "a hypothesis or the conclusion")?;
             for (p, k) in f.preds() {
-                if let Some((_, n)) = params.iter().find(|(q, n)| *q == p && n != &k) {
+                if let Some((_, n)) = params.iter().find(|(q, n)| q == p && n != &k) {
                     return Err(format!("`{p}` takes {n} argument(s), but is given {k}"));
                 }
             }
@@ -207,7 +207,7 @@ impl Lemma {
     /// Uniform substitution: the instance of the conclusion, given matching hypotheses.
     /// Everything is closed over `prefix`, which binds the templates' free variables and
     /// may bind more variables than occur, in any order.
-    pub fn apply(&self, templates: &[Template], prefix: &[String], args: &[&Thm]) -> Result<Thm, String> {
+    pub fn apply(&self, templates: &[&Template], prefix: &[Name], args: &[&Thm]) -> Result<Thm, String> {
         let map = bind(&self.params, templates)?;
         check_prefix(templates, prefix)?;
         if args.len() != self.hyps.len() {
@@ -231,7 +231,11 @@ mod tests {
     use super::*;
 
     fn atom(p: &str, args: &[&str]) -> Formula {
-        Formula::Atom(p.into(), args.iter().map(|a| a.to_string()).collect())
+        formula::atom(p, &args.iter().map(|a| Name::from(*a)).collect::<Vec<_>>())
+    }
+
+    fn n(x: &str) -> Name {
+        x.into()
     }
 
     #[test]
@@ -246,8 +250,8 @@ mod tests {
     #[test]
     fn inst_needs_its_variable_bound() {
         // imp (forall x absurd) absurd is false in the empty domain; inst can't produce it.
-        assert!(axiom(Axiom::Inst("y".into(), "x".into(), Formula::Absurd), &[]).is_err());
-        let th = axiom(Axiom::Inst("y".into(), "x".into(), Formula::Absurd), &["y".into()]).unwrap();
+        assert!(axiom(Axiom::Inst("y".into(), "x".into(), absurd()), &[]).is_err());
+        let th = axiom(Axiom::Inst("y".into(), "x".into(), absurd()), &["y".into()]).unwrap();
         assert_eq!(th.concl().to_string(), "forall y $ imp (forall x $ absurd) absurd");
     }
 
@@ -301,11 +305,11 @@ mod tests {
         let th = assume(&p).unwrap();
         let lemma = Lemma::new(vec![("P".into(), 0)], vec![p.clone()], p, &th).unwrap();
         let t = Template::statement(atom("Q", &["x"]));
-        let ev = assume(&all("x", atom("Q", &["x"]))).unwrap();
-        let out = lemma.apply(&[t], &["x".into()], &[&ev]).unwrap();
+        let ev = assume(&all(&n("x"), atom("Q", &["x"]))).unwrap();
+        let out = lemma.apply(&[&t], &["x".into()], &[&ev]).unwrap();
         assert_eq!(out.concl().to_string(), "forall x $ Q x");
         // The prefix must bind the template's free variables.
         let t = Template::statement(atom("Q", &["x"]));
-        assert!(lemma.apply(&[t], &[], &[&ev]).is_err());
+        assert!(lemma.apply(&[&t], &[], &[&ev]).is_err());
     }
 }

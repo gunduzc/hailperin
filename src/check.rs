@@ -12,7 +12,7 @@
 //! theorem doesn't change. Closing another layer first pushes it inward past the rest, one
 //! swap at a time: Hailperin's QE1 and QE5, as derived rules.
 
-use crate::kernel::formula::{all, and, ex, hole_names, imp, or, Formula, Template};
+use crate::kernel::formula::{absurd, all, and, atom, ex, hole_names, imp, or, Formula, Name, Node, Template};
 use crate::kernel::{self, Axiom, Lemma, Thm};
 use crate::parse::{Arg, Assume, Block, FExpr, Item, Just, Line, Member, Ref, Step, TArg};
 use crate::print::show;
@@ -21,9 +21,11 @@ use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
 use std::rc::Rc;
 
+/// The rules, and `auto`, which is reserved for a tool that fills lines in: the checker
+/// refuses it, so a file that still says `auto` is unfinished.
 pub const RULES: &[&str] = &[
     "imp_i", "imp_e", "and_i", "and_e1", "and_e2", "or_i1", "or_i2", "or_e", "absurd_e", "forall_i", "forall_e",
-    "exists_i", "exists_e",
+    "exists_i", "exists_e", "auto",
 ];
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -60,8 +62,10 @@ enum Global {
 #[derive(Default)]
 pub struct Checker {
     globals: HashMap<String, Global>,
-    /// Rules for reasoning under layers, proved once per shape (see `shape_rule`).
+    /// Rules for reasoning under layers, stated per shape and variable names (see `shape_rule`).
     rules: RefCell<HashMap<(Rule, String), Rc<Lemma>>>,
+    /// Their proofs, made once per shape.
+    proofs: RefCell<HashMap<(Rule, String), Rc<Thm>>>,
     /// Where each premise formula came from: the declaring theory and the member's label.
     origins: RefCell<Vec<(Formula, String, String)>>,
     /// Whether to record each line's scope and closure for `explain`.
@@ -79,7 +83,7 @@ enum Rule {
 /// A variable or an assumption in scope.
 #[derive(Clone, Debug)]
 enum Entry {
-    Var(String),
+    Var(Name),
     Hyp(Formula),
 }
 
@@ -117,10 +121,18 @@ impl Cx {
     }
 
     fn var_index(&self, name: &str) -> Option<usize> {
-        self.stack.iter().position(|e| matches!(e, Entry::Var(v) if v == name))
+        self.stack.iter().position(|e| matches!(e, Entry::Var(v) if &**v == name))
     }
 
-    fn vars(&self, depth: usize) -> Vec<String> {
+    /// The variable named `name`, as the stack knows it.
+    fn var(&self, name: &str) -> Option<Name> {
+        self.stack.iter().find_map(|e| match e {
+            Entry::Var(v) if &**v == name => Some(v.clone()),
+            _ => None,
+        })
+    }
+
+    fn vars(&self, depth: usize) -> Vec<Name> {
         vars(&self.stack[..depth])
     }
 
@@ -143,14 +155,14 @@ struct Scope<'a> {
     params: &'a mut Vec<(String, usize)>,
     grow: bool,
     /// Variables bound by quantifiers around the point being read.
-    bound: Vec<String>,
+    bound: Vec<Name>,
     /// Variables in scope in the proof.
-    in_scope: Vec<String>,
+    in_scope: Vec<Name>,
     /// Free variables not yet in scope, if they are allowed: they enter scope.
-    new: Option<Vec<String>>,
+    new: Option<Vec<Name>>,
 }
 
-fn vars(entries: &[Entry]) -> Vec<String> {
+fn vars(entries: &[Entry]) -> Vec<Name> {
     entries
         .iter()
         .filter_map(|e| match e {
@@ -164,17 +176,19 @@ fn vars(entries: &[Entry]) -> Vec<String> {
 /// one assumption per hypothesis.
 fn unwrap(f: &Formula, entries: &[Entry]) -> Result<Formula, String> {
     // The renamings are collected and done at once: one pass over the body, not one per layer.
-    let mut s: Vec<(String, String)> = Vec::new();
+    let mut s: Vec<(Name, Name)> = Vec::new();
     let mut cur = f;
     for e in entries {
-        cur = match (e, cur) {
-            (Entry::Var(y), Formula::All(z, b)) => {
+        cur = match (e, cur.node()) {
+            (Entry::Var(y), Node::All(z, b)) => {
                 s.retain(|(v, _)| v != z);
-                s.push((z.clone(), y.clone()));
+                if z != y {
+                    s.push((z.clone(), y.clone()));
+                }
                 b
             }
-            (Entry::Hyp(h), Formula::Imp(p, b)) if p.subst_vars(&s) == *h => b,
-            (_, other) => return Err(format!("{} doesn't have the shape of the current block", show(&other.subst_vars(&s)))),
+            (Entry::Hyp(h), Node::Imp(p, b)) if p.subst_vars(&s) == *h => b,
+            _ => return Err(format!("{} doesn't have the shape of the current block", show(&cur.subst_vars(&s)))),
         };
     }
     Ok(cur.subst_vars(&s))
@@ -188,16 +202,15 @@ fn wrap(entries: &[Entry], body: Formula) -> Formula {
     })
 }
 
-/// A template over `vars`, with the template's holes for them.
-fn abstract_over(f: &Formula, vars: &[String]) -> Result<Template, String> {
-    let holes = hole_names(vars.len());
-    let s: Vec<(String, String)> = vars.iter().cloned().zip(holes.iter().cloned()).collect();
-    Template::new(holes, f.subst_vars(&s))
+/// A template whose holes are `vars` themselves, so applying it to them changes nothing.
+fn abstract_over(f: &Formula, vars: &[Name]) -> Result<Template, String> {
+    Template::new(vars.to_vec(), f.clone())
 }
 
-/// A stack's shape: `V` for a variable, `H` for an assumption.
+/// A stack's shape: the variables by name, `#` for an assumption. Names can't contain either.
 fn shape(entries: &[Entry]) -> String {
-    entries.iter().map(|e| if matches!(e, Entry::Var(_)) { 'V' } else { 'H' }).collect()
+    let parts: Vec<&str> = entries.iter().map(|e| match e { Entry::Var(v) => v, Entry::Hyp(_) => "#" }).collect();
+    parts.join(" ")
 }
 
 fn upper(name: &str) -> bool {
@@ -218,8 +231,8 @@ fn union(a: &[usize], b: &[usize]) -> Vec<usize> {
 
 /// The free variables of an axiom instance: those of its formulas, minus the one it binds,
 /// plus the one it instantiates at.
-fn axiom_free_vars(ax: &Axiom) -> BTreeSet<String> {
-    let mut fv: BTreeSet<String> = axiom_formulas(ax).into_iter().flat_map(Formula::free_vars).collect();
+fn axiom_free_vars(ax: &Axiom) -> BTreeSet<Name> {
+    let mut fv: BTreeSet<Name> = axiom_formulas(ax).into_iter().flat_map(|f| f.free_vars().iter().cloned()).collect();
     match ax {
         Axiom::Dist(x, ..) | Axiom::Vac(x, _) | Axiom::ExE(x, ..) => {
             fv.remove(x);
@@ -239,22 +252,22 @@ fn var_entries(entries: &[Entry]) -> Vec<Entry> {
 }
 
 /// Free variables in order of first occurrence.
-fn free_in_order(f: &Formula) -> Vec<String> {
-    fn go(f: &Formula, bound: &mut Vec<String>, out: &mut Vec<String>) {
-        match f {
-            Formula::Absurd => {}
-            Formula::Atom(_, args) => {
+fn free_in_order(f: &Formula) -> Vec<Name> {
+    fn go(f: &Formula, bound: &mut Vec<Name>, out: &mut Vec<Name>) {
+        match f.node() {
+            Node::Absurd => {}
+            Node::Atom(_, args) => {
                 for a in args {
                     if !bound.contains(a) && !out.contains(a) {
                         out.push(a.clone());
                     }
                 }
             }
-            Formula::And(a, b) | Formula::Or(a, b) | Formula::Imp(a, b) => {
+            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => {
                 go(a, bound, out);
                 go(b, bound, out);
             }
-            Formula::All(x, a) | Formula::Ex(x, a) => {
+            Node::All(x, a) | Node::Ex(x, a) => {
                 bound.push(x.clone());
                 go(a, bound, out);
                 bound.pop();
@@ -386,7 +399,7 @@ impl Checker {
                     return Err(Error::new(line, format!("`{p}` is lowercase, and a theory member's parameters are predicates")));
                 }
                 kinds.push((p.clone(), Kind::Individual));
-                bound.push(p.clone());
+                bound.push(Name::from(p.as_str()));
             }
         }
         let mut scope = Scope { params: &mut preds, grow: false, bound, in_scope: Vec::new(), new: None };
@@ -423,7 +436,7 @@ impl Checker {
                         return Err(Error::new(*line, format!("`{label}` is already a member")));
                     }
                     let def = self.definition(params, formula, *line, true)?;
-                    if let Some(x) = def.body.free_vars().into_iter().next() {
+                    if let Some(x) = def.body.free_vars().first() {
                         return Err(Error::new(*line, format!("`{x}` is free in the axiom `{label}`: bind it with `forall` or `exists`")));
                     }
                     infos.push(MemberInfo { label: label.clone(), origin: name.to_string(), def: Rc::new(def) });
@@ -603,37 +616,13 @@ impl Checker {
         let o = self.justify(&l.just, cx, &want)?;
         let got = self.body(cx, &o).map_err(|m| Error::new(l.line, m))?;
         if got != want {
-            return Err(Error::new(l.line, format!("this gives {}, not {}", self.pretty(cx, &got), show(&want))));
+            return Err(Error::new(l.line, format!("this gives {}, not {}", show(&got), show(&want))));
         }
         self.trace_line(cx, &l.label, &o, &want);
         Ok((o, want))
     }
 
     /// `f` for display: binders the shape rules named by stack position get the user's names.
-    fn pretty(&self, cx: &Cx, f: &Formula) -> String {
-        fn go(f: &Formula, cx: &Cx) -> Formula {
-            match f {
-                Formula::Absurd | Formula::Atom(..) => f.clone(),
-                Formula::And(a, b) => and(go(a, cx), go(b, cx)),
-                Formula::Or(a, b) => or(go(a, cx), go(b, cx)),
-                Formula::Imp(a, b) => imp(go(a, cx), go(b, cx)),
-                Formula::All(x, a) | Formula::Ex(x, a) => {
-                    let name = x
-                        .strip_prefix("_v")
-                        .and_then(|i| i.parse::<usize>().ok())
-                        .and_then(|i| match cx.stack.get(i) {
-                            Some(Entry::Var(v)) if !a.is_free(v) => Some(v.clone()),
-                            _ => None,
-                        })
-                        .unwrap_or_else(|| x.clone());
-                    let body = go(&a.subst_vars(&[(x.clone(), name.clone())]), cx);
-                    if matches!(f, Formula::All(..)) { all(&name, body) } else { ex(&name, body) }
-                }
-            }
-        }
-        show(&go(f, cx))
-    }
-
     // ---- justifications ----
 
     fn justify(&self, j: &Just, cx: &mut Cx, want: &Formula) -> Result<Open, Error> {
@@ -644,6 +633,9 @@ impl Checker {
                 self.apply_all(o, &j.args, cx, Some(want))
             }
             Ref::Name(h) => {
+                if h == "auto" {
+                    return Err(Error::new(line, "`auto` marks a line for a tool to fill in, and this line is still unfilled"));
+                }
                 if RULES.contains(&h.as_str()) {
                     if !j.targs.is_empty() {
                         return Err(Error::new(line, format!("`{h}` takes lines and variables, not templates")));
@@ -694,13 +686,16 @@ impl Checker {
     }
 
     /// A variable named by an argument. A name not yet in scope enters it.
-    fn arg_var(&self, a: &Arg, cx: &mut Cx) -> Result<String, Error> {
+    fn arg_var(&self, a: &Arg, cx: &mut Cx) -> Result<Name, Error> {
         match a {
-            Arg::Ident(n, _) if cx.var_index(n).is_some() => Ok(n.clone()),
-            Arg::Ident(n, _) => {
-                cx.stack.push(Entry::Var(n.clone()));
-                Ok(n.clone())
-            }
+            Arg::Ident(n, _) => match cx.var(n) {
+                Some(v) => Ok(v),
+                None => {
+                    let name: Name = n.as_str().into();
+                    cx.stack.push(Entry::Var(name.clone()));
+                    Ok(name)
+                }
+            },
             other => Err(Error::new(other.line(), "expected a variable")),
         }
     }
@@ -727,7 +722,8 @@ impl Checker {
             let is_var = matches!(a, Arg::Ident(n, _) if cx.lookup(n).is_none() && cx.var_index(n).is_some());
             if is_var {
                 let Arg::Ident(y, line) = a else { unreachable!() };
-                o = self.instantiate(cx, &o, y).map_err(|m| Error::new(*line, m))?;
+                let y = cx.var(y).expect("checked above");
+                o = self.instantiate(cx, &o, &y).map_err(|m| Error::new(*line, m))?;
                 i += 1;
                 continue;
             }
@@ -752,29 +748,29 @@ impl Checker {
         let line = args.first().map_or(0, Arg::line);
         let err = |m: String| Error::new(line, m);
         let body = self.body(cx, &o).map_err(err)?;
-        let mut metas = Vec::new();
-        let mut cur = body.clone();
-        while let Formula::All(x, b) = cur {
-            metas.push(x);
-            cur = *b;
+        let mut metas: Vec<Name> = Vec::new();
+        let mut cur = &body;
+        while let Node::All(x, b) = cur.node() {
+            metas.push(x.clone());
+            cur = b;
         }
         if !metas.is_empty() && !lines.is_empty() {
-            let meta_set: BTreeSet<String> = metas.iter().cloned().collect();
-            let mut sol: HashMap<String, String> = HashMap::new();
+            let meta_set: BTreeSet<Name> = metas.iter().cloned().collect();
+            let mut sol: HashMap<Name, Name> = HashMap::new();
             let mut rest = cur;
             for (k, l) in lines.iter().enumerate() {
-                let Formula::Imp(a, b) = rest else {
+                let Node::Imp(a, b) = rest.node() else {
                     return Err(Error::new(args[k].line(), format!("{} has no antecedent left for this line", show(&body))));
                 };
                 let lb = self.body(cx, l).map_err(err)?;
-                if !match_vars(&a, &lb, &meta_set, &mut Vec::new(), &mut sol) {
+                if !match_vars(a, &lb, &meta_set, &mut Vec::new(), &mut sol) {
                     return Err(Error::new(args[k].line(), format!("{} doesn't fit antecedent {} of {}", show(&lb), k + 1, show(&body))));
                 }
-                rest = *b;
+                rest = b;
             }
             if let Some(w) = want {
                 let mut trial = sol.clone();
-                if match_vars(&rest, w, &meta_set, &mut Vec::new(), &mut trial) {
+                if match_vars(rest, w, &meta_set, &mut Vec::new(), &mut trial) {
                     sol = trial;
                 }
             }
@@ -810,9 +806,9 @@ impl Checker {
             f
         };
         // Close over the variables in scope the instance mentions, outermost first.
-        let mut extras: Vec<(usize, String)> = f.free_vars().into_iter().map(|x| (cx.var_index(&x).unwrap(), x)).collect();
+        let mut extras: Vec<(usize, Name)> = f.free_vars().iter().map(|x| (cx.var_index(x).unwrap(), x.clone())).collect();
         extras.sort();
-        let prefix: Vec<String> = extras.iter().map(|(_, x)| x.clone()).collect();
+        let prefix: Vec<Name> = extras.iter().map(|(_, x)| x.clone()).collect();
         let closed = f.close(&prefix);
         let thm = kernel::assume(&closed).map_err(|m| Error::new(line, m))?;
         {
@@ -893,20 +889,21 @@ impl Checker {
             "and_e1" | "and_e2" => {
                 need(1, "one line, an `and`")?;
                 let c = self.arg_open(&args[0], cx)?;
-                let Formula::And(fa, fb) = self.body(cx, &c).map_err(err)? else {
-                    return Err(err(format!("`{h}` needs an `and`, and {} isn't one", show(&self.body(cx, &c).map_err(err)?))));
+                let fc = self.body(cx, &c).map_err(err)?;
+                let Node::And(fa, fb) = fc.node() else {
+                    return Err(err(format!("`{h}` needs an `and`, and {} isn't one", show(&fc))));
                 };
-                let ax = if h == "and_e1" { Axiom::AndE1(*fa, *fb) } else { Axiom::AndE2(*fa, *fb) };
+                let ax = if h == "and_e1" { Axiom::AndE1(fa.clone(), fb.clone()) } else { Axiom::AndE2(fa.clone(), fb.clone()) };
                 self.apply_axiom(cx, ax, &[c]).map_err(err)
             }
             "or_i1" | "or_i2" => {
                 need(1, "one line, the side being introduced")?;
                 let a = self.arg_open(&args[0], cx)?;
                 let fa = self.body(cx, &a).map_err(err)?;
-                let Formula::Or(l, r) = want else {
+                let Node::Or(l, r) = want.node() else {
                     return Err(err(format!("`{h}` gives an `or`, and the stated formula {} isn't one", show(want))));
                 };
-                let (l, r) = ((**l).clone(), (**r).clone());
+                let (l, r) = (l.clone(), r.clone());
                 let side_ok = if h == "or_i1" { l == fa } else { r == fa };
                 if !side_ok {
                     let side = if h == "or_i1" { "left" } else { "right" };
@@ -921,13 +918,13 @@ impl Checker {
                 let p = self.arg_open(&args[1], cx)?;
                 let q = self.arg_open(&args[2], cx)?;
                 let fd = self.body(cx, &d).map_err(err)?;
-                let Formula::Or(a, b) = &fd else {
+                let Node::Or(a, b) = fd.node() else {
                     return Err(err(format!("`or_e` needs an `or`, and {} isn't one", show(&fd))));
                 };
                 let fp = self.body(cx, &p).map_err(err)?;
                 let fq = self.body(cx, &q).map_err(err)?;
-                let c = match (&fp, &fq) {
-                    (Formula::Imp(pa, pc), Formula::Imp(qb, qc)) if **pa == **a && **qb == **b && pc == qc => (**pc).clone(),
+                let c = match (fp.node(), fq.node()) {
+                    (Node::Imp(pa, pc), Node::Imp(qb, qc)) if pa == a && qb == b && pc == qc => pc.clone(),
                     _ => {
                         return Err(err(format!(
                             "`or_e` needs {} -> C and {} -> C, got {} and {}",
@@ -938,13 +935,13 @@ impl Checker {
                         )))
                     }
                 };
-                let ax = Axiom::OrE((**a).clone(), (**b).clone(), c);
+                let ax = Axiom::OrE(a.clone(), b.clone(), c);
                 self.apply_axiom(cx, ax, &[p, q, d]).map_err(err)
             }
             "absurd_e" => {
                 need(1, "one line, `absurd`")?;
                 let f = self.arg_open(&args[0], cx)?;
-                if self.body(cx, &f).map_err(err)? != Formula::Absurd {
+                if self.body(cx, &f).map_err(err)? != absurd() {
                     return Err(err("`absurd_e` needs a line that is `absurd`".into()));
                 }
                 self.apply_axiom(cx, Axiom::Efq(want.clone()), &[f]).map_err(err)
@@ -955,10 +952,10 @@ impl Checker {
                 }
                 let l = self.arg_open(&args[0], cx)?;
                 let fl = self.body(cx, &l).map_err(err)?;
-                let Formula::Ex(x, a) = want else {
+                let Node::Ex(x, a) = want.node() else {
                     return Err(err(format!("`exists_i` gives an `exists`, and the stated formula {} isn't one", show(want))));
                 };
-                let a = (**a).clone();
+                let a = a.clone();
                 let y = if args.len() == 2 {
                     let y = self.arg_var(&args[1], cx)?;
                     if a.subst_vars(&[(x.clone(), y.clone())]) != fl {
@@ -985,7 +982,7 @@ impl Checker {
                 let c = self.arg_open(&args[2], cx)?;
                 let Entry::Hyp(a_w) = cx.stack[ih].clone() else { unreachable!() };
                 let fe = self.body(cx, &e).map_err(err)?;
-                let Formula::Ex(x, a) = &fe else {
+                let Node::Ex(x, a) = fe.node() else {
                     return Err(err(format!("`exists_e` needs an `exists`, and {} isn't one", show(&fe))));
                 };
                 // The witness: the variable in scope at which the `exists` is the assumption.
@@ -999,7 +996,8 @@ impl Checker {
                 };
                 let iw = cx.var_index(&w).unwrap();
                 let c = self.close_at(cx, &c, ih, false).map_err(|m| Error::new(args[2].line(), m))?;
-                let Formula::Imp(_, fc) = self.body(cx, &c).map_err(err)? else { unreachable!() };
+                let closed_c = self.body(cx, &c).map_err(err)?;
+                let Node::Imp(_, fc) = closed_c.node() else { unreachable!() };
                 if fc.is_free(&w) {
                     return Err(err(format!("the line reached mentions the witness `{w}`: {}", show(&fc))));
                 }
@@ -1007,7 +1005,7 @@ impl Checker {
                 if e.layers.contains(&iw) {
                     return Err(err(format!("the `exists` line depends on the witness `{w}`")));
                 }
-                let ax = Axiom::ExE(w.clone(), a_w, (*fc).clone());
+                let ax = Axiom::ExE(w.clone(), a_w, fc.clone());
                 self.apply_axiom(cx, ax, &[r, e]).map_err(err)
             }
             _ => unreachable!("not a rule: {h}"),
@@ -1076,12 +1074,13 @@ impl Checker {
     }
 
     /// A `forall` under `entries`, instantiated at the variable `y`, which one of them binds.
-    fn inst_under(&self, entries: &[Entry], thm: &Thm, y: &str) -> Result<Thm, String> {
-        let (x, a) = match unwrap(thm.concl(), entries)? {
-            Formula::All(x, a) => (x, *a),
-            other => return Err(format!("can't instantiate at `{y}`: {} doesn't start with `forall`", show(&other))),
+    fn inst_under(&self, entries: &[Entry], thm: &Thm, y: &Name) -> Result<Thm, String> {
+        let body = unwrap(thm.concl(), entries)?;
+        let (x, a) = match body.node() {
+            Node::All(x, a) => (x.clone(), a.clone()),
+            _ => return Err(format!("can't instantiate at `{y}`: {} doesn't start with `forall`", show(&body))),
         };
-        let t = self.axiom_at(entries, Axiom::Inst(y.to_string(), x, a))?;
+        let t = self.axiom_at(entries, Axiom::Inst(y.clone(), x, a))?;
         self.mp(entries, &t, thm)
     }
 
@@ -1104,23 +1103,23 @@ impl Checker {
 
     fn formula(&self, e: &FExpr, scope: &mut Scope) -> Result<Formula, Error> {
         match e {
-            FExpr::Absurd(_) => Ok(Formula::Absurd),
-            FExpr::Not(a, _) => Ok(imp(self.formula(a, scope)?, Formula::Absurd)),
+            FExpr::Absurd(_) => Ok(absurd()),
+            FExpr::Not(a, _) => Ok(imp(self.formula(a, scope)?, absurd())),
             FExpr::And(a, b, _) => Ok(and(self.formula(a, scope)?, self.formula(b, scope)?)),
             FExpr::Or(a, b, _) => Ok(or(self.formula(a, scope)?, self.formula(b, scope)?)),
             FExpr::Imp(a, b, _) => Ok(imp(self.formula(a, scope)?, self.formula(b, scope)?)),
             FExpr::Forall(xs, body, line) | FExpr::Exists(xs, body, line) => {
-                for x in xs {
+                let names: Vec<Name> = xs.iter().map(|x| Name::from(x.as_str())).collect();
+                for (x, name) in xs.iter().zip(&names) {
                     if RULES.contains(&x.as_str()) {
                         return Err(Error::new(*line, format!("`{x}` is a rule, not a variable")));
                     }
-                    scope.bound.push(x.clone());
+                    scope.bound.push(name.clone());
                 }
-                let b = self.formula(body, scope);
-                let mut f = b?;
-                for x in xs.iter().rev() {
+                let mut f = self.formula(body, scope)?;
+                for name in names.iter().rev() {
                     scope.bound.pop();
-                    f = if matches!(e, FExpr::Forall(..)) { all(x, f) } else { ex(x, f) };
+                    f = if matches!(e, FExpr::Forall(..)) { all(name, f) } else { ex(name, f) };
                 }
                 Ok(f)
             }
@@ -1128,18 +1127,21 @@ impl Checker {
         }
     }
 
-    fn individual(&self, a: &TArg, scope: &mut Scope) -> Result<String, Error> {
+    fn individual(&self, a: &TArg, scope: &mut Scope) -> Result<Name, Error> {
         match a {
             TArg::Var(x, line) => {
-                if scope.bound.contains(x) || scope.in_scope.contains(x) {
-                    return Ok(x.clone());
+                let known = scope.bound.iter().rev().chain(&scope.in_scope).find(|v| ***v == **x);
+                if let Some(v) = known {
+                    return Ok(v.clone());
                 }
                 match &mut scope.new {
                     Some(new) => {
-                        if !new.contains(x) {
-                            new.push(x.clone());
+                        if let Some(v) = new.iter().find(|v| ***v == **x) {
+                            return Ok(v.clone());
                         }
-                        Ok(x.clone())
+                        let name: Name = x.as_str().into();
+                        new.push(name.clone());
+                        Ok(name)
                     }
                     None => Err(Error::new(*line, format!("`{x}` is free: bind it with `forall` or `exists`"))),
                 }
@@ -1156,7 +1158,7 @@ impl Checker {
                 return Err(takes(name, n, args.len(), line));
             }
             let vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
-            return Ok(Formula::Atom(name.to_string(), vars));
+            return Ok(atom(name, &vars));
         }
         match self.globals.get(name) {
             Some(Global::Prim(n)) => {
@@ -1164,7 +1166,7 @@ impl Checker {
                     return Err(takes(name, *n, args.len(), line));
                 }
                 let vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
-                Ok(Formula::Atom(name.to_string(), vars))
+                Ok(atom(name, &vars))
             }
             Some(Global::Def(def)) => {
                 let def = def.clone();
@@ -1178,7 +1180,7 @@ impl Checker {
             None if scope.grow => {
                 scope.params.push((name.to_string(), args.len()));
                 let vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
-                Ok(Formula::Atom(name.to_string(), vars))
+                Ok(atom(name, &vars))
             }
             None => Err(Error::new(line, format!("`{name}` is not defined"))),
         }
@@ -1186,18 +1188,19 @@ impl Checker {
 
     /// A definition expanded with `args` for its first parameters and `holes` for the rest,
     /// which are individuals.
-    fn expand(&self, def: &Def, args: &[TArg], holes: &[String], line: usize, scope: &mut Scope) -> Result<Formula, Error> {
-        let mut vars = Vec::new();
+    fn expand(&self, def: &Def, args: &[TArg], holes: &[Name], line: usize, scope: &mut Scope) -> Result<Formula, Error> {
+        let mut vars: Vec<(Name, Name)> = Vec::new();
         let mut templates = Vec::new();
         for ((p, kind), a) in def.params.iter().zip(args) {
             match kind {
-                Kind::Individual => vars.push((p.clone(), self.individual(a, scope)?)),
+                Kind::Individual => vars.push((p.as_str().into(), self.individual(a, scope)?)),
                 Kind::Pred(n) => templates.push((p.clone(), self.template(a, *n, scope)?)),
             }
         }
-        vars.extend(def.params[args.len()..].iter().map(|(p, _)| p.clone()).zip(holes.iter().cloned()));
+        vars.extend(def.params[args.len()..].iter().map(|(p, _)| Name::from(p.as_str())).zip(holes.iter().cloned()));
         // Individuals first: templates may mention the caller's variables by the same names.
-        def.body.subst_vars(&vars).subst_preds(&templates).map_err(|m| Error::new(line, m))
+        let map: Vec<(&str, &Template)> = templates.iter().map(|(p, t)| (p.as_str(), t)).collect();
+        def.body.subst_vars(&vars).subst_preds(&map).map_err(|m| Error::new(line, m))
     }
 
     /// A predicate argument of arity `n`: for `n = 0` any formula, otherwise a predicate
@@ -1226,7 +1229,7 @@ impl Checker {
             }
             let mut vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
             vars.extend(holes.iter().cloned());
-            Formula::Atom(name.to_string(), vars)
+            atom(name, &vars)
         } else {
             match self.globals.get(name) {
                 Some(Global::Def(def)) => {
@@ -1243,7 +1246,7 @@ impl Checker {
                 None if scope.grow && args.is_empty() => {
                     // A new parameter of the theorem, of the arity the template needs.
                     scope.params.push((name.to_string(), n));
-                    Formula::Atom(name.to_string(), holes.clone())
+                    atom(name, &holes)
                 }
                 None if scope.grow => {
                     let m = scope.params.iter().find(|(p, _)| p == name).map(|(_, m)| *m).unwrap_or(args.len() + n);
@@ -1252,7 +1255,7 @@ impl Checker {
                     }
                     let mut vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
                     vars.extend(holes.iter().cloned());
-                    Formula::Atom(name.to_string(), vars)
+                    atom(name, &vars)
                 }
                 None => return Err(Error::new(line, format!("`{name}` is not defined"))),
             }
@@ -1296,13 +1299,13 @@ impl Checker {
         }
         let fb = unwrap(f.concl(), stack)?;
         let ab = unwrap(a.concl(), stack)?;
-        let Formula::Imp(p, q) = &fb else {
+        let Node::Imp(p, q) = fb.node() else {
             return Err(format!("{} is not an implication", show(&fb)));
         };
-        if **p != ab {
+        if *p != ab {
             return Err(format!("{} needs {}, but got {}", show(&fb), show(p), show(&ab)));
         }
-        self.use_shape_rule(stack, Rule::Mp, &[(**p).clone(), (**q).clone()], &[f, a])
+        self.use_shape_rule(stack, Rule::Mp, &[p.clone(), q.clone()], &[f, a])
     }
 
     /// Applies `rule` for `stack`'s shape. Its parameters are the assumptions' predicates,
@@ -1320,7 +1323,7 @@ impl Checker {
             ts.push(abstract_over(f, &vs)?);
         }
         // The templates mention only the stack's variables, which are their holes.
-        lemma.apply(&ts, &[], ev)
+        lemma.apply(&ts.iter().collect::<Vec<_>>(), &[], ev)
     }
 
     /// `rule` for a shape, proved on first use.
@@ -1329,63 +1332,98 @@ impl Checker {
         if let Some(l) = self.rules.borrow().get(&key) {
             return Ok(l.clone());
         }
-        // An abstract stack of this shape: variables `_v...`; assumptions `#H...` applied to
-        // the variables before them. Neither kind of name can be written by a user.
+        // The rule is proved once per shape, with the variables `_v...`, and restated for
+        // each set of names. A restatement is alpha-equivalent, so the kernel accepts the
+        // same proof for it.
+        let names: Vec<&str> = shape.split(' ').collect();
+        let canonical: Vec<String> = names.iter().enumerate().map(|(i, n)| if *n == "#" { "#".to_string() } else { format!("_v{i}") }).collect();
+        let proof = self.shape_proof(rule, &canonical.join(" "))?;
+        let (_, params, hyps, concl) = Self::shape_statement(rule, &names);
+        let lemma = Rc::new(Lemma::new(params, hyps, concl, &proof)?);
+        self.rules.borrow_mut().insert(key, lemma.clone());
+        Ok(lemma)
+    }
+
+    /// An abstract stack of this shape: its variables, and assumptions `#H...` applied to the
+    /// variables before them. A user can't write `#`, so the parameters clash with nothing.
+    /// With it, the rule's parameters, hypotheses and conclusion.
+    fn shape_statement(rule: Rule, names: &[&str]) -> (Vec<Entry>, Vec<(String, usize)>, Vec<Formula>, Formula) {
         let mut stack = Vec::new();
         let mut vs = Vec::new();
         let mut params = Vec::new();
-        for (i, c) in shape.chars().enumerate() {
-            if c == 'V' {
-                let v = format!("_v{i}");
-                vs.push(v.clone());
-                stack.push(Entry::Var(v));
+        for (i, c) in names.iter().enumerate() {
+            if *c != "#" {
+                let name: Name = (*c).into();
+                vs.push(name.clone());
+                stack.push(Entry::Var(name));
             } else {
                 let h = format!("#H{i}");
                 params.push((h.clone(), vs.len()));
-                stack.push(Entry::Hyp(Formula::Atom(h, vs.clone())));
+                stack.push(Entry::Hyp(atom(&h, &vs)));
             }
         }
         let k = vs.len();
-        let atom = |p: &str| Formula::Atom(p.to_string(), vs.clone());
-        let (inner, last) = stack.split_at(stack.len() - 1);
-        let lemma = match rule {
+        let at = |p: &str| atom(p, &vs);
+        match rule {
             Rule::Mp => {
                 params.push(("#A".into(), k));
                 params.push(("#B".into(), k));
-                let (a, b) = (atom("#A"), atom("#B"));
-                let p1 = wrap(&stack, imp(a.clone(), b.clone()));
-                let p2 = wrap(&stack, a.clone());
-                let f = kernel::assume(&p1)?;
-                let x = kernel::assume(&p2)?;
-                let ax = match &last[0] {
-                    Entry::Var(y) => Axiom::Dist(y.clone(), a, b.clone()),
-                    Entry::Hyp(h) => Axiom::Imp2(h.clone(), a, b.clone()),
-                };
-                let t = self.axiom_at(inner, ax)?;
-                let t = self.mp(inner, &t, &f)?;
-                let t = self.mp(inner, &t, &x)?;
-                Lemma::new(params, vec![p1, p2], wrap(&stack, b), &t)?
+                let (a, b) = (at("#A"), at("#B"));
+                let hyps = vec![wrap(&stack, imp(a.clone(), b.clone())), wrap(&stack, a)];
+                let concl = wrap(&stack, b);
+                (stack, params, hyps, concl)
             }
             Rule::Lift => {
                 params.push(("#T".into(), k));
-                let t = atom("#T");
-                let hyp = t.clone().close(&vs);
-                let p = kernel::assume(&hyp)?;
+                let t = at("#T");
+                let hyps = vec![t.clone().close(&vs)];
+                let concl = wrap(&stack, t);
+                (stack, params, hyps, concl)
+            }
+        }
+    }
+
+    /// The proof of `rule` for a shape, from the rules for the shape one layer shorter.
+    fn shape_proof(&self, rule: Rule, shape: &str) -> Result<Rc<Thm>, String> {
+        let key = (rule, shape.to_string());
+        if let Some(t) = self.proofs.borrow().get(&key) {
+            return Ok(t.clone());
+        }
+        let names: Vec<&str> = shape.split(' ').collect();
+        let (stack, _, hyps, _) = Self::shape_statement(rule, &names);
+        let vs = vars(&stack);
+        let at = |p: &str| atom(p, &vs);
+        let (inner, last) = stack.split_at(stack.len() - 1);
+        let proof = match rule {
+            Rule::Mp => {
+                let (a, b) = (at("#A"), at("#B"));
+                let f = kernel::assume(&hyps[0])?;
+                let x = kernel::assume(&hyps[1])?;
+                let ax = match &last[0] {
+                    Entry::Var(y) => Axiom::Dist(y.clone(), a, b),
+                    Entry::Hyp(h) => Axiom::Imp2(h.clone(), a, b),
+                };
+                let t = self.axiom_at(inner, ax)?;
+                let t = self.mp(inner, &t, &f)?;
+                self.mp(inner, &t, &x)?
+            }
+            Rule::Lift => {
+                let t = at("#T");
+                let p = kernel::assume(&hyps[0])?;
                 // Under the shorter shape: its own lift, with the last layer folded into T.
-                let proved = match &last[0] {
+                match &last[0] {
                     Entry::Var(_) => self.lift(inner, &p)?,
                     Entry::Hyp(h) => {
                         let under = self.lift(inner, &p)?;
-                        let kk = self.lift(inner, &kernel::axiom(Axiom::Imp1(t.clone(), h.clone()), &vs)?)?;
+                        let kk = self.lift(inner, &kernel::axiom(Axiom::Imp1(t, h.clone()), &vs)?)?;
                         self.mp(inner, &kk, &under)?
                     }
-                };
-                Lemma::new(params, vec![hyp], wrap(&stack, t), &proved)?
+                }
             }
         };
-        let lemma = Rc::new(lemma);
-        self.rules.borrow_mut().insert(key, lemma.clone());
-        Ok(lemma)
+        let proof = Rc::new(proof);
+        self.proofs.borrow_mut().insert(key, proof.clone());
+        Ok(proof)
     }
 
     /// The same line under more layers, `target`, which include its own: `vac` for a variable,
@@ -1437,7 +1475,7 @@ impl Checker {
     }
 
     /// A `forall` line instantiated at the variable `y`.
-    fn instantiate(&self, cx: &Cx, o: &Open, y: &str) -> Result<Open, String> {
+    fn instantiate(&self, cx: &Cx, o: &Open, y: &Name) -> Result<Open, String> {
         let iy = cx.var_index(y).ok_or_else(|| format!("`{y}` is not a variable in scope"))?;
         let layers = union(&o.layers, &[iy]);
         let o = self.weaken(cx, o, &layers)?;
@@ -1483,15 +1521,15 @@ impl Checker {
         // The antecedents the lines are fed to, under the theorem's leading quantifiers.
         let mut ants = Vec::new();
         let mut rest = lemma.concl();
-        let mut binders = Vec::new();
-        while let Formula::All(x, b) = rest {
+        let mut binders: Vec<Name> = Vec::new();
+        while let Node::All(x, b) = rest.node() {
             binders.push(x.clone());
             rest = b;
         }
         for _ in 0..given.len() {
-            match rest {
-                Formula::Imp(p, q) => {
-                    ants.push(p.as_ref());
+            match rest.node() {
+                Node::Imp(p, q) => {
+                    ants.push(p);
                     rest = q;
                 }
                 _ => return Err(err(format!("`{h}` has {} antecedent(s), and {} line(s) were given", ants.len(), given.len()))),
@@ -1499,7 +1537,7 @@ impl Checker {
         }
         if sol.iter().any(Option::is_none) {
             let index: HashMap<&str, usize> = params.iter().enumerate().map(|(i, (p, _))| (p.as_str(), i)).collect();
-            let outer: BTreeSet<String> = cx.vars(cx.stack.len()).into_iter().collect();
+            let outer: BTreeSet<Name> = cx.vars(cx.stack.len()).into_iter().collect();
             let mut targets: Vec<(&Formula, Formula)> = Vec::new();
             for (p, o) in ants.iter().zip(&given) {
                 targets.push((p, self.body(cx, o).map_err(err)?));
@@ -1509,8 +1547,8 @@ impl Checker {
             }
             // The theorem's leading binders stand for whatever variables the lines have there,
             // so a solution may mention them as if they were in scope.
-            let bound: BTreeSet<String> = binders.iter().cloned().collect();
-            let outer: BTreeSet<String> = outer.union(&bound).cloned().collect();
+            let bound: BTreeSet<Name> = binders.iter().cloned().collect();
+            let outer: BTreeSet<Name> = outer.union(&bound).cloned().collect();
             for (pat, b) in &targets {
                 // A match that fails partway leaves nothing behind.
                 let mut trial = sol.clone();
@@ -1528,18 +1566,18 @@ impl Checker {
         }
         // The instance is closed over the variables its templates mention, outermost first,
         // and instantiated back at them, like a theory member.
-        let mut extras: Vec<(usize, String)> = templates
+        let mut extras: Vec<(usize, Name)> = templates
             .iter()
             .flat_map(Template::extras)
             .collect::<BTreeSet<_>>()
             .into_iter()
-            .map(|x| (cx.var_index(&x).expect("template variables are in scope"), x))
+            .map(|x| (cx.var_index(x).expect("template variables are in scope"), x.clone()))
             .collect();
         extras.sort();
-        let prefix: Vec<String> = extras.into_iter().map(|(_, x)| x).collect();
+        let prefix: Vec<Name> = extras.into_iter().map(|(_, x)| x).collect();
         // The theorem's premises, instantiated the same way and closed over the same prefix,
         // which is what the kernel will ask for. Each keeps the origin of the premise it came from.
-        let map: Vec<(String, Template)> = params.iter().map(|(p, _)| p.clone()).zip(templates.iter().cloned()).collect();
+        let map: Vec<(&str, &Template)> = params.iter().map(|(p, _)| p.as_str()).zip(templates.iter()).collect();
         let mut hyp_thms = Vec::new();
         for hyp in lemma.hyps() {
             let inst = hyp.subst_preds(&map).map_err(err)?.close(&prefix);
@@ -1554,7 +1592,7 @@ impl Checker {
             cx.add_premise(&inst);
         }
         let refs: Vec<&Thm> = hyp_thms.iter().collect();
-        let thm = lemma.apply(&templates, &prefix, &refs).map_err(|m| err(format!("{h}: {m}")))?;
+        let thm = lemma.apply(&templates.iter().collect::<Vec<_>>(), &prefix, &refs).map_err(|m| err(format!("{h}: {m}")))?;
         let mut o = Open { thm, layers: Vec::new() };
         for x in &prefix {
             o = self.instantiate(cx, &o, x).map_err(err)?;
@@ -1606,11 +1644,11 @@ fn applied_arities(e: &FExpr, name: &str, out: &mut BTreeSet<usize>) {
 fn match_vars(
     pat: &Formula,
     tgt: &Formula,
-    metas: &BTreeSet<String>,
-    env: &mut Vec<(String, String)>,
-    sol: &mut HashMap<String, String>,
+    metas: &BTreeSet<Name>,
+    env: &mut Vec<(Name, Name)>,
+    sol: &mut HashMap<Name, Name>,
 ) -> bool {
-    fn var(x: &String, y: &String, metas: &BTreeSet<String>, env: &[(String, String)], sol: &mut HashMap<String, String>) -> bool {
+    fn var(x: &Name, y: &Name, metas: &BTreeSet<Name>, env: &[(Name, Name)], sol: &mut HashMap<Name, Name>) -> bool {
         if let Some(i) = env.iter().rposition(|(p, _)| p == x) {
             return env[i].1 == *y && !env[i + 1..].iter().any(|(_, t)| t == y);
         }
@@ -1628,15 +1666,15 @@ fn match_vars(
         }
         x == y
     }
-    match (pat, tgt) {
-        (Formula::Atom(p, xs), Formula::Atom(q, ys)) => {
+    match (pat.node(), tgt.node()) {
+        (Node::Atom(p, xs), Node::Atom(q, ys)) => {
             p == q && xs.len() == ys.len() && xs.iter().zip(ys).all(|(x, y)| var(x, y, metas, env, sol))
         }
-        (Formula::Absurd, Formula::Absurd) => true,
-        (Formula::And(a, b), Formula::And(c, d)) | (Formula::Or(a, b), Formula::Or(c, d)) | (Formula::Imp(a, b), Formula::Imp(c, d)) => {
+        (Node::Absurd, Node::Absurd) => true,
+        (Node::And(a, b), Node::And(c, d)) | (Node::Or(a, b), Node::Or(c, d)) | (Node::Imp(a, b), Node::Imp(c, d)) => {
             match_vars(a, c, metas, env, sol) && match_vars(b, d, metas, env, sol)
         }
-        (Formula::All(x, a), Formula::All(y, b)) | (Formula::Ex(x, a), Formula::Ex(y, b)) => {
+        (Node::All(x, a), Node::All(y, b)) | (Node::Ex(x, a), Node::Ex(y, b)) => {
             env.push((x.clone(), y.clone()));
             let ok = match_vars(a, b, metas, env, sol);
             env.pop();
@@ -1655,44 +1693,44 @@ fn hom(
     pat: &Formula,
     tgt: &Formula,
     params: &HashMap<&str, usize>,
-    outer: &BTreeSet<String>,
-    env: &mut Vec<(String, String)>,
+    outer: &BTreeSet<Name>,
+    env: &mut Vec<(Name, Name)>,
     sol: &mut [Option<Template>],
 ) -> bool {
     // The formula's binder for the antecedent's bound variable, unless an inner binder of the
     // formula reuses its name.
-    let image = |x: &String, env: &[(String, String)]| {
+    let image = |x: &Name, env: &[(Name, Name)]| {
         let i = env.iter().rposition(|(p, _)| p == x)?;
         let t = &env[i].1;
         (!env[i + 1..].iter().any(|(_, u)| u == t)).then(|| t.clone())
     };
-    match (pat, tgt) {
-        (Formula::Atom(p, pargs), _) if params.contains_key(p.as_str()) => {
+    match (pat.node(), tgt.node()) {
+        (Node::Atom(p, pargs), _) if params.contains_key(&**p) => {
             let Some(args) = pargs.iter().map(|a| image(a, env)).collect::<Option<Vec<_>>>() else { return false };
-            let i = params[p.as_str()];
+            let i = params[&**p];
             match &sol[i] {
                 Some(t) => t.apply(&args) == *tgt,
                 None => {
-                    let distinct: BTreeSet<&String> = args.iter().collect();
-                    let ok = |v: &String| args.contains(v) || (outer.contains(v) && !env.iter().any(|(_, t)| t == v));
+                    let distinct: BTreeSet<&Name> = args.iter().collect();
+                    let ok = |v: &Name| args.contains(v) || (outer.contains(v) && !env.iter().any(|(_, t)| t == v));
                     if distinct.len() != args.len() || !tgt.free_vars().iter().all(ok) {
                         return false;
                     }
                     let holes = hole_names(args.len());
-                    let s: Vec<(String, String)> = args.into_iter().zip(holes.iter().cloned()).collect();
+                    let s: Vec<(Name, Name)> = args.into_iter().zip(holes.iter().cloned()).collect();
                     sol[i] = Template::new(holes, tgt.subst_vars(&s)).ok();
                     sol[i].is_some()
                 }
             }
         }
-        (Formula::Atom(p, xs), Formula::Atom(q, ys)) => {
+        (Node::Atom(p, xs), Node::Atom(q, ys)) => {
             p == q && xs.len() == ys.len() && xs.iter().zip(ys).all(|(x, y)| image(x, env).as_ref() == Some(y))
         }
-        (Formula::Absurd, Formula::Absurd) => true,
-        (Formula::And(a, b), Formula::And(c, d)) | (Formula::Or(a, b), Formula::Or(c, d)) | (Formula::Imp(a, b), Formula::Imp(c, d)) => {
+        (Node::Absurd, Node::Absurd) => true,
+        (Node::And(a, b), Node::And(c, d)) | (Node::Or(a, b), Node::Or(c, d)) | (Node::Imp(a, b), Node::Imp(c, d)) => {
             hom(a, c, params, outer, env, sol) && hom(b, d, params, outer, env, sol)
         }
-        (Formula::All(x, a), Formula::All(y, b)) | (Formula::Ex(x, a), Formula::Ex(y, b)) => {
+        (Node::All(x, a), Node::All(y, b)) | (Node::Ex(x, a), Node::Ex(y, b)) => {
             env.push((x.clone(), y.clone()));
             let ok = hom(a, b, params, outer, env, sol);
             env.pop();
