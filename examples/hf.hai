@@ -1,72 +1,209 @@
 {- Hereditarily finite sets: the intuitionistic small set theory SST (Shapiro, McCarty and
-   Rathjen, 2024). -}
+   Rathjen, 2024). Three axioms and one schema. -}
 
-let In x y          {- x is an element of y -}
+define Iff A B = (A -> B) and (B -> A)
+define Eq x y = forall z. Iff (In z x) (In z y)
+define Sub x y = forall z. In z x -> In z y
+define Empty x = forall z. not (In z x)
+define Adj x y z = forall u. Iff (In u z) (In u x or Eq u y)     {- z = x together with y -}
 
-let Iff A B = and (imp A B) (imp B A)
-let Eq x y = forall z $ Iff (In z x) (In z y)
-let Sub x y = forall z $ imp (In z x) (In z y)
-let Empty x = forall z $ not (In z x)
-let Adj x y z = forall u $ Iff (In u z) (or (In u x) (Eq u y))     {- z = x \cup {y} -}
+theory HF
+  eqin:  forall x y. Eq x y -> forall z. In x z -> In y z
+  empty: exists x. Empty x
+  adj:   forall x y. exists z. Adj x y z
+  {- adduction: induction by adding one new element at a time -}
+  add P: (forall x. Empty x -> P x)
+         -> (forall x y z. not (In y x) -> P x -> P y -> Adj x y z -> P z)
+         -> forall x. P x
 
-{- The axioms. -}
-let EqIn = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
-let EmptyEx = exists x $ Empty x
-let AdjEx = forall x $ forall y $ exists z $ Adj x y z
-
-{- Adduction: induction by adding one new element at a time. -}
-let Adduction (P x) =
-  imp (forall x $ imp (Empty x) (P x))
-      (forall x $ forall y $ forall z $ imp (not (In y x)) (P x) (P y) (Adj x y z) (P z))
-      (forall x $ P x)
-
-let HF =
-  given eqin : EqIn
-  given empty : EmptyEx
-  given adj : AdjEx
-
-proof eq_refl
-  shows forall x $ Eq x x by forall x z { and_i (assume h : In z x { h }) (assume h : In z x { h }) }
+theorem eq_refl
+  lemma l
+    assume h: In z x
+    l: In z x -> In z x                                             by imp_i h h
+  i: Iff (In z x) (In z x)                                          by and_i l l
+  e: Eq x x                                                         by forall_i z i
+  eq_refl: forall x. Eq x x                                         by forall_i x e
 
 {- No set is an element of a subset of itself (SMR, Proposition 2.2). -}
-let NoSelfSub x = forall z $ imp (Sub x z) (not (In z x))
+define NoSelfSub x = forall z. Sub x z -> not (In z x)
 
-proof sub_not_in given all HF given add : Adduction NoSelfSub
-  have base by forall x assume ex : Empty x forall z assume s : Sub x z assume zx : In z x { ex z zx }
-  have step by forall x y w assume ny : not (In y x) assume hx : NoSelfSub x assume hy : NoSelfSub y
-    assume a : Adj x y w forall z assume s : Sub w z assume zw : In z w {
-      have sxz : Sub x z by forall u assume ux : In u x { s u (and_e2 (a u) (or_i1 (In u x) (Eq u y) ux)) }
-      have ezy : Eq z y by or_e (assume zx : In z x { efq (Eq z y) (hx z sxz zx) }) (assume e : Eq z y { e })
-                                (and_e1 (a z) zw)
-      have yz : In y z by s y (and_e2 (a y) (or_i2 (In y x) (Eq y y) (eq_refl y)))
-      shows by hy y (forall u assume h : In u y { h }) (and_e1 (ezy y) yz) }
-  shows forall x $ NoSelfSub x by add base step
+theorem sub_not_in in HF
+  lemma base
+    assume ex: Empty x
+    assume s:  Sub x z
+    assume zx: In z x
+    n:  not (In z x)                                                by forall_e ex z
+    f:  absurd                                                      by imp_e n zx
+    b1: not (In z x)                                                by imp_i zx f
+    b2: Sub x z -> not (In z x)                                     by imp_i s b1
+    b3: NoSelfSub x                                                 by forall_i z b2
+    b4: Empty x -> NoSelfSub x                                      by imp_i ex b3
+    base: forall x. Empty x -> NoSelfSub x                          by forall_i x b4
+  lemma step
+    assume ny: not (In y x)
+    assume hx: NoSelfSub x
+    assume hy: NoSelfSub y
+    assume a:  Adj x y w
+    assume s:  Sub w z
+    assume zw: In z w
+    lemma sxz
+      assume ux: In u x
+      au:  Iff (In u w) (In u x or Eq u y)                          by forall_e a u
+      bwd: In u x or Eq u y -> In u w                               by and_e2 au
+      o:   In u x or Eq u y                                         by or_i1 ux
+      uw:  In u w                                                   by imp_e bwd o
+      s1:  In u w -> In u z                                         by forall_e s u
+      uz:  In u z                                                   by imp_e s1 uw
+      k:   In u x -> In u z                                         by imp_i ux uz
+      sxz: Sub x z                                                  by forall_i u k
+    az:  Iff (In z w) (In z x or Eq z y)                            by forall_e a z
+    fwd: In z w -> In z x or Eq z y                                 by and_e1 az
+    o:   In z x or Eq z y                                           by imp_e fwd zw
+    lemma l
+      assume zx: In z x
+      h1: Sub x z -> not (In z x)                                   by forall_e hx z
+      n:  not (In z x)                                              by imp_e h1 sxz
+      f:  absurd                                                    by imp_e n zx
+      e:  Eq z y                                                    by absurd_e f
+      l:  In z x -> Eq z y                                          by imp_i zx e
+    lemma r
+      assume e: Eq z y
+      r: Eq z y -> Eq z y                                           by imp_i e e
+    ezy:  Eq z y                                                    by or_e o l r
+    ay:   Iff (In y w) (In y x or Eq y y)                           by forall_e a y
+    bwd2: In y x or Eq y y -> In y w                                by and_e2 ay
+    ryy:  Eq y y                                                    by forall_e eq_refl y
+    o2:   In y x or Eq y y                                          by or_i2 ryy
+    yw:   In y w                                                    by imp_e bwd2 o2
+    s2:   In y w -> In y z                                          by forall_e s y
+    yz:   In y z                                                    by imp_e s2 yw
+    lemma syy
+      assume h: In u y
+      k:   In u y -> In u y                                         by imp_i h h
+      syy: Sub y y                                                  by forall_i u k
+    h2:   Sub y y -> not (In y y)                                   by forall_e hy y
+    nyy:  not (In y y)                                              by imp_e h2 syy
+    ezyy: Iff (In y z) (In y y)                                     by forall_e ezy y
+    f1:   In y z -> In y y                                          by and_e1 ezyy
+    yy:   In y y                                                    by imp_e f1 yz
+    f:    absurd                                                    by imp_e nyy yy
+    c1:   not (In z w)                                              by imp_i zw f
+    c2:   Sub w z -> not (In z w)                                   by imp_i s c1
+    c3:   NoSelfSub w                                               by forall_i z c2
+    c4:   not (In y x) -> NoSelfSub x -> NoSelfSub y -> Adj x y w -> NoSelfSub w
+                                                                    by imp_i ny hx hy a c3
+    step: forall x y w. not (In y x) -> NoSelfSub x -> NoSelfSub y -> Adj x y w -> NoSelfSub w
+                                                                    by forall_i x y w c4
+  sub_not_in: forall x. NoSelfSub x                                 by imp_e (HF.add NoSelfSub) base step
 
 {- No set is an element of itself (SMR, Corollary 2.3). -}
-proof no_self_member given all HF given add : Adduction NoSelfSub
-  shows forall x $ not (In x x) by forall x { sub_not_in HF add x x (forall u assume h : In u x { h }) }
+theorem no_self_member in HF
+  assume h: In x x
+  lemma sxx
+    assume k: In u x
+    kk:  In u x -> In u x                                           by imp_i k k
+    sxx: Sub x x                                                    by forall_i u kk
+  ns: NoSelfSub x                                                   by forall_e sub_not_in x
+  n1: Sub x x -> not (In x x)                                       by forall_e ns x
+  n:  not (In x x)                                                  by imp_e n1 sxx
+  f:  absurd                                                        by imp_e n h
+  k:  not (In x x)                                                  by imp_i h f
+  no_self_member: forall x. not (In x x)                            by forall_i x k
 
-{- \in-induction from adduction (SMR, Theorem 6.11). -}
-let UpTo (P x) x = forall y $ imp (or (In y x) (Eq y x)) (P y)
+{- Membership induction from adduction (SMR, Theorem 6.11). -}
+define UpTo P x = forall y. In y x or Eq y x -> P y
 
-proof eps_induction given all HF given P x
-  given add : Adduction (UpTo P)
-  given step : forall x $ imp (forall y $ imp (In y x) (P y)) (P x)
-  have base by forall x assume ex : Empty x forall y assume h : or (In y x) (Eq y x) {
-    have none : forall z $ imp (In z y) (P z) by forall z assume zy : In z y {
-      or_e (assume yx : In y x { efq (P z) (ex y yx) })
-           (assume e : Eq y x { efq (P z) (ex z (and_e1 (e z) zy)) })
-           h }
-    shows by step y none }
-  have grow by forall x b w assume nb : not (In b x) assume hx : UpTo P x assume hb : UpTo P b
-    assume a : Adj x b w {
-      have below : forall y $ imp (In y w) (P y) by forall y assume yw : In y w {
-        or_e (assume yx : In y x { hx y (or_i1 (In y x) (Eq y x) yx) })
-             (assume e : Eq y b { hb y (or_i2 (In y b) (Eq y b) e) })
-             (and_e1 (a y) yw) }
-      shows forall y $ imp (or (In y w) (Eq y w)) (P y) by forall y assume h : or (In y w) (Eq y w) {
-        or_e (assume yw : In y w { below y yw })
-             (assume e : Eq y w { step y (forall z assume zy : In z y { below z (and_e1 (e z) zy) }) })
-             h } }
-  have every by add base grow
-  shows forall x $ P x by forall x { every x x (or_i2 (In x x) (Eq x x) (eq_refl x)) }
+theorem eps_induction in HF
+  assume step: forall x. (forall y. In y x -> P y) -> P x
+  lemma base
+    assume ex: Empty x
+    assume h: In y x or Eq y x
+    lemma none
+      assume zy: In z y
+      lemma l
+        assume yx: In y x
+        n:  not (In y x)                                            by forall_e ex y
+        f:  absurd                                                  by imp_e n yx
+        pz: P z                                                     by absurd_e f
+        l:  In y x -> P z                                           by imp_i yx pz
+      lemma r
+        assume e: Eq y x
+        ez: Iff (In z y) (In z x)                                   by forall_e e z
+        f1: In z y -> In z x                                        by and_e1 ez
+        zx: In z x                                                  by imp_e f1 zy
+        n:  not (In z x)                                            by forall_e ex z
+        f:  absurd                                                  by imp_e n zx
+        pz: P z                                                     by absurd_e f
+        r:  Eq y x -> P z                                           by imp_i e pz
+      pz: P z                                                       by or_e h l r
+      k:  In z y -> P z                                             by imp_i zy pz
+      none: forall z. In z y -> P z                                 by forall_i z k
+    st: (forall z. In z y -> P z) -> P y                            by forall_e step y
+    py: P y                                                         by imp_e st none
+    b1: In y x or Eq y x -> P y                                     by imp_i h py
+    b2: UpTo P x                                                    by forall_i y b1
+    b3: Empty x -> UpTo P x                                         by imp_i ex b2
+    base: forall x. Empty x -> UpTo P x                             by forall_i x b3
+  lemma grow
+    assume nb: not (In b x)
+    assume hx: UpTo P x
+    assume hb: UpTo P b
+    assume a:  Adj x b w
+    lemma below
+      assume yw: In y w
+      ay:  Iff (In y w) (In y x or Eq y b)                          by forall_e a y
+      fwd: In y w -> In y x or Eq y b                               by and_e1 ay
+      o:   In y x or Eq y b                                         by imp_e fwd yw
+      lemma l
+        assume yx: In y x
+        o1:  In y x or Eq y x                                       by or_i1 yx
+        hx1: In y x or Eq y x -> P y                                by forall_e hx y
+        py:  P y                                                    by imp_e hx1 o1
+        l:   In y x -> P y                                          by imp_i yx py
+      lemma r
+        assume e: Eq y b
+        o1:  In y b or Eq y b                                       by or_i2 e
+        hb1: In y b or Eq y b -> P y                                by forall_e hb y
+        py:  P y                                                    by imp_e hb1 o1
+        r:   Eq y b -> P y                                          by imp_i e py
+      py: P y                                                       by or_e o l r
+      k:  In y w -> P y                                             by imp_i yw py
+      below: forall y. In y w -> P y                                by forall_i y k
+    lemma up
+      assume h: In y w or Eq y w
+      lemma l
+        assume yw: In y w
+        b1: In y w -> P y                                           by forall_e below y
+        py: P y                                                     by imp_e b1 yw
+        l:  In y w -> P y                                           by imp_i yw py
+      lemma r
+        assume e: Eq y w
+        lemma inner
+          assume zy: In z y
+          ez: Iff (In z y) (In z w)                                 by forall_e e z
+          f1: In z y -> In z w                                      by and_e1 ez
+          zw: In z w                                                by imp_e f1 zy
+          b1: In z w -> P z                                         by forall_e below z
+          pz: P z                                                   by imp_e b1 zw
+          k:  In z y -> P z                                         by imp_i zy pz
+          inner: forall z. In z y -> P z                            by forall_i z k
+        st: (forall z. In z y -> P z) -> P y                        by forall_e step y
+        py: P y                                                     by imp_e st inner
+        r:  Eq y w -> P y                                           by imp_i e py
+      py: P y                                                       by or_e h l r
+      k:  In y w or Eq y w -> P y                                   by imp_i h py
+      up: UpTo P w                                                  by forall_i y k
+    g1: not (In b x) -> UpTo P x -> UpTo P b -> Adj x b w -> UpTo P w
+                                                                    by imp_i nb hx hb a up
+    grow: forall x b w. not (In b x) -> UpTo P x -> UpTo P b -> Adj x b w -> UpTo P w
+                                                                    by forall_i x b w g1
+  every: forall x. UpTo P x                                         by imp_e (HF.add (UpTo P)) base grow
+  lemma each
+    e1:  UpTo P x                                                   by forall_e every x
+    e2:  In x x or Eq x x -> P x                                    by forall_e e1 x
+    rxx: Eq x x                                                     by forall_e eq_refl x
+    o:   In x x or Eq x x                                           by or_i2 rxx
+    px:  P x                                                        by imp_e e2 o
+    each: forall x. P x                                             by forall_i x px
+  eps_induction: (forall x. (forall y. In y x -> P y) -> P x) -> forall x. P x
+                                                                    by imp_i step each

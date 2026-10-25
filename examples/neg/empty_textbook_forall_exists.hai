@@ -1,8 +1,5 @@
-{- The textbook "if everything is P, something is P". -}
-let P x
-
-proof textbook
-  given h : forall x $ P x
-  have a : imp (forall x $ P x) (P y) by inst
-  have b : imp (P y) (exists x $ P x) by ex_i
-  shows exists x $ P x by b (a h)
+{- The textbook "if everything is P, something is P": nothing is in scope to point at. -}
+theorem textbook
+  assume h: forall x. P x
+  e: exists x. P x by exists_i h
+  textbook: (forall x. P x) -> exists x. P x by imp_i h e

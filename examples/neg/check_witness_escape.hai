@@ -1,6 +1,5 @@
-{- The witness of `obtain` only lives inside its block. -}
-proof p
-  given P x
-  given e : exists x $ P x
-  have h by obtain w pw from e { pw }
-  shows absurd by h
+{- The line reached mentions the witness. -}
+theorem bad
+  assume e: exists x. P x
+  assume p: P w
+  bad: P w by exists_e e p p

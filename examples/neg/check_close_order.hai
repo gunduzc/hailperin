@@ -1,0 +1,8 @@
+{- Closing out of order is allowed, but a variable can't be moved past an assumption that
+   mentions it: here `x` is free in `p` when `x` is generalized. -}
+theorem bad
+  assume p: P x
+  assume q: Q
+  pq: P x and Q by and_i p q
+  all: forall x. P x and Q by forall_i x pq
+  bad: P x -> Q -> forall x. P x and Q by imp_i p q all

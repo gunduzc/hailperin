@@ -1,0 +1,5 @@
+{- The result still has a variable in scope. -}
+theorem bad
+  assume h: forall x. P x
+  px: P x by forall_e h x
+  bad: (forall x. P x) -> P x by imp_i h px

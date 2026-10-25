@@ -1,5 +1,4 @@
-let R x y
-
-proof p
-  given h : forall x $ R x
-  shows absurd by h
+{- A predicate is used with two different numbers of arguments. -}
+theorem bad
+  assume h: P x
+  bad: P x y by h

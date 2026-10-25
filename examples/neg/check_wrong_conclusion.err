@@ -1,1 +1,1 @@
-failure: line 9: bad: this proves imp A B A, not imp A B
+failure: line 4: bad: this gives A and B -> A and B, not A and B -> B

@@ -1,48 +1,36 @@
-{- Robinson arithmetic Q, relationally. -}
+{- Robinson arithmetic Q, relationally: zero and successor are predicates, plus and times are
+   relations, and equality is a predicate with its own axioms. -}
 
-let Eq x y
-let Zero x
-let Succ x y        {- y is the successor of x -}
-let Plus x y z      {- z is x + y -}
-let Times x y z     {- z is x \cdot y -}
-
-let Q1 = forall x $ forall y $ imp (Succ x y) (not $ Zero y)
-let Q2 = forall x $ forall y $ forall a $ forall b $ imp (Succ x a) (Succ y b) (Eq a b) (Eq x y)
-let Q3 = forall x $ imp (not $ Zero x) (exists y $ Succ y x)
-let Q4 = forall x $ forall z $ imp (Zero z) (Plus x z x)
-let Q5 = forall x $ forall y $ forall s $ forall p $ forall q $
-           imp (Succ y s) (Plus x y p) (Succ p q) (Plus x s q)
-let Q6 = forall x $ forall z $ imp (Zero z) (Times x z z)
-let Q7 = forall x $ forall y $ forall s $ forall p $ forall q $
-           imp (Succ y s) (Times x y p) (Plus p x q) (Times x s q)
-
-{- Values exist and are unique. -}
-let ZeroEx  = exists z $ Zero z
-let ZeroUn  = forall a $ forall b $ imp (Zero a) (Zero b) (Eq a b)
-let SuccEx  = forall x $ exists y $ Succ x y
-let SuccUn  = forall x $ forall a $ forall b $ imp (Succ x a) (Succ x b) (Eq a b)
-let PlusEx  = forall x $ forall y $ exists z $ Plus x y z
-let PlusUn  = forall x $ forall y $ forall a $ forall b $ imp (Plus x y a) (Plus x y b) (Eq a b)
-let TimesEx = forall x $ forall y $ exists z $ Times x y z
-let TimesUn = forall x $ forall y $ forall a $ forall b $ imp (Times x y a) (Times x y b) (Eq a b)
-
-{- Equality. -}
-let EqRefl  = forall x $ Eq x x
-let EqEq    = forall x $ forall y $ forall x' $ forall y' $ imp (Eq x x') (Eq y y') (Eq x y) (Eq x' y')
-let EqZero  = forall x $ forall x' $ imp (Eq x x') (Zero x) (Zero x')
-let EqSucc  = forall x $ forall y $ forall x' $ forall y' $ imp (Eq x x') (Eq y y') (Succ x y) (Succ x' y')
-let EqPlus  = forall x $ forall y $ forall z $ forall x' $ forall y' $ forall z' $
-                imp (Eq x x') (Eq y y') (Eq z z') (Plus x y z) (Plus x' y' z')
-let EqTimes = forall x $ forall y $ forall z $ forall x' $ forall y' $ forall z' $
-                imp (Eq x x') (Eq y y') (Eq z z') (Times x y z) (Times x' y' z')
-
-let Q = and Q1 Q2 Q3 Q4 Q5 Q6 Q7
-            ZeroEx ZeroUn SuccEx SuccUn PlusEx PlusUn TimesEx TimesUn
-            EqRefl EqEq EqZero EqSucc EqPlus EqTimes
+theory Q
+  {- Robinson's seven -}
+  sz:   forall x y. Succ x y -> not (Zero y)
+  si:   forall x y a b. Succ x a -> Succ y b -> Eq a b -> Eq x y
+  pred: forall x. not (Zero x) -> exists y. Succ y x
+  pz:   forall x z. Zero z -> Plus x z x
+  ps:   forall x y s p q. Succ y s -> Plus x y p -> Succ p q -> Plus x s q
+  tz:   forall x z. Zero z -> Times x z z
+  ts:   forall x y s p q. Succ y s -> Times x y p -> Plus p x q -> Times x s q
+  {- values exist and are unique -}
+  ze:   exists z. Zero z
+  zu:   forall a b. Zero a -> Zero b -> Eq a b
+  se:   forall x. exists y. Succ x y
+  su:   forall x a b. Succ x a -> Succ x b -> Eq a b
+  pe:   forall x y. exists z. Plus x y z
+  pu:   forall x y a b. Plus x y a -> Plus x y b -> Eq a b
+  te:   forall x y. exists z. Times x y z
+  tu:   forall x y a b. Times x y a -> Times x y b -> Eq a b
+  {- equality -}
+  refl: forall x. Eq x x
+  ee:   forall x y x1 y1. Eq x x1 -> Eq y y1 -> Eq x y -> Eq x1 y1
+  ez:   forall x x1. Eq x x1 -> Zero x -> Zero x1
+  es:   forall x y x1 y1. Eq x x1 -> Eq y y1 -> Succ x y -> Succ x1 y1
+  ep:   forall x y z x1 y1 z1. Eq x x1 -> Eq y y1 -> Eq z z1 -> Plus x y z -> Plus x1 y1 z1
+  et:   forall x y z x1 y1 z1. Eq x x1 -> Eq y y1 -> Eq z z1 -> Times x y z -> Times x1 y1 z1
 
 {- Whatever is zero, added to itself, gives itself. -}
-proof zero_plus_zero
-  given arith : Q
-  have q4 : Q4 by and_e1 (and_e2 (and_e2 (and_e2 arith)))
-  have k : forall w $ imp (forall z $ imp (Zero z) (Plus w z w)) (imp (Zero w) (Plus w w w)) by inst
-  shows forall w $ imp (Zero w) (Plus w w w) by dist k q4
+theorem zero_plus_zero in Q
+  assume zw: Zero w
+  p: Plus w w w                           by Q.pz zw
+  z: Zero w -> Plus w w w                 by imp_i zw p
+  zero_plus_zero: forall w. Zero w -> Plus w w w
+                                          by forall_i w z

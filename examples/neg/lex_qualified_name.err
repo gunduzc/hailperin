@@ -1,1 +1,1 @@
-failure: line 3: `.` is reserved for qualified names
+failure: line 2: `A.` names a theory member, which belongs after `by`, not in a formula

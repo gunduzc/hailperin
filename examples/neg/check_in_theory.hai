@@ -1,0 +1,8 @@
+{- The theorem claims to rest on `T` only, but uses a member of `U`. -}
+theory T
+  t: forall x. P x
+theory U
+  u: forall x. Q x
+theorem bad in T
+  q: Q x by forall_e U.u x
+  bad: forall x. Q x by forall_i x q

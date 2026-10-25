@@ -1,0 +1,3 @@
+theorem bad
+  assume a: A
+  bad: B or A by or_i1 a

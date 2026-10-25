@@ -1,2 +1,1 @@
-{- Nor import itself through another file. -}
 import import_cycle_b

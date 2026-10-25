@@ -1,15 +1,24 @@
-{- Tarski: no predicate satisfies the truth schema at its own liar. -}
+{- Tarski: no predicate satisfies the truth schema at its own liar. The diagonal lemma is a
+   hypothesis here: `L` is a sentence equivalent to "no code of L is true". -}
 
-let Iff A B = and (imp A B) (imp B A)
+define Iff A B = (A -> B) and (B -> A)
+define Holds True Code = exists c. Code c and True c     {- some code of L is true -}
 
-{- Some code of L is true. -}
-let Holds (True x) (Code x) = exists c $ and (Code c) (True c)
-
-proof tarski
-  given True x
-  given Code x
-  given L
-  given liar : Iff L (not (Holds True Code))
-  given t_schema : Iff (Holds True Code) L
-  have no : not (Holds True Code) by assume h : Holds True Code { and_e1 liar (and_e1 t_schema h) h }
-  shows absurd by no (and_e2 t_schema (and_e2 liar no))
+theorem tarski
+  assume liar: Iff L (not (Holds True Code))
+  assume t:    Iff (Holds True Code) L
+  lemma no
+    assume h: Holds True Code
+    t1: Holds True Code -> L                    by and_e1 t
+    l:  L                                       by imp_e t1 h
+    l1: L -> not (Holds True Code)              by and_e1 liar
+    nh: not (Holds True Code)                   by imp_e l1 l
+    f:  absurd                                  by imp_e nh h
+    no: not (Holds True Code)                   by imp_i h f
+  l2: not (Holds True Code) -> L                by and_e2 liar
+  l:  L                                         by imp_e l2 no
+  t2: L -> Holds True Code                      by and_e2 t
+  h:  Holds True Code                           by imp_e t2 l
+  f:  absurd                                    by imp_e no h
+  tarski: Iff L (not (Holds True Code)) -> Iff (Holds True Code) L -> absurd
+                                                by imp_i liar t f

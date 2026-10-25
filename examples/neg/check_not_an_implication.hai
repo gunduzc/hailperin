@@ -1,0 +1,4 @@
+theorem bad
+  assume a: A
+  assume b: B
+  bad: B by imp_e a b

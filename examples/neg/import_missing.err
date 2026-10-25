@@ -1,1 +1,1 @@
-failure: line 2: can't import `nowhere`: No such file or directory (os error 2)
+failure: line 1: can't import `nonexistent`: No such file or directory (os error 2)

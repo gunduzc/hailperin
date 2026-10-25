@@ -1,1 +1,1 @@
-failure: line 4: p: `R` takes 2 argument(s), got 1
+failure: line 4: bad: `P` takes 1 argument(s), got 2

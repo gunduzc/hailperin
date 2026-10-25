@@ -1,4 +1,4 @@
-let A
-
-{- Imports come first. -}
-import check_arity
+theorem t
+  assume a: A
+  t: A -> A by imp_i a a
+import q

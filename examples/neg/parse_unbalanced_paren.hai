@@ -1,4 +1,3 @@
-proof p
-  given A
-  given B
-  shows imp A B A by (imp1 A B
+theorem t
+  assume a: (A -> B
+  t: A by a

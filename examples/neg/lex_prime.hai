@@ -1,0 +1,4 @@
+theorem t
+  assume a: A
+  a': A by a
+  t: A -> A by imp_i a a

@@ -1,0 +1,93 @@
+{- Hailperin (1953) and Quine (1954): what the two papers prove, as theorems here. The empty
+   domain is admitted throughout, and nothing below assumes anything exists. -}
+
+import classical
+
+define True = absurd -> absurd
+define NonEmpty = not (forall x. absurd)           {- Hailperin's QE6, as a formula -}
+define Iff A B = (A -> B) and (B -> A)
+
+{- QE1, the swap of two quantifiers. An axiom for Hailperin, a theorem for Quine after Berry's
+   redefinition of closure. Here `forall_i y x` closes `x` before `y`, which is the swap. -}
+theorem qe1
+  assume h: forall x y. R x y
+  k:   forall y. R x y                                          by forall_e h x
+  r:   R x y                                                    by forall_e k y
+  s:   forall y x. R x y                                        by forall_i y x r
+  qe1: (forall x y. R x y) -> forall y x. R x y                 by imp_i h s
+
+{- QE5, importation: a quantifier moves past an antecedent that doesn't mention its variable.
+   Hailperin's axiom, dropped by Quine. Closing `a` while `x` is still open is this move. -}
+theorem qe5
+  assume h: A -> forall x. P x
+  assume a: A
+  k:   forall x. P x                                            by imp_e h a
+  px:  P x                                                      by forall_e k x
+  s:   A -> P x                                                 by imp_i a px
+  all: forall x. A -> P x                                       by forall_i x s
+  qe5: (A -> forall x. P x) -> forall x. A -> P x               by imp_i h all
+
+{- Hailperin's Lemma 4: when nothing exists, every universal statement holds. Mostowski read
+   a vacuous `forall x. A` as `A`, which breaks this. Intuitionistic. -}
+theorem hailperin_lemma4
+  assume e: forall x. absurd
+  lemma all
+    f:   absurd                                                 by forall_e e x
+    px:  P x                                                    by absurd_e f
+    all: forall x. P x                                          by forall_i x px
+  hailperin_lemma4: (forall x. absurd) -> forall x. P x         by imp_i e all
+
+{- And every existential statement fails, which is Quine's test for the empty domain: mark
+   universals true and existentials false. -}
+theorem empty_no_exists
+  assume e: forall x. absurd
+  assume s: exists x. P x
+  lemma c
+    assume p: P w
+    f: absurd                                                   by forall_e e w
+    c: absurd                                                   by exists_e s p f
+  k: not (exists x. P x)                                        by imp_i s c
+  empty_no_exists: (forall x. absurd) -> not (exists x. P x)    by imp_i e k
+
+{- Hailperin's Lemma 2: with something in the domain, a vacuous `forall` can be dropped.
+   This is the one step of ordinary logic that needs QE6, Theorem 1's Case 2, and it needs
+   excluded middle as well. -}
+theorem hailperin_lemma2 in Classical
+  assume ne: NonEmpty
+  assume h: forall x. A
+  lemma yes
+    assume a: A
+    yes: A -> A                                                 by imp_i a a
+  lemma no
+    assume na: not A
+    ax:  A                                                      by forall_e h x
+    f:   absurd                                                 by imp_e na ax
+    all: forall x. absurd                                       by forall_i x f
+    f2:  absurd                                                 by imp_e ne all
+    a:   A                                                      by absurd_e f2
+    no:  not A -> A                                             by imp_i na a
+  a: A                                                          by or_e (Classical.em A) yes no
+  k: (forall x. A) -> A                                         by imp_i h a
+  hailperin_lemma2: NonEmpty -> (forall x. A) -> A              by imp_i ne k
+
+{- Quine's remark that Hailperin understated his case: `A` and `A and (P x -> P x)` are
+   equivalent, so if `forall` respects equivalence, a vacuous `forall x. A` has to mean
+   `forall x. A and (P x -> P x)`, which is true when nothing exists. The equivalence. -}
+theorem quine_extensionality
+  lemma fwd
+    assume h: forall x. A
+    a: A                                                        by forall_e h x
+    lemma pp
+      assume p: P x
+      pp: P x -> P x                                            by imp_i p p
+    both: A and (P x -> P x)                                    by and_i a pp
+    all:  forall x. A and (P x -> P x)                          by forall_i x both
+    fwd:  (forall x. A) -> forall x. A and (P x -> P x)         by imp_i h all
+  lemma bwd
+    assume h: forall x. A and (P x -> P x)
+    both: A and (P x -> P x)                                    by forall_e h x
+    a:    A                                                     by and_e1 both
+    all:  forall x. A                                           by forall_i x a
+    bwd:  (forall x. A and (P x -> P x)) -> forall x. A         by imp_i h all
+  quine_extensionality: Iff (forall x. A) (forall x. A and (P x -> P x))
+                                                                by and_i fwd bwd

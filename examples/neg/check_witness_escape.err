@@ -1,1 +1,1 @@
-failure: line 5: p: the result of `obtain` can't mention `w`: P w
+failure: line 5: bad: the line reached mentions the witness `w`: P w

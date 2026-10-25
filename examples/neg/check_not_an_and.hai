@@ -1,0 +1,3 @@
+theorem bad
+  assume a: A or B
+  bad: A by and_e1 a

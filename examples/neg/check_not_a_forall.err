@@ -1,0 +1,1 @@
+failure: line 3: bad: can't instantiate at `x`: A doesn't start with `forall`

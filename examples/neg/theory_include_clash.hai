@@ -1,0 +1,7 @@
+theory A
+  ax: forall x. P x
+theory B
+  ax: forall x. Q x
+theory C
+  include A
+  include B

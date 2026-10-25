@@ -1,0 +1,45 @@
+{- The empty domain, after Hailperin (1953). -}
+
+define True = absurd -> absurd
+
+{- A vacuous `forall x. absurd` is absurd conjoined zero times when nothing exists, so it's
+   true. Mostowski (1951) read it as `absurd`, which makes this distribution fail. -}
+theorem dist_vacuous
+  assume h: forall x. not (P x)
+  assume p: forall x. P x
+  nx:  not (P x)                                                    by forall_e h x
+  px:  P x                                                          by forall_e p x
+  f:   absurd                                                       by imp_e nx px
+  all: forall x. absurd                                             by forall_i x f
+  dist_vacuous: (forall x. not (P x)) -> (forall x. P x) -> forall x. absurd
+                                                                    by imp_i h p all
+
+{- Hailperin's axiom QE6, "the domain isn't empty", turns his system into the usual logic.
+   Here it's a hypothesis, and weaker than a witness. -}
+define NonEmpty = not (forall x. absurd)
+define Something = exists x. True
+
+theorem nonempty_from_something
+  assume s: Something
+  assume h: forall x. absurd
+  lemma c
+    assume t: True
+    f: absurd                                                       by forall_e h y
+    c: absurd                                                       by exists_e s t f
+  k: NonEmpty                                                       by imp_i h c
+  nonempty_from_something: Something -> NonEmpty                    by imp_i s k
+
+{- The converse only up to double negation: QE6 gives nothing to `exists_e`. -}
+theorem not_not_something
+  assume ne: NonEmpty
+  assume n: not Something
+  lemma all
+    lemma t
+      assume f: absurd
+      t: True                                                       by imp_i f f
+    s: Something                                                    by exists_i t y
+    f: absurd                                                       by imp_e n s
+    all: forall y. absurd                                           by forall_i y f
+  f: absurd                                                         by imp_e ne all
+  k: not (not Something)                                            by imp_i n f
+  not_not_something: NonEmpty -> not (not Something)                by imp_i ne k

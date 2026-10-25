@@ -1,221 +1,533 @@
-{- ZFC, with membership as the only primitive. -}
+{- ZFC: the equality and pair lemmas, Diaconescu's theorem, and foundation's excluded middle. -}
 
-let In x y          {- x is an element of y -}
-
-let Iff A B = and (imp A B) (imp B A)
-let Eq x y = forall z $ Iff (In z x) (In z y)
-let Sub x y = forall z $ imp (In z x) (In z y)
-let Empty x = forall z $ not (In z x)
-let Successor x s = forall z $ Iff (In z s) (or (In z x) (Eq z x))
-
-{- The axioms. -}
-let Extensionality = forall x $ forall y $ imp (Eq x y) (forall z $ imp (In x z) (In y z))
-let EmptySet = exists x $ Empty x
-let Pairing = forall a $ forall b $ exists p $ forall z $ Iff (In z p) (or (Eq z a) (Eq z b))
-let Union = forall a $ exists u $ forall z $ Iff (In z u) (exists y $ and (In y a) (In z y))
-let Power = forall a $ exists p $ forall z $ Iff (In z p) (Sub z a)
-let Separation (P x) = forall a $ exists s $ forall z $ Iff (In z s) (and (In z a) (P z))
-let Replacement (R x y) =
-  forall a $ imp (forall x $ imp (In x a) (exists y $ and (R x y) (forall y' $ imp (R x y') (Eq y y'))))
-                 (exists b $ forall y $ Iff (In y b) (exists x $ and (In x a) (R x y)))
-let Infinity =
-  exists i $ and (exists e $ and (Empty e) (In e i))
-                 (forall x $ imp (In x i) (exists s $ and (Successor x s) (In s i)))
-let Foundation =
-  forall a $ imp (exists x $ In x a) (exists y $ and (In y a) (not $ exists z $ and (In z y) (In z a)))
-{- Foundation as \in-induction. -}
-let EpsInduction (P x) = imp (forall x $ imp (forall y $ imp (In y x) (P y)) (P x)) (forall x $ P x)
-{- Ordered pairs and functions, up to equality. -}
-let Single s a = forall w $ Iff (In w s) (Eq w a)                  {- s = {a} -}
-let Doub d a b = forall w $ Iff (In w d) (or (Eq w a) (Eq w b))     {- d = {a, b} -}
-let OPair p a b = forall z $ Iff (In z p) (or (Single z a) (Doub z a b))   {- p = (a, b) -}
-let Maps f a b = exists p $ and (OPair p a b) (In p f)              {- f contains (a, b) -}
-let Choice =
-  forall s $ imp (forall x $ imp (In x s) (exists y $ In y x))
-                 (exists f $ forall x $ imp (In x s)
-                    (exists y $ and (In y x) (Maps f x y) (forall y' $ imp (Maps f x y') (Eq y y'))))
-
-let EM A = or A (not A)
-
-{- The constructive core, then ZFC. -}
-let Sets =
-  given ext : Extensionality
-  given empty : EmptySet
-  given pair : Pairing
-  given union : Union
-  given power : Power
-  given inf : Infinity
-
-let ZFC =
-  given all Sets
-  given found : Foundation
-  given choice : Choice
-
-let NotSelf x = not (In x x)
-
-{- Russell: there is no set of all sets. Constructive. -}
-proof russell given all Sets given sep : Separation NotSelf
-  shows not (exists u $ forall x $ In x u) by
-    assume h : exists u $ forall x $ In x u
-    obtain u hu from h
-    obtain s hs from sep u {
-      have nx : not (In s s) by assume x : In s s { and_e2 (and_e1 (hs s) x) x }
-      shows by nx (and_e2 (hs s) (and_i (hu s) nx)) }
+import sets
+import classical
 
 {- Every set has a subset that isn't one of its elements. Constructive. -}
-proof subset_outside given all Sets given sep : Separation NotSelf
-  shows forall a $ exists s $ and (Sub s a) (not (In s a)) by
-    forall a obtain s hs from sep a {
-      have sub : Sub s a by forall z assume zs : In z s { and_e1 (and_e1 (hs z) zs) }
-      have out : not (In s a) by assume sa : In s a {
-        have nx : not (In s s) by assume x : In s s { and_e2 (and_e1 (hs s) x) x }
-        shows by nx (and_e2 (hs s) (and_i sa nx)) }
-      have intro : imp (and (Sub s a) (not (In s a))) (exists t $ and (Sub t a) (not (In t a))) by ex_i
-      shows by intro (and_i sub out) }
+theorem subset_outside in Sets
+  sep: exists s. forall z. Iff (In z s) (In z a and NotSelf z)      by forall_e (Sets.sep NotSelf) a
+  lemma found
+    assume hs: forall z. Iff (In z s) (In z a and NotSelf z)
+    lemma sub
+      assume zs: In z s
+      hz:  Iff (In z s) (In z a and NotSelf z)                       by forall_e hs z
+      f:   In z s -> In z a and NotSelf z                            by and_e1 hz
+      c:   In z a and NotSelf z                                      by imp_e f zs
+      za:  In z a                                                    by and_e1 c
+      s1:  In z s -> In z a                                          by imp_i zs za
+      sub: Sub s a                                                   by forall_i z s1
+    lemma out
+      assume sa: In s a
+      hss: Iff (In s s) (In s a and NotSelf s)                       by forall_e hs s
+      fwd: In s s -> In s a and NotSelf s                            by and_e1 hss
+      bwd: In s a and NotSelf s -> In s s                            by and_e2 hss
+      lemma nx
+        assume x: In s s
+        c:  In s a and NotSelf s                                     by imp_e fwd x
+        ns: NotSelf s                                                by and_e2 c
+        f:  absurd                                                   by imp_e ns x
+        nx: NotSelf s                                                by imp_i x f
+      c2:  In s a and NotSelf s                                      by and_i sa nx
+      x2:  In s s                                                    by imp_e bwd c2
+      f2:  absurd                                                    by imp_e nx x2
+      out: not (In s a)                                              by imp_i sa f2
+    both:  Sub s a and not (In s a)                                  by and_i sub out
+    ex:    exists t. Sub t a and not (In t a)                        by exists_i both
+    found: exists t. Sub t a and not (In t a)                        by exists_e sep hs ex
+  subset_outside: forall a. exists t. Sub t a and not (In t a)       by forall_i a found
 
-{- The empty set is unique. Constructive. -}
-proof empty_unique given all Sets
-  shows forall a $ forall b $ imp (Empty a) (Empty b) (Eq a b) by
-    forall a b assume ea : Empty a assume eb : Empty b forall z {
-      and_i (assume za : In z a { efq (In z b) (ea z za) }) (assume zb : In z b { efq (In z a) (eb z zb) }) }
+{- The empty set is unique. Pure logic about the defined equality. -}
+theorem empty_unique
+  assume ea: Empty a
+  assume eb: Empty b
+  lemma l
+    assume za: In z a
+    na: not (In z a)                                                 by forall_e ea z
+    f:  absurd                                                       by imp_e na za
+    zb: In z b                                                       by absurd_e f
+    l:  In z a -> In z b                                             by imp_i za zb
+  lemma r
+    assume zb: In z b
+    nb: not (In z b)                                                 by forall_e eb z
+    f:  absurd                                                       by imp_e nb zb
+    za: In z a                                                       by absurd_e f
+    r:  In z b -> In z a                                             by imp_i zb za
+  i: Iff (In z a) (In z b)                                           by and_i l r
+  e: Eq a b                                                          by forall_i z i
+  k: Empty a -> Empty b -> Eq a b                                    by imp_i ea eb e
+  empty_unique: forall a b. Empty a -> Empty b -> Eq a b             by forall_i a b k
 
-{- No set is an element of itself, by \in-induction. Constructive. -}
-proof no_self_member given all Sets given ind : EpsInduction NotSelf
-  shows forall x $ not (In x x) by
-    ind (forall x assume ih : forall y $ imp (In y x) (NotSelf y) assume xx : In x x { ih x xx xx })
+{- No set is an element of itself, by membership induction. Constructive. -}
+theorem no_self_member in ZFEps
+  lemma step
+    assume ih: forall y. In y x -> NotSelf y
+    assume xx: In x x
+    k:  In x x -> NotSelf x                                          by forall_e ih x
+    nx: NotSelf x                                                    by imp_e k xx
+    f:  absurd                                                       by imp_e nx xx
+    s1: NotSelf x                                                    by imp_i xx f
+    s2: (forall y. In y x -> NotSelf y) -> NotSelf x                 by imp_i ih s1
+    step: forall x. (forall y. In y x -> NotSelf y) -> NotSelf x     by forall_i x s2
+  no_self_member: forall x. not (In x x)                             by imp_e (ZFEps.eps NotSelf) step
 
-{- Every set is empty or has an element. Needs excluded middle. -}
-let Inhabited a = exists x $ In x a
+{- Every set is empty or has an element, given excluded middle for "has an element". -}
+define Inhabited a = exists x. In x a
 
-proof empty_or_not given all Sets given em : forall a $ EM (Inhabited a)
-  shows forall a $ or (Empty a) (exists x $ In x a) by
-    forall a {
-      have none : imp (not (exists x $ In x a)) (Empty a) by
-        assume n : not (exists x $ In x a) forall x assume h : In x a {
-          have intro : imp (In x a) (exists y $ In y a) by ex_i
-          shows by n (intro h) }
-      shows by or_e (assume e : exists x $ In x a { or_i2 (Empty a) (exists x $ In x a) e })
-                    (assume n : not (exists x $ In x a) { or_i1 (Empty a) (exists x $ In x a) (none n) })
-                    (em a) }
+theorem empty_or_not
+  assume em: forall a. Inhabited a or not (Inhabited a)
+  lemma yes
+    assume e: Inhabited a
+    k:   Empty a or Inhabited a                                      by or_i2 e
+    yes: Inhabited a -> Empty a or Inhabited a                       by imp_i e k
+  lemma no
+    assume n: not (Inhabited a)
+    lemma none
+      assume h: In x a
+      e:  Inhabited a                                                by exists_i h
+      f:  absurd                                                     by imp_e n e
+      n1: not (In x a)                                               by imp_i h f
+      none: Empty a                                                  by forall_i x n1
+    k:  Empty a or Inhabited a                                       by or_i1 none
+    no: not (Inhabited a) -> Empty a or Inhabited a                  by imp_i n k
+  d:   Inhabited a or not (Inhabited a)                              by forall_e em a
+  r:   Empty a or Inhabited a                                        by or_e d yes no
+  all: forall a. Empty a or Inhabited a                              by forall_i a r
+  empty_or_not: (forall a. Inhabited a or not (Inhabited a)) -> forall a. Empty a or Inhabited a
+                                                                     by imp_i em all
 
-{- Equality, and pairs respecting it. -}
+theorem empty_or_not_classical in Classical
+  lemma em
+    k:  Inhabited a or not (Inhabited a)                             by Classical.em (Inhabited a)
+    em: forall a. Inhabited a or not (Inhabited a)                   by forall_i a k
+  empty_or_not_classical: forall a. Empty a or Inhabited a           by empty_or_not em
 
-proof eq_refl
-  shows forall a $ Eq a a by forall a z { and_i (assume h : In z a { h }) (assume h : In z a { h }) }
+{- Equality, and pairs respecting it. Pure logic. -}
 
-proof eq_sym
-  shows forall a $ forall b $ imp (Eq a b) (Eq b a) by
-    forall a b assume e : Eq a b forall z { and_i (and_e2 (e z)) (and_e1 (e z)) }
+theorem eq_refl
+  lemma l
+    assume h: In z a
+    l: In z a -> In z a                                              by imp_i h h
+  i: Iff (In z a) (In z a)                                           by and_i l l
+  e: Eq a a                                                          by forall_i z i
+  eq_refl: forall a. Eq a a                                          by forall_i a e
 
-proof eq_trans
-  shows forall a $ forall b $ forall c $ imp (Eq a b) (Eq b c) (Eq a c) by
-    forall a b c assume ab : Eq a b assume bc : Eq b c forall z {
-      and_i (assume h : In z a { and_e1 (bc z) (and_e1 (ab z) h) })
-            (assume h : In z c { and_e2 (ab z) (and_e2 (bc z) h) }) }
+theorem eq_sym
+  assume e: Eq a b
+  ez: Iff (In z a) (In z b)                                          by forall_e e z
+  f:  In z a -> In z b                                               by and_e1 ez
+  g:  In z b -> In z a                                               by and_e2 ez
+  i:  Iff (In z b) (In z a)                                          by and_i g f
+  ba: Eq b a                                                         by forall_i z i
+  k:  Eq a b -> Eq b a                                               by imp_i e ba
+  eq_sym: forall a b. Eq a b -> Eq b a                               by forall_i a b k
 
-proof single_move
-  shows forall s $ forall a $ forall b $ imp (Eq a b) (Single s a) (Single s b) by
-    forall s a b assume ab : Eq a b assume sa : Single s a forall w {
-      and_i (assume h : In w s { eq_trans w a b (and_e1 (sa w) h) ab })
-            (assume h : Eq w b { and_e2 (sa w) (eq_trans w b a h (eq_sym a b ab)) }) }
+theorem eq_trans
+  assume ab: Eq a b
+  assume bc: Eq b c
+  ez1: Iff (In z a) (In z b)                                         by forall_e ab z
+  ez2: Iff (In z b) (In z c)                                         by forall_e bc z
+  lemma f
+    assume h: In z a
+    f1: In z a -> In z b                                             by and_e1 ez1
+    zb: In z b                                                       by imp_e f1 h
+    f2: In z b -> In z c                                             by and_e1 ez2
+    zc: In z c                                                       by imp_e f2 zb
+    f:  In z a -> In z c                                             by imp_i h zc
+  lemma g
+    assume h: In z c
+    g2: In z c -> In z b                                             by and_e2 ez2
+    zb: In z b                                                       by imp_e g2 h
+    g1: In z b -> In z a                                             by and_e2 ez1
+    za: In z a                                                       by imp_e g1 zb
+    g:  In z c -> In z a                                             by imp_i h za
+  i:  Iff (In z a) (In z c)                                          by and_i f g
+  ac: Eq a c                                                         by forall_i z i
+  k:  Eq a b -> Eq b c -> Eq a c                                     by imp_i ab bc ac
+  eq_trans: forall a b c. Eq a b -> Eq b c -> Eq a c                 by forall_i a b c k
 
-proof doub_move
-  shows forall d $ forall a $ forall b $ forall c $ imp (Eq a b) (Doub d a c) (Doub d b c) by
-    forall d a b c assume ab : Eq a b assume da : Doub d a c forall w {
-      and_i (assume h : In w d {
-               or_e (assume e : Eq w a { or_i1 (Eq w b) (Eq w c) (eq_trans w a b e ab) })
-                    (assume e : Eq w c { or_i2 (Eq w b) (Eq w c) e })
-                    (and_e1 (da w) h) })
-            (assume h : or (Eq w b) (Eq w c) {
-               or_e (assume e : Eq w b { and_e2 (da w) (or_i1 (Eq w a) (Eq w c) (eq_trans w b a e (eq_sym a b ab))) })
-                    (assume e : Eq w c { and_e2 (da w) (or_i2 (Eq w a) (Eq w c) e) })
-                    h }) }
+theorem single_move
+  assume ab: Eq a b
+  assume sa: Single s a
+  hw: Iff (In w s) (Eq w a)                                          by forall_e sa w
+  lemma f
+    assume h: In w s
+    f1: In w s -> Eq w a                                             by and_e1 hw
+    wa: Eq w a                                                       by imp_e f1 h
+    tr: Eq w a -> Eq a b -> Eq w b                                   by forall_e eq_trans w a b
+    wb: Eq w b                                                       by imp_e tr wa ab
+    f:  In w s -> Eq w b                                             by imp_i h wb
+  lemma g
+    assume h: Eq w b
+    sym: Eq a b -> Eq b a                                            by forall_e eq_sym a b
+    ba:  Eq b a                                                      by imp_e sym ab
+    tr:  Eq w b -> Eq b a -> Eq w a                                  by forall_e eq_trans w b a
+    wa:  Eq w a                                                      by imp_e tr h ba
+    g1:  Eq w a -> In w s                                            by and_e2 hw
+    ws:  In w s                                                      by imp_e g1 wa
+    g:   Eq w b -> In w s                                            by imp_i h ws
+  i:  Iff (In w s) (Eq w b)                                          by and_i f g
+  sb: Single s b                                                     by forall_i w i
+  k:  Eq a b -> Single s a -> Single s b                             by imp_i ab sa sb
+  single_move: forall s a b. Eq a b -> Single s a -> Single s b      by forall_i s a b k
 
-proof pair_move
-  shows forall p $ forall a $ forall b $ forall c $ imp (Eq a b) (OPair p a c) (OPair p b c) by
-    forall p a b c assume ab : Eq a b assume pa : OPair p a c {
-      have ba : Eq b a by eq_sym a b ab
-      shows by forall z {
-        and_i (assume h : In z p {
-                 or_e (assume s1 : Single z a { or_i1 (Single z b) (Doub z b c) (single_move z a b ab s1) })
-                      (assume d1 : Doub z a c { or_i2 (Single z b) (Doub z b c) (doub_move z a b c ab d1) })
-                      (and_e1 (pa z) h) })
-              (assume h : or (Single z b) (Doub z b c) {
-                 or_e (assume s1 : Single z b { and_e2 (pa z) (or_i1 (Single z a) (Doub z a c) (single_move z b a ba s1)) })
-                      (assume d1 : Doub z b c { and_e2 (pa z) (or_i2 (Single z a) (Doub z a c) (doub_move z b a c ba d1)) })
-                      h }) } }
+theorem doub_move
+  assume ab: Eq a b
+  assume da: Doub d a c
+  hw:  Iff (In w d) (Eq w a or Eq w c)                               by forall_e da w
+  sym: Eq a b -> Eq b a                                              by forall_e eq_sym a b
+  ba:  Eq b a                                                        by imp_e sym ab
+  lemma f
+    assume h: In w d
+    f1: In w d -> Eq w a or Eq w c                                   by and_e1 hw
+    o:  Eq w a or Eq w c                                             by imp_e f1 h
+    lemma l
+      assume e: Eq w a
+      tr: Eq w a -> Eq a b -> Eq w b                                 by forall_e eq_trans w a b
+      wb: Eq w b                                                     by imp_e tr e ab
+      k:  Eq w b or Eq w c                                           by or_i1 wb
+      l:  Eq w a -> Eq w b or Eq w c                                 by imp_i e k
+    lemma r
+      assume e: Eq w c
+      k: Eq w b or Eq w c                                            by or_i2 e
+      r: Eq w c -> Eq w b or Eq w c                                  by imp_i e k
+    o2: Eq w b or Eq w c                                             by or_e o l r
+    f:  In w d -> Eq w b or Eq w c                                   by imp_i h o2
+  lemma g
+    assume h: Eq w b or Eq w c
+    lemma l
+      assume e: Eq w b
+      tr: Eq w b -> Eq b a -> Eq w a                                 by forall_e eq_trans w b a
+      wa: Eq w a                                                     by imp_e tr e ba
+      k:  Eq w a or Eq w c                                           by or_i1 wa
+      l:  Eq w b -> Eq w a or Eq w c                                 by imp_i e k
+    lemma r
+      assume e: Eq w c
+      k: Eq w a or Eq w c                                            by or_i2 e
+      r: Eq w c -> Eq w a or Eq w c                                  by imp_i e k
+    o:  Eq w a or Eq w c                                             by or_e h l r
+    g1: Eq w a or Eq w c -> In w d                                   by and_e2 hw
+    wd: In w d                                                       by imp_e g1 o
+    g:  Eq w b or Eq w c -> In w d                                   by imp_i h wd
+  i:  Iff (In w d) (Eq w b or Eq w c)                                by and_i f g
+  db: Doub d b c                                                     by forall_i w i
+  k:  Eq a b -> Doub d a c -> Doub d b c                             by imp_i ab da db
+  doub_move: forall d a b c. Eq a b -> Doub d a c -> Doub d b c      by forall_i d a b c k
 
-proof maps_move
-  shows forall f $ forall a $ forall b $ forall c $ imp (Eq a b) (Maps f a c) (Maps f b c) by
-    forall f a b c assume ab : Eq a b assume m : Maps f a c obtain p hp from m {
-      have intro : imp (and (OPair p b c) (In p f)) (exists q $ and (OPair q b c) (In q f)) by ex_i
-      shows by intro (and_i (pair_move p a b c ab (and_e1 hp)) (and_e2 hp)) }
+theorem pair_move
+  assume ab: Eq a b
+  assume pa: OPair p a c
+  sym: Eq a b -> Eq b a                                              by forall_e eq_sym a b
+  ba:  Eq b a                                                        by imp_e sym ab
+  hz:  Iff (In z p) (Single z a or Doub z a c)                       by forall_e pa z
+  lemma f
+    assume h: In z p
+    f1: In z p -> Single z a or Doub z a c                           by and_e1 hz
+    o:  Single z a or Doub z a c                                     by imp_e f1 h
+    lemma l
+      assume s1: Single z a
+      sm: Eq a b -> Single z a -> Single z b                         by forall_e single_move z a b
+      sb: Single z b                                                 by imp_e sm ab s1
+      k:  Single z b or Doub z b c                                   by or_i1 sb
+      l:  Single z a -> Single z b or Doub z b c                     by imp_i s1 k
+    lemma r
+      assume d1: Doub z a c
+      dm: Eq a b -> Doub z a c -> Doub z b c                         by forall_e doub_move z a b c
+      db: Doub z b c                                                 by imp_e dm ab d1
+      k:  Single z b or Doub z b c                                   by or_i2 db
+      r:  Doub z a c -> Single z b or Doub z b c                     by imp_i d1 k
+    o2: Single z b or Doub z b c                                     by or_e o l r
+    f:  In z p -> Single z b or Doub z b c                           by imp_i h o2
+  lemma g
+    assume h: Single z b or Doub z b c
+    lemma l
+      assume s1: Single z b
+      sm: Eq b a -> Single z b -> Single z a                         by forall_e single_move z b a
+      sa: Single z a                                                 by imp_e sm ba s1
+      k:  Single z a or Doub z a c                                   by or_i1 sa
+      l:  Single z b -> Single z a or Doub z a c                     by imp_i s1 k
+    lemma r
+      assume d1: Doub z b c
+      dm: Eq b a -> Doub z b c -> Doub z a c                         by forall_e doub_move z b a c
+      da: Doub z a c                                                 by imp_e dm ba d1
+      k:  Single z a or Doub z a c                                   by or_i2 da
+      r:  Doub z b c -> Single z a or Doub z a c                     by imp_i d1 k
+    o:  Single z a or Doub z a c                                     by or_e h l r
+    g1: Single z a or Doub z a c -> In z p                           by and_e2 hz
+    zp: In z p                                                       by imp_e g1 o
+    g:  Single z b or Doub z b c -> In z p                           by imp_i h zp
+  i:  Iff (In z p) (Single z b or Doub z b c)                        by and_i f g
+  pb: OPair p b c                                                    by forall_i z i
+  k:  Eq a b -> OPair p a c -> OPair p b c                           by imp_i ab pa pb
+  pair_move: forall p a b c. Eq a b -> OPair p a c -> OPair p b c    by forall_i p a b c k
 
-{- Diaconescu: choice implies excluded middle. -}
-let EqOr A e z = or (Eq z e) A
+theorem maps_move
+  assume ab: Eq a b
+  assume m: Maps f a c
+  lemma found
+    assume hp: OPair p a c and In p f
+    pa:   OPair p a c                                                by and_e1 hp
+    pf:   In p f                                                     by and_e2 hp
+    pm:   Eq a b -> OPair p a c -> OPair p b c                       by forall_e pair_move p a b c
+    pb:   OPair p b c                                                by imp_e pm ab pa
+    both: OPair p b c and In p f                                     by and_i pb pf
+    ex:   Maps f b c                                                 by exists_i both
+    found: Maps f b c                                                by exists_e m hp ex
+  k: Eq a b -> Maps f a c -> Maps f b c                              by imp_i ab m found
+  maps_move: forall f a b c. Eq a b -> Maps f a c -> Maps f b c      by forall_i f a b c k
 
-proof diaconescu given all Sets given choice : Choice given A
-  given sep : forall e $ Separation (EqOr A e)
-  shows or A (not A) by
-    obtain e he from empty
-    obtain o ho from pair e e
-    obtain u hu from pair e o
-    obtain x hx from sep e u
-    obtain y hy from sep o u
-    obtain s hs from pair x y {
-      have eu : In e u by and_e2 (hu e) (or_i1 (Eq e e) (Eq e o) (eq_refl e))
-      have ou : In o u by and_e2 (hu o) (or_i2 (Eq o e) (Eq o o) (eq_refl o))
-      have ein : In e x by and_e2 (hx e) (and_i eu (or_i1 (Eq e e) A (eq_refl e)))
-      have oin : In o y by and_e2 (hy o) (and_i ou (or_i1 (Eq o o) A (eq_refl o)))
-      have inh : forall w $ imp (In w s) (exists v $ In v w) by forall w assume ws : In w s {
-        have ie : imp (In e w) (exists v $ In v w) by ex_i
-        have io : imp (In o w) (exists v $ In v w) by ex_i
-        shows by or_e (assume q : Eq w x { ie (and_e2 (q e) ein) })
-                      (assume q : Eq w y { io (and_e2 (q o) oin) })
-                      (and_e1 (hs w) ws) }
-      have xs : In x s by and_e2 (hs x) (or_i1 (Eq x x) (Eq x y) (eq_refl x))
-      have ys : In y s by and_e2 (hs y) (or_i2 (Eq y x) (Eq y y) (eq_refl y))
-      shows by obtain f hf from choice s inh obtain a ha from hf x xs obtain b hb from hf y ys {
-        have ca : or (Eq a e) A by and_e2 (and_e1 (hx a) (and_e1 ha))
-        have cb : or (Eq b o) A by and_e2 (and_e1 (hy b) (and_e1 hb))
-        have yes : imp A (or A (not A)) by assume h : A { or_i1 A (not A) h }
-        have no : imp (Eq a e) (Eq b o) (or A (not A)) by assume ae : Eq a e assume bo : Eq b o {
-          or_i2 A (not A) (assume h : A {
-            have exy : Eq x y by forall z {
-              and_i (assume zx : In z x { and_e2 (hy z) (and_i (and_e1 (and_e1 (hx z) zx)) (or_i2 (Eq z o) A h)) })
-                    (assume zy : In z y { and_e2 (hx z) (and_i (and_e1 (and_e1 (hy z) zy)) (or_i2 (Eq z e) A h)) }) }
-            have ba : Eq b a by and_e2 (and_e2 hb) a (maps_move f x y a exy (and_e1 (and_e2 ha)))
-            have oe : Eq o e by eq_trans o b e (eq_sym b o bo) (eq_trans b a e ba ae)
-            have eo : In e o by and_e2 (ho e) (or_i1 (Eq e e) (Eq e e) (eq_refl e))
-            shows by he e (and_e1 (oe e) eo) }) }
-        shows by or_e (assume ae : Eq a e { or_e (no ae) yes cb }) yes ca } }
+{- Diaconescu: choice implies excluded middle, for any statement A. -}
+define EqOr A e z = Eq z e or A
+
+theorem diaconescu in ZFC
+  {- e = {}, o = {e}, u = {e, o}, x = {z in u | z = e or A}, y = {z in u | z = o or A}, s = {x, y} -}
+  assume he: Empty e
+  assume ho: forall z. Iff (In z o) (Eq z e or Eq z e)
+  assume hu: forall z. Iff (In z u) (Eq z e or Eq z o)
+  assume hx: forall z. Iff (In z x) (In z u and (Eq z e or A))
+  assume hy: forall z. Iff (In z y) (In z u and (Eq z o or A))
+  assume hs: forall z. Iff (In z s) (Eq z x or Eq z y)
+  {- the sets exist -}
+  po: exists o. forall z. Iff (In z o) (Eq z e or Eq z e)           by forall_e Sets.pair e e
+  pu: exists u. forall z. Iff (In z u) (Eq z e or Eq z o)           by forall_e Sets.pair e o
+  sx: exists x. forall z. Iff (In z x) (In z u and (Eq z e or A))   by forall_e (Sets.sep (EqOr A e)) u
+  sy: exists y. forall z. Iff (In z y) (In z u and (Eq z o or A))   by forall_e (Sets.sep (EqOr A o)) u
+  ps: exists s. forall z. Iff (In z s) (Eq z x or Eq z y)           by forall_e Sets.pair x y
+  {- e, o in u; e in x; o in y -}
+  ree:  Eq e e                                                       by forall_e eq_refl e
+  roo:  Eq o o                                                       by forall_e eq_refl o
+  hue:  Iff (In e u) (Eq e e or Eq e o)                              by forall_e hu e
+  hue1: (Eq e e or Eq e o) -> In e u                                 by and_e2 hue
+  d1:   Eq e e or Eq e o                                             by or_i1 ree
+  eu:   In e u                                                       by imp_e hue1 d1
+  huo:  Iff (In o u) (Eq o e or Eq o o)                              by forall_e hu o
+  huo1: (Eq o e or Eq o o) -> In o u                                 by and_e2 huo
+  d2:   Eq o e or Eq o o                                             by or_i2 roo
+  ou:   In o u                                                       by imp_e huo1 d2
+  hxe:  Iff (In e x) (In e u and (Eq e e or A))                      by forall_e hx e
+  hxe1: (In e u and (Eq e e or A)) -> In e x                         by and_e2 hxe
+  d3:   Eq e e or A                                                  by or_i1 ree
+  d4:   In e u and (Eq e e or A)                                     by and_i eu d3
+  ein:  In e x                                                       by imp_e hxe1 d4
+  hyo:  Iff (In o y) (In o u and (Eq o o or A))                      by forall_e hy o
+  hyo1: (In o u and (Eq o o or A)) -> In o y                         by and_e2 hyo
+  d5:   Eq o o or A                                                  by or_i1 roo
+  d6:   In o u and (Eq o o or A)                                     by and_i ou d5
+  oin:  In o y                                                       by imp_e hyo1 d6
+  {- every member of s is inhabited -}
+  lemma inh
+    assume ws: In w s
+    hsw:  Iff (In w s) (Eq w x or Eq w y)                            by forall_e hs w
+    hsw1: In w s -> Eq w x or Eq w y                                 by and_e1 hsw
+    wxy:  Eq w x or Eq w y                                           by imp_e hsw1 ws
+    lemma i1
+      assume q: Eq w x
+      qe:  Iff (In e w) (In e x)                                     by forall_e q e
+      qe1: In e x -> In e w                                          by and_e2 qe
+      ew:  In e w                                                    by imp_e qe1 ein
+      ie:  exists v. In v w                                          by exists_i ew
+      i1:  Eq w x -> exists v. In v w                                by imp_i q ie
+    lemma i2
+      assume q: Eq w y
+      qo:  Iff (In o w) (In o y)                                     by forall_e q o
+      qo1: In o y -> In o w                                          by and_e2 qo
+      ow:  In o w                                                    by imp_e qo1 oin
+      io:  exists v. In v w                                          by exists_i ow
+      i2:  Eq w y -> exists v. In v w                                by imp_i q io
+    iw:  exists v. In v w                                            by or_e wxy i1 i2
+    iw1: In w s -> exists v. In v w                                  by imp_i ws iw
+    inh: forall w. In w s -> exists v. In v w                        by forall_i w iw1
+  {- x and y are in s -}
+  hsx:  Iff (In x s) (Eq x x or Eq x y)                              by forall_e hs x
+  hsx1: (Eq x x or Eq x y) -> In x s                                 by and_e2 hsx
+  rxx:  Eq x x                                                       by forall_e eq_refl x
+  d7:   Eq x x or Eq x y                                             by or_i1 rxx
+  xs:   In x s                                                       by imp_e hsx1 d7
+  hsy:  Iff (In y s) (Eq y x or Eq y y)                              by forall_e hs y
+  hsy1: (Eq y x or Eq y y) -> In y s                                 by and_e2 hsy
+  ryy:  Eq y y                                                       by forall_e eq_refl y
+  d8:   Eq y x or Eq y y                                             by or_i2 ryy
+  ys:   In y s                                                       by imp_e hsy1 d8
+  {- choose -}
+  ch:   (forall w. In w s -> exists v. In v w)
+          -> exists f. forall w. In w s -> exists v. In v w and Maps f w v and forall v1. Maps f w v1 -> Eq v v1
+                                                                     by forall_e ZFC.choice s
+  chf:  exists f. forall w. In w s -> exists v. In v w and Maps f w v and forall v1. Maps f w v1 -> Eq v v1
+                                                                     by imp_e ch inh
+  lemma chosen
+    assume hf: forall w. In w s -> exists v. In v w and Maps f w v and forall v1. Maps f w v1 -> Eq v v1
+    assume ha: In a x and Maps f x a and forall v1. Maps f x v1 -> Eq a v1
+    assume hb: In b y and Maps f y b and forall v1. Maps f y v1 -> Eq b v1
+    hfx: In x s -> exists v. In v x and Maps f x v and forall v1. Maps f x v1 -> Eq v v1   by forall_e hf x
+    exa: exists v. In v x and Maps f x v and forall v1. Maps f x v1 -> Eq v v1             by imp_e hfx xs
+    hfy: In y s -> exists v. In v y and Maps f y v and forall v1. Maps f y v1 -> Eq v v1   by forall_e hf y
+    exb: exists v. In v y and Maps f y v and forall v1. Maps f y v1 -> Eq v v1             by imp_e hfy ys
+    {- a = e or A; b = o or A -}
+    ax:   In a x                                                     by and_e1 ha
+    hxa:  Iff (In a x) (In a u and (Eq a e or A))                    by forall_e hx a
+    hxa1: In a x -> In a u and (Eq a e or A)                         by and_e1 hxa
+    d9:   In a u and (Eq a e or A)                                   by imp_e hxa1 ax
+    ca:   Eq a e or A                                                by and_e2 d9
+    iby:  In b y                                                     by and_e1 hb
+    hyb:  Iff (In b y) (In b u and (Eq b o or A))                    by forall_e hy b
+    hyb1: In b y -> In b u and (Eq b o or A)                         by and_e1 hyb
+    d10:  In b u and (Eq b o or A)                                   by imp_e hyb1 iby
+    cb:   Eq b o or A                                                by and_e2 d10
+    lemma yes
+      assume h: A
+      y1:  A or not A                                                by or_i1 h
+      yes: A -> A or not A                                           by imp_i h y1
+    {- a = e and b = o give not A: under A, x = y, so a = b, so e = o, so e in e -}
+    lemma no
+      assume ae: Eq a e
+      assume bo: Eq b o
+      assume h:  A
+      lemma xy1
+        assume zx: In z x
+        hxz:  Iff (In z x) (In z u and (Eq z e or A))                by forall_e hx z
+        hxz1: In z x -> In z u and (Eq z e or A)                     by and_e1 hxz
+        d11:  In z u and (Eq z e or A)                               by imp_e hxz1 zx
+        zu:   In z u                                                 by and_e1 d11
+        d12:  Eq z o or A                                            by or_i2 h
+        d13:  In z u and (Eq z o or A)                               by and_i zu d12
+        hyz:  Iff (In z y) (In z u and (Eq z o or A))                by forall_e hy z
+        hyz1: (In z u and (Eq z o or A)) -> In z y                   by and_e2 hyz
+        zy:   In z y                                                 by imp_e hyz1 d13
+        xy1:  In z x -> In z y                                       by imp_i zx zy
+      lemma xy2
+        assume zy: In z y
+        hyz:  Iff (In z y) (In z u and (Eq z o or A))                by forall_e hy z
+        hyz1: In z y -> In z u and (Eq z o or A)                     by and_e1 hyz
+        d14:  In z u and (Eq z o or A)                               by imp_e hyz1 zy
+        zu:   In z u                                                 by and_e1 d14
+        d15:  Eq z e or A                                            by or_i2 h
+        d16:  In z u and (Eq z e or A)                               by and_i zu d15
+        hxz:  Iff (In z x) (In z u and (Eq z e or A))                by forall_e hx z
+        hxz1: (In z u and (Eq z e or A)) -> In z x                   by and_e2 hxz
+        zx:   In z x                                                 by imp_e hxz1 d16
+        xy2:  In z y -> In z x                                       by imp_i zy zx
+      xyz:  Iff (In z x) (In z y)                                    by and_i xy1 xy2
+      exy:  Eq x y                                                   by forall_i z xyz
+      ha2:  Maps f x a and forall v1. Maps f x v1 -> Eq a v1         by and_e2 ha
+      mfa:  Maps f x a                                               by and_e1 ha2
+      mm:   Eq x y -> Maps f x a -> Maps f y a                       by forall_e maps_move f x y a
+      mya:  Maps f y a                                               by imp_e mm exy mfa
+      hb2:  Maps f y b and forall v1. Maps f y v1 -> Eq b v1         by and_e2 hb
+      ub:   forall v1. Maps f y v1 -> Eq b v1                        by and_e2 hb2
+      uba:  Maps f y a -> Eq b a                                     by forall_e ub a
+      ba:   Eq b a                                                   by imp_e uba mya
+      sym:  Eq b o -> Eq o b                                         by forall_e eq_sym b o
+      ob:   Eq o b                                                   by imp_e sym bo
+      tr1:  Eq b a -> Eq a e -> Eq b e                               by forall_e eq_trans b a e
+      be:   Eq b e                                                   by imp_e tr1 ba ae
+      tr2:  Eq o b -> Eq b e -> Eq o e                               by forall_e eq_trans o b e
+      oe:   Eq o e                                                   by imp_e tr2 ob be
+      hoe:  Iff (In e o) (Eq e e or Eq e e)                          by forall_e ho e
+      hoe1: (Eq e e or Eq e e) -> In e o                             by and_e2 hoe
+      d17:  Eq e e or Eq e e                                         by or_i1 ree
+      eo:   In e o                                                   by imp_e hoe1 d17
+      oee:  Iff (In e o) (In e e)                                    by forall_e oe e
+      oee1: In e o -> In e e                                         by and_e1 oee
+      ee:   In e e                                                   by imp_e oee1 eo
+      hee:  not (In e e)                                             by forall_e he e
+      f1:   absurd                                                   by imp_e hee ee
+      no:   Eq a e -> Eq b o -> not A                                by imp_i ae bo h f1
+    {- combine the cases -}
+    lemma case_ae
+      assume ae: Eq a e
+      no1: Eq b o -> not A                                           by imp_e no ae
+      lemma case_bo
+        assume bo: Eq b o
+        na: not A                                                    by imp_e no1 bo
+        n1: A or not A                                               by or_i2 na
+        case_bo: Eq b o -> A or not A                                by imp_i bo n1
+      r1: A or not A                                                 by or_e cb case_bo yes
+      case_ae: Eq a e -> A or not A                                  by imp_i ae r1
+    r:  A or not A                                                   by or_e ca case_ae yes
+    r5: A or not A                                                   by exists_e exb hb r
+    r8: A or not A                                                   by exists_e exa ha r5
+    chosen: A or not A                                               by exists_e chf hf r8
+  {- close the five constructed sets and the empty set -}
+  r14: A or not A                                                    by exists_e ps hs chosen
+  r17: A or not A                                                    by exists_e sy hy r14
+  r20: A or not A                                                    by exists_e sx hx r17
+  r23: A or not A                                                    by exists_e pu hu r20
+  r26: A or not A                                                    by exists_e po ho r23
+  diaconescu: A or not A                                             by exists_e Sets.empty he r26
 
 {- Foundation implies excluded middle. -}
-proof em_from_foundation given all Sets given found : Foundation given A
-  given sep : forall e $ Separation (EqOr A e)
-  shows or A (not A) by
-    obtain e he from empty
-    obtain o ho from pair e e
-    obtain u hu from pair e o
-    obtain c hc from sep o u {
-      have eu : In e u by and_e2 (hu e) (or_i1 (Eq e e) (Eq e o) (eq_refl e))
-      have ou : In o u by and_e2 (hu o) (or_i2 (Eq o e) (Eq o o) (eq_refl o))
-      have oc : In o c by and_e2 (hc o) (and_i ou (or_i1 (Eq o o) A (eq_refl o)))
-      have ne : imp (In o c) (exists x $ In x c) by ex_i
-      have eo : In e o by and_e2 (ho e) (or_i1 (Eq e e) (Eq e e) (eq_refl e))
-      have yes : imp A (or A (not A)) by assume h : A { or_i1 A (not A) h }
-      shows by obtain y hy from found c (ne oc) {
-        have yo : imp (Eq y o) (not A) by assume q : Eq y o assume h : A {
-          have ey : In e y by and_e2 (q e) eo
-          have ec : In e c by and_e2 (hc e) (and_i eu (or_i2 (Eq e o) A h))
-          have intro : imp (and (In e y) (In e c)) (exists z $ and (In z y) (In z c)) by ex_i
-          shows by and_e2 hy (intro (and_i ey ec)) }
-        shows by or_e (assume q : Eq y o { or_i2 A (not A) (yo q) })
-                      yes
-                      (and_e2 (and_e1 (hc y) (and_e1 hy))) } }
+theorem em_from_foundation in ZFC
+  assume he: Empty e
+  assume ho: forall z. Iff (In z o) (Eq z e or Eq z e)
+  assume hu: forall z. Iff (In z u) (Eq z e or Eq z o)
+  assume hc: forall z. Iff (In z c) (In z u and (Eq z o or A))
+  po: exists o. forall z. Iff (In z o) (Eq z e or Eq z e)           by forall_e Sets.pair e e
+  pu: exists u. forall z. Iff (In z u) (Eq z e or Eq z o)           by forall_e Sets.pair e o
+  sc: exists c. forall z. Iff (In z c) (In z u and (Eq z o or A))   by forall_e (Sets.sep (EqOr A o)) u
+  ree:  Eq e e                                                       by forall_e eq_refl e
+  roo:  Eq o o                                                       by forall_e eq_refl o
+  hue:  Iff (In e u) (Eq e e or Eq e o)                              by forall_e hu e
+  hue1: (Eq e e or Eq e o) -> In e u                                 by and_e2 hue
+  d1:   Eq e e or Eq e o                                             by or_i1 ree
+  eu:   In e u                                                       by imp_e hue1 d1
+  huo:  Iff (In o u) (Eq o e or Eq o o)                              by forall_e hu o
+  huo1: (Eq o e or Eq o o) -> In o u                                 by and_e2 huo
+  d2:   Eq o e or Eq o o                                             by or_i2 roo
+  ou:   In o u                                                       by imp_e huo1 d2
+  {- o in c, so c has an element -}
+  hco:  Iff (In o c) (In o u and (Eq o o or A))                      by forall_e hc o
+  hco1: (In o u and (Eq o o or A)) -> In o c                         by and_e2 hco
+  d5:   Eq o o or A                                                  by or_i1 roo
+  d6:   In o u and (Eq o o or A)                                     by and_i ou d5
+  oc:   In o c                                                       by imp_e hco1 d6
+  ne:   exists x. In x c                                             by exists_i oc
+  {- e in o -}
+  hoe:  Iff (In e o) (Eq e e or Eq e e)                              by forall_e ho e
+  hoe1: (Eq e e or Eq e e) -> In e o                                 by and_e2 hoe
+  d17:  Eq e e or Eq e e                                             by or_i1 ree
+  eo:   In e o                                                       by imp_e hoe1 d17
+  lemma yes
+    assume h: A
+    y1:  A or not A                                                  by or_i1 h
+    yes: A -> A or not A                                             by imp_i h y1
+  {- foundation gives a y in c disjoint from c -}
+  fd: (exists x. In x c) -> exists y. In y c and not (exists z. In z y and In z c)   by forall_e ZFC.found c
+  fy: exists y. In y c and not (exists z. In z y and In z c)                         by imp_e fd ne
+  lemma chosen
+    assume hy: In y c and not (exists z. In z y and In z c)
+    yc:   In y c                                                     by and_e1 hy
+    nz:   not (exists z. In z y and In z c)                          by and_e2 hy
+    hcy:  Iff (In y c) (In y u and (Eq y o or A))                    by forall_e hc y
+    hcy1: In y c -> In y u and (Eq y o or A)                         by and_e1 hcy
+    d:    In y u and (Eq y o or A)                                   by imp_e hcy1 yc
+    cy:   Eq y o or A                                                by and_e2 d
+    {- y = o is impossible under A: then e would be in both y and c -}
+    lemma yo
+      assume q: Eq y o
+      assume h: A
+      qe:   Iff (In e y) (In e o)                                    by forall_e q e
+      qe1:  In e o -> In e y                                         by and_e2 qe
+      ey:   In e y                                                   by imp_e qe1 eo
+      hce:  Iff (In e c) (In e u and (Eq e o or A))                  by forall_e hc e
+      hce1: (In e u and (Eq e o or A)) -> In e c                     by and_e2 hce
+      d3:   Eq e o or A                                              by or_i2 h
+      d4:   In e u and (Eq e o or A)                                 by and_i eu d3
+      ec:   In e c                                                   by imp_e hce1 d4
+      both: In e y and In e c                                        by and_i ey ec
+      ex:   exists z. In z y and In z c                              by exists_i both
+      f:    absurd                                                   by imp_e nz ex
+      na:   not A                                                    by imp_i h f
+      k:    A or not A                                               by or_i2 na
+      yo:   Eq y o -> A or not A                                     by imp_i q k
+    r0: A or not A                                                   by or_e cy yo yes
+    chosen: A or not A                                               by exists_e fy hy r0
+  r2: A or not A                                                     by exists_e sc hc chosen
+  r3: A or not A                                                     by exists_e pu hu r2
+  r4: A or not A                                                     by exists_e po ho r3
+  em_from_foundation: A or not A                                     by exists_e Sets.empty he r4
 
-{- `empty_or_not` without excluded middle, via Diaconescu. -}
-proof empty_or_not_from_choice given all Sets given choice : Choice
-  given sep : forall a $ forall e $ Separation (EqOr (Inhabited a) e)
-  have em by forall a { diaconescu Sets (Inhabited a) choice (sep a) }
-  shows forall a $ or (Empty a) (exists x $ In x a) by empty_or_not Sets em
+{- `empty_or_not` without excluded middle as a theory, via Diaconescu. -}
+theorem empty_or_not_from_choice in ZFC
+  lemma em
+    k:  Inhabited a or not (Inhabited a)                             by diaconescu (Inhabited a)
+    em: forall a. Inhabited a or not (Inhabited a)                   by forall_i a k
+  empty_or_not_from_choice: forall a. Empty a or Inhabited a         by empty_or_not em

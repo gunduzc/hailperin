@@ -1,2 +1,4 @@
-{- `_` alone is a hole; a name must start with a letter. -}
-let _A
+{- A name starts with a letter. -}
+theorem t
+  assume _a: A
+  t: A -> A by imp_i _a _a

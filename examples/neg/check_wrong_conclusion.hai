@@ -1,10 +1,4 @@
-proof fine
-  given A
-  shows imp A A by assume a : A { a }
-
-{- `imp1 A B` proves `imp A B A`, which is not what this step says. -}
-proof bad
-  given A
-  given B
-  have k : imp A B by imp1 A B
-  shows B by k
+{- The stated formula isn't what the rule gives. -}
+theorem bad
+  assume ab: A and B
+  bad: A and B -> B by imp_i ab ab

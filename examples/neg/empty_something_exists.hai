@@ -1,6 +1,7 @@
-{- Standard logic proves that something exists; here it has to be a hypothesis. -}
-let True = imp absurd absurd
-
-proof something
-  have t : True by efq absurd
-  shows exists x $ True by ex_i t
+{- Standard logic proves that something exists. Here it has to be a hypothesis. -}
+define True = absurd -> absurd
+theorem something
+  lemma t
+    assume f: absurd
+    t: True by imp_i f f
+  something: exists x. True by exists_i t

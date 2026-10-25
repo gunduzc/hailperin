@@ -1,0 +1,3 @@
+theorem bad
+  assume a: A
+  bad: A by forall_e a x

@@ -1,0 +1,3 @@
+theorem t
+  assume a: a
+  t: a -> a by imp_i a a

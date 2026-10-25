@@ -1,4 +1,0 @@
-{- `by` at the end of the file, with nothing after it. -}
-proof p
-  given A
-  shows imp A A by

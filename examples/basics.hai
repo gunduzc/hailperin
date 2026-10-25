@@ -1,60 +1,85 @@
 {- Propositional and quantifier basics. -}
 
-proof and_comm
-  given A
-  given B
-  given ab : and A B
-  have a : A by and_e1 ab
-  have b : B by and_e2 ab
-  shows and B A by and_i b a
+theorem and_comm
+  assume ab: A and B
+  a:  A                                   by and_e1 ab
+  b:  B                                   by and_e2 ab
+  ba: B and A                             by and_i b a
+  and_comm: A and B -> B and A            by imp_i ab ba
 
-proof trans
-  given A
-  given B
-  given C
-  given ab : imp A B
-  given bc : imp B C
-  shows imp A C by imp2 A B C (imp1 (imp B C) A bc) ab
+theorem trans
+  assume ab: A -> B
+  assume bc: B -> C
+  assume a: A
+  b: B                                    by imp_e ab a
+  c: C                                    by imp_e bc b
+  trans: (A -> B) -> (B -> C) -> A -> C   by imp_i ab bc a c
 
 {- Chaining two implications under a forall. -}
-proof trans_under
-  given A x
-  given B x
-  given C x
-  given ab : forall x $ imp (A x) (B x)
-  given bc : forall x $ imp (B x) (C x)
-  have k1 : forall x $ imp (imp (B x) (C x)) (A x) (B x) (C x) by imp1
-  have k2 : forall x $ imp (imp (A x) (B x) (C x)) (imp (A x) (B x)) (A x) (C x) by imp2
-  shows forall x $ imp (A x) (C x) by dist (dist k2 (dist k1 bc)) ab
+theorem trans_under
+  assume ab: forall x. A x -> B x
+  assume bc: forall x. B x -> C x
+  lemma each
+    assume a: A x
+    ab1: A x -> B x                       by forall_e ab x
+    bc1: B x -> C x                       by forall_e bc x
+    b:   B x                              by imp_e ab1 a
+    c:   C x                              by imp_e bc1 b
+    ac:  A x -> C x                       by imp_i a c
+    each: forall x. A x -> C x            by forall_i x ac
+  trans_under: (forall x. A x -> B x) -> (forall x. B x -> C x) -> forall x. A x -> C x
+                                          by imp_i ab bc each
 
-{- Whatever is Socrates is mortal. -}
-let Man x
-let Mortal x
-let Socrates x
-
-proof syllogism
-  given men : forall x $ imp (Man x) (Mortal x)
-  given soc : forall x $ imp (Socrates x) (Man x)
-  shows forall x $ imp (Socrates x) (Mortal x) by trans_under soc men
+{- Whatever is Socrates is mortal, by the lemma. -}
+theorem syllogism
+  assume men: forall x. Man x -> Mortal x
+  assume soc: forall x. Socrates x -> Man x
+  k: forall x. Socrates x -> Mortal x     by trans_under soc men
+  syllogism: (forall x. Man x -> Mortal x) -> (forall x. Socrates x -> Man x) -> forall x. Socrates x -> Mortal x
+                                          by imp_i men soc k
 
 {- If every P gives Q and some P exists, then Q. -}
-proof use_exists
-  given P x
-  given Q
-  given f : forall x $ imp (P x) Q
-  given e : exists x $ P x
-  shows Q by ex_e f e
+theorem use_exists
+  assume f: forall x. P x -> Q
+  assume e: exists x. P x
+  lemma c
+    assume p: P w
+    f1: P w -> Q                          by forall_e f w
+    q:  Q                                 by imp_e f1 p
+    c:  Q                                 by exists_e e p q
+  use_exists: (forall x. P x -> Q) -> (exists x. P x) -> Q
+                                          by imp_i f e c
 
-proof id
-  given A
-  shows imp A A by imp2 A (imp A A) A (imp1 A (imp A A)) (imp1 A A)
+theorem id
+  assume a: A
+  id: A -> A                              by imp_i a a
 
-{- Excluded middle as a hypothesis. -}
-let EM A = or A (not A)
+{- Double negation introduction is intuitionistic. -}
+theorem dni
+  assume a: A
+  assume na: not A
+  f: absurd                               by imp_e na a
+  dni: A -> not (not A)                   by imp_i a na f
 
-proof dne_from_em
-  given A
-  given em : EM A
-  given nna : not (not A)
-  have no : imp (not A) A by trans nna (efq A)
-  shows A by or_e (id A) no em
+{- Swapping two quantifiers. -}
+theorem swap
+  assume h: forall x y. R x y
+  lemma each
+    k: forall y. R x y                    by forall_e h x
+    r: R x y                              by forall_e k y
+    each: forall y x. R x y               by forall_i y x r
+  swap: (forall x y. R x y) -> forall y x. R x y
+                                          by imp_i h each
+
+{- Excluded middle isn't provable here, but its double negation is: refuting `A or not A`
+   refutes `A`, which gives `not A`, which gives `A or not A`. -}
+theorem dnem
+  assume n: not (A or not A)
+  lemma na
+    assume a: A
+    o:  A or not A                          by or_i1 a
+    f:  absurd                              by imp_e n o
+    na: not A                               by imp_i a f
+  o: A or not A                             by or_i2 na
+  f: absurd                                 by imp_e n o
+  dnem: not (not (A or not A))              by imp_i n f

@@ -1,4 +1,2 @@
-{- An error in an imported file names that file. -}
-import check_arity
-
-let A
+{- Importing a file that doesn't check reports the failure in that file. -}
+import parse_missing_by
