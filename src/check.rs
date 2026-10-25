@@ -150,21 +150,23 @@ fn vars(entries: &[Entry]) -> Vec<String> {
 /// The body under `entries`: strips one `forall` per variable (renamed to the variable) and
 /// one assumption per hypothesis.
 fn unwrap(f: &Formula, entries: &[Entry]) -> Result<Formula, String> {
-    let mut cur = f.clone();
+    // The renamings are collected and done at once: one pass over the body, not one per layer.
+    let mut s: Vec<(String, String)> = Vec::new();
+    let mut cur = f;
     for e in entries {
         cur = match (e, cur) {
             (Entry::Var(y), Formula::All(z, b)) => {
-                if z == *y {
-                    *b
-                } else {
-                    b.subst_vars(&[(z, y.clone())])
-                }
+                s.retain(|(v, _)| v != z);
+                s.push((z.clone(), y.clone()));
+                b
             }
-            (Entry::Hyp(h), Formula::Imp(p, b)) if *p == *h => *b,
-            (_, other) => return Err(format!("{other} doesn't have the shape of the current block")),
+            (Entry::Hyp(h), Formula::Imp(p, b)) if p.subst_vars(&s) == *h => b,
+            (_, other) => {
+                return Err(format!("{} doesn't have the shape of the current block", other.subst_vars(&s)))
+            }
         };
     }
-    Ok(cur)
+    Ok(cur.subst_vars(&s))
 }
 
 /// `entries` wrapped around `body`: `forall` for a variable, `imp` for an assumption.
