@@ -88,7 +88,7 @@ Syntax highlighting for [bat](https://github.com/sharkdp/bat):
 
 ```
 cp editors/hailperin.sublime-syntax ~/.config/bat/syntaxes/ && bat cache --build
-export BAT_THEME_LIGHT=GitHub BAT_THEME_DARK="Monokai Extended"    # bat picks one by the terminal's background
+export BAT_THEME=ansi                                                 # the terminal's own colours, so it reads on light and dark alike
 ```
 
 The language is described in [SPEC.md](SPEC.md); more examples are in [examples/](examples/).

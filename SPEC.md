@@ -89,7 +89,7 @@ define Eq x y = forall z. Iff (In z x) (In z y)
 define Induction P = (forall x. Zero x -> P x) -> (forall y x. P x -> Succ x y -> P y) -> forall x. P x
 ```
 
-A definition names a formula and asserts nothing. Uppercase parameters are predicates, with arity read off the body. Lowercase parameters are individuals. Definitions unfold and fold silently wherever a rule needs it. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
+A definition names a formula and asserts nothing. Uppercase parameters are predicates, with arity read off the body. Lowercase parameters are individuals. An uppercase name nothing defines, used in a definition or a theory member, is a primitive predicate of the file from then on, with the arity of that use. Definitions unfold and fold silently wherever a rule needs it. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
 
 ### Theories
 
