@@ -1,38 +1,46 @@
+//! Tokens. A file is ASCII. A name is a letter, then letters, digits and single underscores
+//! between them. Comments are `{- ... -}` and nest. Whitespace separates tokens and does
+//! nothing else.
+
 use crate::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Tok {
-    Name(String),
+    /// A name starting with an uppercase letter: a predicate, definition or theory.
+    Upper(String),
+    /// A name starting with a lowercase letter: a variable, label, theorem or rule.
+    Lower(String),
     Kw(Kw),
     Sym(Sym),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kw {
-    Let,
-    Proof,
-    Given,
-    Have,
-    Shows,
-    By,
-    Assume,
-    Obtain,
-    From,
-    All,
+    Theorem,
+    Theory,
+    Define,
+    Include,
     Import,
+    In,
+    Assume,
+    Lemma,
+    By,
+    Forall,
+    Exists,
+    And,
+    Or,
+    Not,
+    Absurd,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Sym {
     LParen,
     RParen,
-    Dollar,
-    Pipe,
-    Hole,
     Colon,
+    Dot,
+    Arrow,
     Equals,
-    LBrace,
-    RBrace,
 }
 
 impl From<Kw> for Tok {
@@ -53,39 +61,66 @@ pub struct Token {
     pub line: usize,
 }
 
+pub const KEYWORDS: &[(&str, Kw)] = &[
+    ("theorem", Kw::Theorem),
+    ("theory", Kw::Theory),
+    ("define", Kw::Define),
+    ("include", Kw::Include),
+    ("import", Kw::Import),
+    ("in", Kw::In),
+    ("assume", Kw::Assume),
+    ("lemma", Kw::Lemma),
+    ("by", Kw::By),
+    ("forall", Kw::Forall),
+    ("exists", Kw::Exists),
+    ("and", Kw::And),
+    ("or", Kw::Or),
+    ("not", Kw::Not),
+    ("absurd", Kw::Absurd),
+];
+
+pub fn keyword(word: &str) -> Option<Kw> {
+    KEYWORDS.iter().find(|(w, _)| *w == word).map(|(_, k)| *k)
+}
+
 pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
-    let chars: Vec<char> = src.chars().collect();
-    let at = |i: usize, c: char| chars.get(i) == Some(&c);
-    let name_char = |c: char| c.is_alphanumeric() || c == '_' || c == '\'';
+    let bytes = src.as_bytes();
+    let at = |i: usize, c: u8| bytes.get(i) == Some(&c);
     let (mut i, mut line, mut out) = (0, 1, Vec::new());
-    while i < chars.len() {
-        let c = chars[i];
-        if c.is_whitespace() {
-            if c == '\n' {
+    while i < bytes.len() {
+        let c = bytes[i];
+        if !c.is_ascii() {
+            return Err(Error::new(line, "files are ASCII, and this byte isn't"));
+        }
+        if c.is_ascii_whitespace() {
+            if c == b'\n' {
                 line += 1;
             }
             i += 1;
             continue;
         }
         // Nestable comments.
-        if c == '{' && at(i + 1, '-') {
+        if c == b'{' && at(i + 1, b'-') {
             let opened = line;
             let mut depth = 0;
             loop {
-                if i >= chars.len() {
+                if i >= bytes.len() {
                     return Err(Error::new(opened, "unclosed comment `{-`"));
                 }
-                if chars[i] == '{' && at(i + 1, '-') {
+                if !bytes[i].is_ascii() {
+                    return Err(Error::new(line, "files are ASCII, and this byte isn't"));
+                }
+                if bytes[i] == b'{' && at(i + 1, b'-') {
                     depth += 1;
                     i += 2;
-                } else if chars[i] == '-' && at(i + 1, '}') {
+                } else if bytes[i] == b'-' && at(i + 1, b'}') {
                     depth -= 1;
                     i += 2;
                     if depth == 0 {
                         break;
                     }
                 } else {
-                    if chars[i] == '\n' {
+                    if bytes[i] == b'\n' {
                         line += 1;
                     }
                     i += 1;
@@ -93,45 +128,37 @@ pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
             }
             continue;
         }
-        if c.is_alphabetic() {
+        if c.is_ascii_alphabetic() {
             let start = i;
-            while i < chars.len() && name_char(chars[i]) {
+            while i < bytes.len() && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_') {
                 i += 1;
             }
-            let word: String = chars[start..i].iter().collect();
-            let tok = match word.as_str() {
-                "let" => Tok::Kw(Kw::Let),
-                "proof" => Tok::Kw(Kw::Proof),
-                "given" => Tok::Kw(Kw::Given),
-                "have" => Tok::Kw(Kw::Have),
-                "shows" => Tok::Kw(Kw::Shows),
-                "by" => Tok::Kw(Kw::By),
-                "assume" => Tok::Kw(Kw::Assume),
-                "obtain" => Tok::Kw(Kw::Obtain),
-                "from" => Tok::Kw(Kw::From),
-                "all" => Tok::Kw(Kw::All),
-                "import" => Tok::Kw(Kw::Import),
-                _ => Tok::Name(word),
+            let word = &src[start..i];
+            if word.ends_with('_') || word.contains("__") {
+                return Err(Error::new(line, format!("`{word}` is not a name: an underscore needs a letter or digit after it")));
+            }
+            if at(i, b'\'') {
+                return Err(Error::new(line, format!("`{word}'` is not a name: write `{word}p` or `{word}1` for a prime")));
+            }
+            let tok = match keyword(word) {
+                Some(k) => Tok::Kw(k),
+                None if c.is_ascii_uppercase() => Tok::Upper(word.to_string()),
+                None => Tok::Lower(word.to_string()),
             };
             out.push(Token { tok, line });
             continue;
         }
         let (sym, len) = match c {
-            '(' => (Sym::LParen, 1),
-            ')' => (Sym::RParen, 1),
-            '$' => (Sym::Dollar, 1),
-            ':' => (Sym::Colon, 1),
-            '=' => (Sym::Equals, 1),
-            '{' => (Sym::LBrace, 1),
-            '}' => (Sym::RBrace, 1),
-            '|' if at(i + 1, '>') => (Sym::Pipe, 2),
-            '_' if chars.get(i + 1).is_some_and(|&n| name_char(n)) => {
-                return Err(Error::new(line, "names must start with a letter"));
-            }
-            '_' => (Sym::Hole, 1),
-            '.' => return Err(Error::new(line, "`.` is reserved for qualified names")),
-            '-' if at(i + 1, '}') => return Err(Error::new(line, "`-}` without a matching `{-`")),
-            _ => return Err(Error::new(line, format!("unexpected character `{c}`"))),
+            b'(' => (Sym::LParen, 1),
+            b')' => (Sym::RParen, 1),
+            b':' => (Sym::Colon, 1),
+            b'.' => (Sym::Dot, 1),
+            b'=' => (Sym::Equals, 1),
+            b'-' if at(i + 1, b'>') => (Sym::Arrow, 2),
+            b'-' if at(i + 1, b'}') => return Err(Error::new(line, "`-}` without a matching `{-`")),
+            b'_' => return Err(Error::new(line, "a name starts with a letter, not `_`")),
+            b'\'' => return Err(Error::new(line, "there are no primes: write `xp` or `x1`")),
+            _ => return Err(Error::new(line, format!("unexpected character `{}`", c as char))),
         };
         out.push(Token { tok: Tok::Sym(sym), line });
         i += len;
@@ -149,28 +176,37 @@ mod tests {
 
     #[test]
     fn words_symbols_and_lines() {
-        let ts = lex("proof p\n  shows imp A A $ x' |> f _").unwrap();
-        assert_eq!(ts[0].tok, Tok::Kw(Kw::Proof));
-        assert_eq!(ts[2].tok, Tok::Kw(Kw::Shows));
+        let ts = lex("theorem p\n  sp1: A -> B by imp_e PA.pz x").unwrap();
+        assert_eq!(ts[0].tok, Tok::Kw(Kw::Theorem));
+        assert_eq!(ts[1].tok, Tok::Lower("p".into()));
         assert_eq!(ts[2].line, 2);
-        assert!(ts.iter().any(|t| t.tok == Tok::Name("x'".into())));
-        assert!(ts.iter().any(|t| t.tok == Tok::Sym(Sym::Pipe)));
-        assert!(ts.iter().any(|t| t.tok == Tok::Sym(Sym::Hole)));
+        assert!(ts.iter().any(|t| t.tok == Tok::Sym(Sym::Arrow)));
+        assert!(ts.iter().any(|t| t.tok == Tok::Upper("PA".into())));
+        assert!(ts.iter().any(|t| t.tok == Tok::Sym(Sym::Dot)));
+        assert!(ts.iter().any(|t| t.tok == Tok::Lower("imp_e".into())));
     }
 
     #[test]
     fn nested_comments() {
-        assert_eq!(toks("a {- x {- y -} z -} b"), [Tok::Name("a".into()), Tok::Name("b".into())]);
+        assert_eq!(toks("a {- x {- y -} z -} b"), [Tok::Lower("a".into()), Tok::Lower("b".into())]);
         let e = lex("a\n{- x {- y -}\n").unwrap_err();
         assert_eq!((e.line, e.msg.as_str()), (2, "unclosed comment `{-`"));
     }
 
     #[test]
+    fn names() {
+        assert_eq!(toks("plus_comm d11"), [Tok::Lower("plus_comm".into()), Tok::Lower("d11".into())]);
+        assert!(lex("foo_").unwrap_err().msg.contains("underscore"));
+        assert!(lex("a__b").unwrap_err().msg.contains("underscore"));
+        assert_eq!(lex("_x").unwrap_err().msg, "a name starts with a letter, not `_`");
+        assert!(lex("sp'").unwrap_err().msg.contains("prime"));
+    }
+
+    #[test]
     fn rejected_characters() {
-        assert_eq!(lex("A.B").unwrap_err().msg, "`.` is reserved for qualified names");
-        assert_eq!(lex("_x").unwrap_err().msg, "names must start with a letter");
         assert_eq!(lex("a -} b").unwrap_err().msg, "`-}` without a matching `{-`");
-        // `<` and `>` were for schematic hypotheses, which are gone.
-        assert_eq!(lex("given s <A>").unwrap_err().msg, "unexpected character `<`");
+        assert_eq!(lex("A $ B").unwrap_err().msg, "unexpected character `$`");
+        assert_eq!(lex("{- caf\u{e9} -}").unwrap_err().msg, "files are ASCII, and this byte isn't");
+        assert_eq!(lex("\u{2200}x").unwrap_err().msg, "files are ASCII, and this byte isn't");
     }
 }

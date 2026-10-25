@@ -99,10 +99,35 @@ fn every_negative_fails_as_pinned() {
     check_dir("examples/neg", Some("err"), 1);
 }
 
+/// `fmt` output checks like the original, and formatting it again changes nothing.
+#[test]
+fn fmt_is_stable_and_preserves_meaning() {
+    for (path, _) in cases("examples", None) {
+        let once = run(&["fmt", path.to_str().unwrap()]);
+        assert_eq!(once.code, Some(0), "{}: fmt failed:\n{}", path.display(), once.stdout);
+        let tmp = std::env::temp_dir().join(format!("hailperin-fmt-{}", path.file_name().unwrap().to_str().unwrap()));
+        fs::write(&tmp, &once.stdout).unwrap();
+        // Imports are found next to the file, so check the formatted text from the examples directory.
+        let dir = path.parent().unwrap();
+        let checked = Command::new(env!("CARGO_BIN_EXE_hailperin"))
+            .current_dir(dir)
+            .arg("-")
+            .stdin(fs::File::open(&tmp).unwrap())
+            .output()
+            .unwrap();
+        assert_eq!(String::from_utf8_lossy(&checked.stdout), "success\n", "{}: formatted text doesn't check", path.display());
+        let twice = run(&["fmt", tmp.to_str().unwrap()]);
+        assert_eq!(twice.stdout, once.stdout, "{}: fmt is not idempotent", path.display());
+        fs::remove_file(&tmp).unwrap();
+    }
+}
+
 #[test]
 fn bad_usage_exits_2() {
     let r = run(&["a.hai", "b.hai"]);
-    assert_eq!((r.code, r.stderr.as_str()), (Some(2), "usage: hailperin [FILE]\n"));
+    assert_eq!(r.code, Some(2));
+    assert!(r.stderr.starts_with("usage: hailperin [FILE]"), "{}", r.stderr);
+    assert!(r.stdout.is_empty());
     let r = run(&["no/such/file.hai"]);
     assert_eq!(r.code, Some(2));
     assert!(r.stderr.starts_with("hailperin: "), "{}", r.stderr);

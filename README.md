@@ -29,18 +29,21 @@ And I thought that was *super fun*. Technically, anything that qualified as Socr
 Here's how it would work in this small checker:
 
 ```
-let Socrates x
-let Person x
-let Mortal x
-
-proof socrates_is_mortal
-  given socrates_person : forall x $ imp (Socrates x) (Person x)
-  given mortality : forall x $ imp (Person x) (Mortal x)
-  shows forall x $ imp (Socrates x) (Mortal x) by
-    forall x {
-      have sp : imp (Socrates x) (Person x) by socrates_person x
-      have pm : imp (Person x) (Mortal x) by mortality x
-      shows imp (Socrates x) (Mortal x) by assume s : Socrates x { pm (sp s) } }
+theorem socrates_is_mortal
+  assume sp: forall x. Socrates x -> Person x
+  assume pm: forall x. Person x -> Mortal x
+  lemma all
+    assume s: Socrates x
+    sp1: Socrates x -> Person x          by forall_e sp x
+    pm1: Person x -> Mortal x            by forall_e pm x
+    p:   Person x                        by imp_e sp1 s
+    m:   Mortal x                        by imp_e pm1 p
+    sm:  Socrates x -> Mortal x          by imp_i s m
+    all: forall x. Socrates x -> Mortal x     by forall_i x sm
+  socrates_is_mortal:
+    (forall x. Socrates x -> Person x)
+      -> (forall x. Person x -> Mortal x)
+      -> forall x. Socrates x -> Mortal x     by imp_i sp pm all
 ```
 
 The result is this repository.
@@ -53,7 +56,7 @@ But they're possible, and I'm willing to bet that one day, it will be fun to mak
 
 You have two workarounds for that purpose. The first is, you can assert the instances of the schemas you want individually, but that's clunky. I'd only recommend it if you wanted to comfortably define coding in the first place.
 
-The second is, you could just prefer to go for a naturally finitely axiomatized theory. NBG and NF are fun options. NF's finite axiomatization is also courtesy of Hailperin, the awesome logician who made all of this possible.
+The second is, you could just prefer to go for a naturally finitely axiomatized theory. HF, NBG and NF are fun options. NF's finite axiomatization is also courtesy of Hailperin, the awesome logician who made all of this possible.
 
 Q also presents very naturally in Hailperin for those who like living life in higher difficulty settings.
 
@@ -72,8 +75,10 @@ I hope you enjoy Hailperin. I certainly did.
 ## Usage
 
 ```
-cargo run --release -- examples/socrates.hai    # prints `success`
-cargo run --release -- - < file.hai              # reads standard input
+cargo run --release -- examples/socrates.hai            # prints `success`
+cargo run --release -- - < file.hai                      # reads standard input
+cargo run --release -- fmt examples/socrates.hai        # one indentation level per block
+cargo run --release -- explain examples/socrates.hai    # each line's scope, and what each theorem rests on
 cargo test
 ```
 
@@ -83,6 +88,7 @@ Syntax highlighting for [bat](https://github.com/sharkdp/bat):
 
 ```
 cp editors/hailperin.sublime-syntax ~/.config/bat/syntaxes/ && bat cache --build
+export BAT_THEME_LIGHT=GitHub BAT_THEME_DARK="Monokai Extended"    # bat picks one by the terminal's background
 ```
 
 The language is described in [SPEC.md](SPEC.md); more examples are in [examples/](examples/).
