@@ -51,17 +51,17 @@ The result is this repository.
 
 One small limitation is that while it allows axiom schemas, there is no way to restrict axiom schemas by the properties of the predicate.
 
-Which means the traditional presentations of finitely axiomatized $ACA_0$ and $I\Sigma_1$ are unavailable, and so are the traditional presentations of some infinitely axiomatized theories like PRA.
+Which means the traditional presentations of some finitely axiomatized theories like $ACA_0$ and $I\Sigma_1$ are unavailable, and so are the traditional presentations of some infinitely axiomatized theories like PRA.
 
 Systems that possess this property would require serious arithmetization work. (Or you could apply Goedel's trick that transforms ZFC into NBG, but I'm not entirely sure how.)
 
 But they're possible, and I'm willing to bet that one day, it will be fun to make them happen.
 
-As a result, the theories I recommend you work in are those that are either naturally finitely axiomatized or those that are infinitely axiomatized without restricted predicates.
+As a result of this limitation, the theories I recommend you work in are those that are either naturally finitely axiomatized or those that are infinitely axiomatized without restricted predicates.
 
-HF is a good choice, because it has no trouble expressing syntax and has a known (and a small, conservative) proof theoretic ordinal, and proves the same theorems PA proves.
+HF is a good choice, because it has no trouble expressing syntax and has a known proof theoretic ordinal (and a tiny, uncontroversial one at that), and proves the same theorems PA proves.
 
-Other theories I would recommend are ZFC, NBG, IZF, HA, PA... you get the idea. The usual bunch. Presburger arithmetic is also possible.
+Other theories I would recommend are ZFC, NBG, IZF, HA, PA... you get the idea. The usual bunch. Presburger arithmetic and Morse-Kelley are also possible.
 
 Quine's NF is also there, and thanks to Hailperin, the logician, it's finitely axiomatized! Isn't that nice?
 
@@ -96,7 +96,7 @@ Syntax highlighting for [bat](https://github.com/sharkdp/bat):
 
 ```
 cp editors/hailperin.sublime-syntax ~/.config/bat/syntaxes/ && bat cache --build
-export BAT_THEME=ansi                                                 # the terminal's own colours, so it reads on light and dark alike
+export BAT_THEME=ansi    # the terminal's own colours, so it reads on light and dark alike
 ```
 
 The language is described in [SPEC.md](SPEC.md); more examples are in [examples/](examples/).
