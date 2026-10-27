@@ -6,6 +6,8 @@ const USAGE: &str = "usage: hailperin [FILE]          check a file (`-` or nothi
        hailperin fmt [OPTIONS] FILE
                                  print the file in its canonical layout
            --indent N            spaces per level (2)
+           --continue N          spaces a continued line goes past its item (4)
+           --width N             break lines longer than N (never)
            --by pad|space        `by` in one column per segment, or after one space (pad)
            --scope segment|theorem
                                  a column per run of steps, or per theorem (segment)
@@ -25,6 +27,14 @@ fn main() {
                 match (rest[i], value) {
                     ("--indent", Some(n)) => match n.parse() {
                         Ok(n) => opts.indent = n,
+                        Err(_) => usage(),
+                    },
+                    ("--continue", Some(n)) => match n.parse() {
+                        Ok(n) => opts.continuation = n,
+                        Err(_) => usage(),
+                    },
+                    ("--width", Some(n)) => match n.parse() {
+                        Ok(n) => opts.width = Some(n),
                         Err(_) => usage(),
                     },
                     ("--by", Some("pad")) => opts.pad = true,
