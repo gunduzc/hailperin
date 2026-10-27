@@ -37,9 +37,9 @@ struct Item {
     /// The segment the item's `by` aligns with, if it has one. A segment is a run of steps in
     /// one block that no lemma interrupts. A `therefore` stands alone.
     group: Option<usize>,
-    /// For a definition, the column of its `=`, shared by a run of definitions with no blank
-    /// line between them.
-    equals: Option<usize>,
+    /// A token of the first line padded to start at a column its group shares, from the
+    /// line's start: a definition's `=`, or the formula after a label.
+    align: Option<(usize, usize)>,
 }
 
 /// A comment: its line, its text from `--` on, and whether tokens precede it on its line.
@@ -57,7 +57,7 @@ pub fn format(src: &str, opts: &Options) -> Result<String, Error> {
     let blank_between = |a: usize, b: usize| blanks.iter().any(|&l| a < l && l < b);
     let mut items = items(&toks, opts.theorem_wide);
     if opts.pad {
-        equals_columns(&mut items, &blank_between);
+        align_columns(&mut items, &blank_between);
     }
     if let Some(width) = opts.width {
         for it in &mut items {
@@ -204,7 +204,7 @@ fn items(toks: &[Token], theorem_wide: bool) -> Vec<Item> {
                 segments - 1
             }));
         }
-        items.push(Item { lines, first_line: toks[s].line, depth, group, equals: None });
+        items.push(Item { lines, first_line: toks[s].line, depth, group, align: None });
         match head {
             Some(Kw::Theorem) | Some(Kw::Lemma) => stack.push(None),
             Some(Kw::Therefore) => {
@@ -220,31 +220,69 @@ fn items(toks: &[Token], theorem_wide: bool) -> Vec<Item> {
     items
 }
 
-/// The `=` column of each run of definitions with no blank line between them: one past the
-/// longest name and parameters in it.
-fn equals_columns(items: &mut [Item], blank_between: &dyn Fn(usize, usize) -> bool) {
-    let header = |it: &Item| {
-        let line = &it.lines[0].1;
-        let p = line.iter().position(|t| *t == Tok::Sym(Sym::Equals))?;
-        (line[0] == Tok::Kw(Kw::Define)).then(|| render_toks(&line[..p]).len())
+/// Where an item's first line aligns, and the width before it: a definition's `=`, or the
+/// formula after a step's or an assumption's label.
+fn anchor(it: &Item) -> Option<(usize, usize)> {
+    let line = &it.lines[0].1;
+    let colon = Tok::Sym(Sym::Colon);
+    let i = match line.first()? {
+        Tok::Kw(Kw::Define) => line.iter().position(|t| *t == Tok::Sym(Sym::Equals))?,
+        Tok::Kw(Kw::Assume) if line.get(2) == Some(&colon) && line.len() > 3 => 3,
+        Tok::Lower(_) if line.get(1) == Some(&colon) && line.len() > 2 => 2,
+        _ => return None,
     };
+    Some((i, render_toks(&line[..i]).len()))
+}
+
+/// The alignment columns: one past the widest before the point, per run of definitions or of
+/// assumptions with no blank line between them, and per segment and depth of steps.
+fn align_columns(items: &mut [Item], blank_between: &dyn Fn(usize, usize) -> bool) {
+    // A run continues while the head keyword and depth stay the same and no blank line parts it.
+    let runs = |it: &Item| matches!(head(it), Some(Tok::Kw(Kw::Define | Kw::Assume)));
     let mut k = 0;
     while k < items.len() {
         let mut end = k;
-        while header(&items[end]).is_some() && end + 1 < items.len() && header(&items[end + 1]).is_some() {
-            let gap = (items[end].lines.last().map_or(0, |(l, _)| *l), items[end + 1].first_line);
-            if blank_between(gap.0, gap.1) {
+        while runs(&items[k]) && end + 1 < items.len() {
+            let (a, b) = (&items[end], &items[end + 1]);
+            if head(b) != head(a) || b.depth != a.depth || blank_between(a.lines.last().map_or(0, |(l, _)| *l), b.first_line) {
                 break;
             }
             end += 1;
         }
-        let col = (k..=end).filter_map(|i| header(&items[i])).max().map(|w| w + 1);
-        for it in &mut items[k..=end] {
-            if header(it).is_some() {
-                it.equals = col;
-            }
-        }
+        let group: Vec<usize> = if runs(&items[k]) { (k..=end).collect() } else { Vec::new() };
+        set_column(items, &group);
         k = end + 1;
+    }
+    // Steps by segment, and by depth, since a theorem-wide segment spans its lemmas.
+    let mut keys: Vec<(usize, usize)> = items.iter().filter_map(|i| i.group.map(|g| (g, i.depth))).collect();
+    keys.sort();
+    keys.dedup();
+    for key in keys {
+        let group: Vec<usize> = (0..items.len()).filter(|&i| items[i].group.map(|g| (g, items[i].depth)) == Some(key)).collect();
+        set_column(items, &group);
+    }
+}
+
+/// Gives the items of one group the column one past the widest before their alignment point.
+fn set_column(items: &mut [Item], group: &[usize]) {
+    let col = group.iter().filter_map(|&i| anchor(&items[i])).map(|(_, w)| w + 1).max();
+    for &i in group {
+        if let (Some((p, _)), Some(col)) = (anchor(&items[i]), col) {
+            items[i].align = Some((p, col));
+        }
+    }
+}
+
+/// Tokens `..end` of line `j` of an item, the first line padded at its alignment point.
+fn line_text(it: &Item, j: usize, end: usize) -> String {
+    let line = &it.lines[j].1;
+    match it.align.filter(|&(p, _)| j == 0 && p < end) {
+        Some((p, col)) => {
+            let before = render_toks(&line[..p]);
+            let pad = col.saturating_sub(before.len()).max(1);
+            format!("{before}{}{}", " ".repeat(pad), render_toks(&line[p..end]))
+        }
+        None => render_toks(&line[..end]),
     }
 }
 
@@ -267,7 +305,7 @@ fn columns(items: &mut [Item], opts: &Options) -> Vec<usize> {
         let mut cols = vec![0; n];
         for it in items.iter() {
             if let (Some(g), Some((j, p))) = (it.group, inline_by(it)) {
-                let width = start(it, j, opts) + render_toks(&it.lines[j].1[..p]).len();
+                let width = start(it, j, opts) + line_text(it, j, p).len();
                 cols[g] = cols[g].max(width + 1);
             }
         }
@@ -370,9 +408,10 @@ fn render(it: &Item, column: Option<usize>, opts: &Options) -> Vec<String> {
                 s.push_str(&render_toks(line));
             }
             Some(p) => {
+                let before = line_text(it, j, p);
                 s.push_str(&" ".repeat(at));
-                s.push_str(&render_toks(&line[..p]));
-                let here = at + render_toks(&line[..p]).len();
+                s.push_str(&before);
+                let here = at + before.len();
                 let pad = match column {
                     Some(c) if opts.pad => c.saturating_sub(here).max(1),
                     _ => 1,
@@ -380,18 +419,10 @@ fn render(it: &Item, column: Option<usize>, opts: &Options) -> Vec<String> {
                 s.push_str(&" ".repeat(pad));
                 s.push_str(&render_toks(&line[p..]));
             }
-            None => match line.iter().position(|t| *t == Tok::Sym(Sym::Equals)).zip(it.equals).filter(|_| j == 0) {
-                Some((p, col)) => {
-                    let name = render_toks(&line[..p]);
-                    s.push_str(&name);
-                    s.push_str(&" ".repeat(col - name.len()));
-                    s.push_str(&render_toks(&line[p..]));
-                }
-                None => {
-                    s.push_str(&" ".repeat(at));
-                    s.push_str(&render_toks(line));
-                }
-            },
+            None => {
+                s.push_str(&" ".repeat(at));
+                s.push_str(&line_text(it, j, line.len()));
+            }
         }
         out.push(s);
     }
@@ -446,7 +477,7 @@ mod tests {
         // The steps before a lemma, the lemma's, and the steps after it are three segments, and
         // each `therefore` stands alone.
         let src = "theorem t:\npredicate A\nassume a: A\ns: A by reit a\nlonger: A and A by and_i a a\nlemma l:\nassume b: A\n k: A by reit b\n kk: A and A and A by and_i b b b\n therefore A -> A and A and A\n-- done\nm: A by reit a\ntherefore A\n";
-        let want = "theorem t:\n  predicate A\n  assume a: A\n  s: A            by reit a\n  longer: A and A by and_i a a\n  lemma l:\n    assume b: A\n    k: A              by reit b\n    kk: A and A and A by and_i b b b\n    therefore A -> A and A and A\n  -- done\n  m: A by reit a\n  therefore A\n";
+        let want = "theorem t:\n  predicate A\n  assume a: A\n  s:      A       by reit a\n  longer: A and A by and_i a a\n  lemma l:\n    assume b: A\n    k:  A             by reit b\n    kk: A and A and A by and_i b b b\n    therefore A -> A and A and A\n  -- done\n  m: A by reit a\n  therefore A\n";
         assert_eq!(fmt(src), want);
     }
 
@@ -473,6 +504,13 @@ mod tests {
     }
 
     #[test]
+    fn formulas_align_after_labels() {
+        let src = "theorem t:\npredicate A\nassume a: A\nassume bb: A\nk: A by reit a\nkkk: A by reit bb\ntherefore A\n";
+        let want = "theorem t:\n  predicate A\n  assume a:  A\n  assume bb: A\n  k:   A by reit a\n  kkk: A by reit bb\n  therefore A\n";
+        assert_eq!(fmt(src), want);
+    }
+
+    #[test]
     fn equals_align_per_run_of_definitions() {
         let src = "define A1 = Q\ndefine Long x y =   Q\n-- apart\ndefine Ab = Q\n\ndefine B = Q\n";
         let want = "define A1       = Q\ndefine Long x y = Q\n-- apart\ndefine Ab       = Q\n\ndefine B = Q\n";
@@ -496,7 +534,7 @@ mod tests {
     #[test]
     fn by_on_its_own_line_keeps_the_column() {
         let src = "theorem t:\npredicate A\nassume a: A\ns: A by reit a\nlong: A and A and A\nby and_i a a a\ntherefore A -> A\n";
-        let want = "theorem t:\n  predicate A\n  assume a: A\n  s: A by reit a\n  long: A and A and A\n       by and_i a a a\n  therefore A -> A\n";
+        let want = "theorem t:\n  predicate A\n  assume a: A\n  s:    A by reit a\n  long: A and A and A\n          by and_i a a a\n  therefore A -> A\n";
         assert_eq!(fmt(src), want);
     }
 
@@ -517,7 +555,7 @@ mod tests {
         // `define A`'s line fits until `=` is padded, and the own-line `by` at its segment's
         // column would run past the width.
         let src = "predicate Q\ndefine A = Q and Q and Q\ndefine Longer x = Q\ntheorem t:\n  assume q: Q\n  longish_label: Q by reit q\n  s: Q\n  by and_i q q q\n  therefore Q -> Q\n";
-        let want = "predicate Q\n\ndefine A        = Q and Q\n    and Q\ndefine Longer x = Q\n\ntheorem t:\n  assume q: Q\n  longish_label: Q by reit q\n  s: Q\n      by and_i q q q\n  therefore Q -> Q\n";
+        let want = "predicate Q\n\ndefine A        = Q and Q\n    and Q\ndefine Longer x = Q\n\ntheorem t:\n  assume q: Q\n  longish_label: Q by reit q\n  s:             Q\n      by and_i q q q\n  therefore Q -> Q\n";
         assert_eq!(format(src, &Options { width: Some(28), ..Options::default() }).unwrap(), want);
     }
 }
