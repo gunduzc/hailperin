@@ -10,9 +10,9 @@ theorem and_comm:
   predicate A
   predicate B
   assume ab: A and B
-  a:  A                                   by and_e ab
-  b:  B                                   by and_e ab
-  ba: B and A                             by and_i b a
+  a: A        by and_e ab
+  b: B        by and_e ab
+  ba: B and A by and_i b a
   therefore A and B -> B and A
 
 theorem trans:
@@ -22,8 +22,8 @@ theorem trans:
   assume ab: A -> B
   assume bc: B -> C
   assume a: A
-  b: B                                    by imp_e ab a
-  c: C                                    by imp_e bc b
+  b: B by imp_e ab a
+  c: C by imp_e bc b
   therefore (A -> B) -> (B -> C) -> A -> C
 
 -- Chaining two implications under a forall.
@@ -36,8 +36,8 @@ theorem trans_under:
   lemma each:
     variable x
     assume a: A x
-    b: B x                                by imp_e ab a
-    c: C x                                by imp_e bc b
+    b: B x by imp_e ab a
+    c: C x by imp_e bc b
     therefore forall x. A x -> C x
   therefore (forall x. A x -> B x) -> (forall x. B x -> C x) -> forall x. A x -> C x
 
@@ -48,7 +48,7 @@ theorem syllogism:
   predicate Socrates x
   assume men: forall x. Man x -> Mortal x
   assume soc: forall x. Socrates x -> Man x
-  k: forall x. Socrates x -> Mortal x     by imp_e trans_under Socrates Man Mortal soc men
+  k: forall x. Socrates x -> Mortal x by imp_e trans_under Socrates Man Mortal soc men
   therefore (forall x. Man x -> Mortal x) -> (forall x. Socrates x -> Man x) -> forall x. Socrates x -> Mortal x
 
 -- If every P gives Q and some P exists, then Q.
@@ -60,9 +60,9 @@ theorem use_exists:
   lemma c:
     variable w
     assume p: P w
-    q: Q                                  by imp_e f p
+    q: Q by imp_e f p
     therefore forall w. P w -> Q
-  k: Q                                    by exists_e e c
+  k: Q by exists_e e c
   therefore (forall x. P x -> Q) -> (exists x. P x) -> Q
 
 theorem id:
@@ -75,7 +75,7 @@ theorem dni:
   predicate A
   assume a: A
   assume na: not A
-  f: absurd                               by imp_e na a
+  f: absurd by imp_e na a
   therefore A -> not (not A)
 
 -- Swapping two quantifiers.
@@ -84,7 +84,7 @@ theorem swap:
   assume h: forall x y. R x y
   lemma each:
     variable y x
-    r: R x y                              by forall_e h x y
+    r: R x y by forall_e h x y
     therefore forall y x. R x y
   therefore (forall x y. R x y) -> forall y x. R x y
 
@@ -95,11 +95,11 @@ theorem dnem:
   assume n: not (A or not A)
   lemma na:
     assume a: A
-    o: A or not A                         by or_i a
-    f: absurd                             by imp_e n o
+    o: A or not A by or_i a
+    f: absurd     by imp_e n o
     therefore not A
-  o: A or not A                           by or_i na
-  f: absurd                               by imp_e n o
+  o: A or not A by or_i na
+  f: absurd     by imp_e n o
   therefore not (not (A or not A))
 
 define True = absurd -> absurd
@@ -112,15 +112,15 @@ theorem dist_vacuous:
   assume p: forall x. P x
   lemma all:
     variable x
-    nx: not (P x)                         by forall_e h x
-    px: P x                               by forall_e p x
-    f:  absurd                            by imp_e nx px
+    nx: not (P x) by forall_e h x
+    px: P x       by forall_e p x
+    f: absurd     by imp_e nx px
     therefore forall x. absurd
   therefore (forall x. not (P x)) -> (forall x. P x) -> forall x. absurd
 
 -- Hailperin's axiom QE6, "the domain isn't empty", turns his system into the usual logic.
 -- Here it's a hypothesis, and weaker than a witness.
-define NonEmpty = not (forall x. absurd)           -- Hailperin's QE6, as a formula
+define NonEmpty  = not (forall x. absurd)  -- Hailperin's QE6, as a formula
 define Something = exists x. True
 
 theorem nonempty_from_something:
@@ -129,9 +129,9 @@ theorem nonempty_from_something:
   lemma c:
     variable y
     assume t: True
-    f: absurd                             by forall_e h y
+    f: absurd by forall_e h y
     therefore forall y. True -> absurd
-  k: absurd                               by exists_e s c
+  k: absurd by exists_e s c
   therefore Something -> NonEmpty
 
 -- The converse only up to double negation: QE6 gives nothing to `exists_e`.
@@ -143,10 +143,10 @@ theorem not_not_something:
     lemma t:
       assume f: absurd
       therefore True
-    s: Something                          by exists_i t
-    f: absurd                             by imp_e n s
+    s: Something by exists_i t
+    f: absurd    by imp_e n s
     therefore forall y. absurd
-  f: absurd                               by imp_e ne all
+  f: absurd by imp_e ne all
   therefore NonEmpty -> not (not Something)
 
 -- QE1, the swap of two quantifiers. An axiom for Hailperin, a theorem for Quine after Berry's
@@ -156,7 +156,7 @@ theorem qe1:
   assume h: forall x y. R x y
   lemma s:
     variable y x
-    r: R x y                              by forall_e h x y
+    r: R x y by forall_e h x y
     therefore forall y x. R x y
   therefore (forall x y. R x y) -> forall y x. R x y
 
@@ -169,8 +169,8 @@ theorem qe5:
   lemma all:
     variable x
     assume a: A
-    k:  forall x1. P x1                     by imp_e h a
-    px: P x                               by forall_e k x
+    k: forall x1. P x1 by imp_e h a
+    px: P x            by forall_e k x
     therefore forall x. A -> P x
   therefore (A -> forall x. P x) -> forall x. A -> P x
 
@@ -181,8 +181,8 @@ theorem hailperin_lemma4:
   assume e: forall x. absurd
   lemma all:
     variable x
-    f:  absurd                            by forall_e e x
-    px: P x                               by absurd_e f
+    f: absurd by forall_e e x
+    px: P x   by absurd_e f
     therefore forall x. P x
   therefore (forall x. absurd) -> forall x. P x
 
@@ -195,9 +195,9 @@ theorem empty_no_exists:
   lemma c:
     variable w
     assume p: P w
-    f: absurd                             by forall_e e w
+    f: absurd by forall_e e w
     therefore forall w. P w -> absurd
-  k: absurd                               by exists_e s c
+  k: absurd by exists_e s c
   therefore (forall x. absurd) -> not (exists x. P x)
 
 -- Hailperin's Lemma 2: with something in the domain, a vacuous `forall` can be dropped.
@@ -215,13 +215,13 @@ theorem hailperin_lemma2:
     assume na: not A
     lemma all:
       variable x
-      ax: A                               by forall_e h x
-      f:  absurd                          by imp_e na ax
+      ax: A     by forall_e h x
+      f: absurd by imp_e na ax
       therefore forall x. absurd
-    f2: absurd                            by imp_e ne all
-    a:  A                                 by absurd_e f2
+    f2: absurd by imp_e ne all
+    a: A       by absurd_e f2
     therefore not A -> A
-  a: A                                    by or_e em yes no
+  a: A by or_e em yes no
   therefore ExcludedMiddle A -> NonEmpty -> (forall x. A) -> A
 
 -- Quine's remark that Hailperin understated his case: `A` and `A and (P x -> P x)` are
@@ -234,21 +234,21 @@ theorem quine_extensionality:
     assume h: forall x. A
     lemma all:
       variable x
-      a: A                                by forall_e h x
+      a: A by forall_e h x
       lemma pp:
         assume p: P x
         therefore P x -> P x
-      both: A and (P x -> P x)            by and_i a pp
+      both: A and (P x -> P x) by and_i a pp
       therefore forall x. A and (P x -> P x)
     therefore (forall x. A) -> forall x. A and (P x -> P x)
   lemma bwd:
     assume h: forall x. A and (P x -> P x)
     lemma all:
       variable x
-      both: A and (P x -> P x)            by forall_e h x
-      a:    A                             by and_e both
+      both: A and (P x -> P x) by forall_e h x
+      a: A                     by and_e both
       therefore forall x. A
     therefore (forall x. A and (P x -> P x)) -> forall x. A
   k: Iff (forall x. A) (forall x. A and (P x -> P x))
-                                          by and_i fwd bwd
+      by and_i fwd bwd
   therefore Iff (forall x. A) (forall x. A and (P x -> P x))

@@ -6,19 +6,20 @@
 import classical
 
 predicate In x y
-define Iff A B = (A -> B) and (B -> A)
-define Eq x y = forall z. Iff (In z x) (In z y)
-define Sub x y = forall z. In z x -> In z y
-define Empty x = forall z. not (In z x)
+
+define Iff A B       = (A -> B) and (B -> A)
+define Eq x y        = forall z. Iff (In z x) (In z y)
+define Sub x y       = forall z. In z x -> In z y
+define Empty x       = forall z. not (In z x)
 define Successor x s = forall z. Iff (In z s) (In z x or Eq z x)
 -- Ordered pairs and functions, up to equality.
-define Single s a = forall w. Iff (In w s) (Eq w a)                        -- s = {a}
-define Doub d a b = forall w. Iff (In w d) (Eq w a or Eq w b)              -- d = {a, b}
-define OPair p a b = forall z. Iff (In z p) (Single z a or Doub z a b)     -- p = (a, b)
-define Maps f a b = exists p. OPair p a b and In p f                       -- f contains (a, b)
-define Pairing p a b = forall z. Iff (In z p) (Eq z a or Eq z b)          -- p = {a, b}
-define Picks f x y = In y x and Maps f x y and forall y1. Maps f x y1 -> Eq y y1   -- y is f's choice from x
-define Chooses f s = forall x. In x s -> exists y. Picks f x y
+define Single s a    = forall w. Iff (In w s) (Eq w a)  -- s = {a}
+define Doub d a b    = forall w. Iff (In w d) (Eq w a or Eq w b)  -- d = {a, b}
+define OPair p a b   = forall z. Iff (In z p) (Single z a or Doub z a b)  -- p = (a, b)
+define Maps f a b    = exists p. OPair p a b and In p f  -- f contains (a, b)
+define Pairing p a b = forall z. Iff (In z p) (Eq z a or Eq z b)  -- p = {a, b}
+define Picks f x y   = In y x and Maps f x y and forall y1. Maps f x y1 -> Eq y y1  -- y is f's choice from x
+define Chooses f s   = forall x. In x s -> exists y. Picks f x y
 
 -- The constructive core, then ZFC.
 define Ext         = forall x y. Eq x y -> forall z. In x z -> In y z
@@ -27,13 +28,13 @@ define PairExists  = forall a b. exists p. Pairing p a b
 define UnionExists = forall a. exists u. forall z. Iff (In z u) (exists y. In y a and In z y)
 define PowerExists = forall a. exists p. forall z. Iff (In z p) (Sub z a)
 define Infinity    = exists i. (exists e. Empty e and In e i)
-                       and (forall x. In x i -> exists s. Successor x s and In s i)
+    and (forall x. In x i -> exists s. Successor x s and In s i)
 
 define Sets = Ext and EmptyExists and PairExists and UnionExists and PowerExists and Infinity
 
-define Separation (P z)   = forall a. exists s. forall z. Iff (In z s) (In z a and P z)
+define Separation (P z)    = forall a. exists s. forall z. Iff (In z s) (In z a and P z)
 define Replacement (R x y) = forall a. (forall x. In x a -> exists y. R x y and forall y1. R x y1 -> Eq y y1)
-                              -> exists b. forall y. Iff (In y b) (exists x. In x a and R x y)
+    -> exists b. forall y. Iff (In y b) (exists x. In x a and R x y)
 
 define Foundation = forall a. (exists x. In x a) -> exists y. In y a and not (exists z. In z y and In z a)
 define Choice     = forall s. (forall x. In x s -> exists y. In y x) -> exists f. Chooses f s
@@ -45,14 +46,13 @@ define EpsInduction (P x) = (forall x. (forall y. In y x -> P y) -> P x) -> fora
 
 define NotSelf x = not (In x x)
 
-
 -- Every set has a subset that isn't one of its elements. Constructive.
 theorem subset_outside:
   assume sep_ns: Separation NotSelf
   lemma all:
     variable a
     sep: exists s. forall z. Iff (In z s) (In z a and NotSelf z)
-                                          by forall_e sep_ns a
+        by forall_e sep_ns a
     lemma found:
       variable s
       assume hs: forall z. Iff (In z s) (In z a and NotSelf z)
@@ -60,35 +60,35 @@ theorem subset_outside:
         variable z
         assume zs: In z s
         hz: Iff (In z s) (In z a and NotSelf z)
-                                          by forall_e hs z
-        f:  In z s -> In z a and NotSelf z
-                                          by and_e hz
-        c:  In z a and NotSelf z          by imp_e f zs
-        za: In z a                        by and_e c
+                                by forall_e hs z
+        f: In z s -> In z a and NotSelf z
+                                by and_e hz
+        c: In z a and NotSelf z by imp_e f zs
+        za: In z a              by and_e c
         therefore Sub s a
       lemma out:
         assume sa: In s a
         hss: Iff (In s s) (In s a and NotSelf s)
-                                          by forall_e hs s
+            by forall_e hs s
         fwd: In s s -> In s a and NotSelf s
-                                          by and_e hss
+            by and_e hss
         bwd: In s a and NotSelf s -> In s s
-                                          by and_e hss
+            by and_e hss
         lemma nx:
           assume ss: In s s
-          c:  In s a and NotSelf s        by imp_e fwd ss
-          ns: NotSelf s                   by and_e c
-          f:  absurd                      by imp_e ns ss
+          c: In s a and NotSelf s by imp_e fwd ss
+          ns: NotSelf s           by and_e c
+          f: absurd               by imp_e ns ss
           therefore NotSelf s
-        c2: In s a and NotSelf s          by and_i sa nx
-        x2: In s s                        by imp_e bwd c2
-        f2: absurd                        by imp_e nx x2
+        c2: In s a and NotSelf s by and_i sa nx
+        x2: In s s               by imp_e bwd c2
+        f2: absurd               by imp_e nx x2
         therefore not (In s a)
-      both: Sub s a and not (In s a)      by and_i sub out
-      ex:   exists t. Sub t a and not (In t a)
-                                          by exists_i both
+      both: Sub s a and not (In s a) by and_i sub out
+      ex: exists t. Sub t a and not (In t a)
+                                     by exists_i both
       therefore forall s. (forall z. Iff (In z s) (In z a and NotSelf z))
-                            -> exists t. Sub t a and not (In t a)
+          -> exists t. Sub t a and not (In t a)
     k: exists t. Sub t a and not (In t a) by exists_e sep found
     therefore forall a. exists t. Sub t a and not (In t a)
   therefore Separation NotSelf -> forall a. exists t. Sub t a and not (In t a)
@@ -103,17 +103,17 @@ theorem empty_unique:
       variable z
       lemma l:
         assume za: In z a
-        na: not (In z a)                  by forall_e ea z
-        f:  absurd                        by imp_e na za
-        zb: In z b                        by absurd_e f
+        na: not (In z a) by forall_e ea z
+        f: absurd        by imp_e na za
+        zb: In z b       by absurd_e f
         therefore In z a -> In z b
       lemma r:
         assume zb: In z b
-        nb: not (In z b)                  by forall_e eb z
-        f:  absurd                        by imp_e nb zb
-        za: In z a                        by absurd_e f
+        nb: not (In z b) by forall_e eb z
+        f: absurd        by imp_e nb zb
+        za: In z a       by absurd_e f
         therefore In z b -> In z a
-      i: Iff (In z a) (In z b)            by and_i l r
+      i: Iff (In z a) (In z b) by and_i l r
       therefore Eq a b
     therefore forall a b. Empty a -> Empty b -> Eq a b
   therefore forall a b. Empty a -> Empty b -> Eq a b
@@ -125,11 +125,11 @@ theorem no_self_member:
     variable x
     assume ih: forall y. In y x -> NotSelf y
     assume xx: In x x
-    k:  In x x -> NotSelf x               by forall_e ih x
-    nx: NotSelf x                         by imp_e k xx
-    f:  absurd                            by imp_e nx xx
+    k: In x x -> NotSelf x by forall_e ih x
+    nx: NotSelf x          by imp_e k xx
+    f: absurd              by imp_e nx xx
     therefore forall x. (forall y. In y x -> NotSelf y) -> NotSelf x
-  r: forall x. NotSelf x                  by imp_e eps step
+  r: forall x. NotSelf x by imp_e eps step
   therefore EpsInduction NotSelf -> forall x. not (In x x)
 
 -- Every set is empty or has an element, given excluded middle for "has an element".
@@ -141,26 +141,26 @@ theorem empty_or_not:
     variable a
     lemma yes:
       assume e: Inhabited a
-      k: Empty a or Inhabited a           by or_i e
+      k: Empty a or Inhabited a by or_i e
       therefore Inhabited a -> Empty a or Inhabited a
     lemma no:
       assume n: not (Inhabited a)
       lemma none:
         variable x
         assume h: In x a
-        e: Inhabited a                    by exists_i h
-        f: absurd                         by imp_e n e
+        e: Inhabited a by exists_i h
+        f: absurd      by imp_e n e
         therefore Empty a
-      k: Empty a or Inhabited a           by or_i none
+      k: Empty a or Inhabited a by or_i none
       therefore not (Inhabited a) -> Empty a or Inhabited a
-    d: Inhabited a or not (Inhabited a)   by forall_e em a
-    r: Empty a or Inhabited a             by or_e d yes no
+    d: Inhabited a or not (Inhabited a) by forall_e em a
+    r: Empty a or Inhabited a           by or_e d yes no
     therefore forall a. Empty a or Inhabited a
   therefore (forall a. Inhabited a or not (Inhabited a)) -> forall a. Empty a or Inhabited a
 
 theorem empty_or_not_classical:
   assume em: forall a. ExcludedMiddle (Inhabited a)
-  r: forall a. Empty a or Inhabited a     by imp_e empty_or_not em
+  r: forall a. Empty a or Inhabited a by imp_e empty_or_not em
   therefore (forall a. ExcludedMiddle (Inhabited a)) -> forall a. Empty a or Inhabited a
 
 -- Equality, and pairs respecting it. Pure logic.
@@ -173,7 +173,7 @@ theorem eq_refl:
       lemma l:
         assume h: In z a
         therefore In z a -> In z a
-      k: Iff (In z a) (In z a)            by and_i l l
+      k: Iff (In z a) (In z a) by and_i l l
       therefore Eq a a
     therefore forall a. Eq a a
   therefore forall a. Eq a a
@@ -184,10 +184,10 @@ theorem eq_sym:
     assume e: Eq a b
     lemma s:
       variable z
-      ez: Iff (In z a) (In z b)           by forall_e e z
-      f:  In z a -> In z b                by and_e ez
-      g:  In z b -> In z a                by and_e ez
-      i:  Iff (In z b) (In z a)           by and_i g f
+      ez: Iff (In z a) (In z b) by forall_e e z
+      f: In z a -> In z b       by and_e ez
+      g: In z b -> In z a       by and_e ez
+      i: Iff (In z b) (In z a)  by and_i g f
       therefore Eq b a
     therefore forall a b. Eq a b -> Eq b a
   therefore forall a b. Eq a b -> Eq b a
@@ -199,23 +199,23 @@ theorem eq_trans:
     assume bc: Eq b c
     lemma t:
       variable z
-      ez1: Iff (In z a) (In z b)          by forall_e ab z
-      ez2: Iff (In z b) (In z c)          by forall_e bc z
+      ez1: Iff (In z a) (In z b) by forall_e ab z
+      ez2: Iff (In z b) (In z c) by forall_e bc z
       lemma f:
         assume h: In z a
-        f1: In z a -> In z b              by and_e ez1
-        zb: In z b                        by imp_e f1 h
-        f2: In z b -> In z c              by and_e ez2
-        zc: In z c                        by imp_e f2 zb
+        f1: In z a -> In z b by and_e ez1
+        zb: In z b           by imp_e f1 h
+        f2: In z b -> In z c by and_e ez2
+        zc: In z c           by imp_e f2 zb
         therefore In z a -> In z c
       lemma g:
         assume h: In z c
-        g2: In z c -> In z b              by and_e ez2
-        zb: In z b                        by imp_e g2 h
-        g1: In z b -> In z a              by and_e ez1
-        za: In z a                        by imp_e g1 zb
+        g2: In z c -> In z b by and_e ez2
+        zb: In z b           by imp_e g2 h
+        g1: In z b -> In z a by and_e ez1
+        za: In z a           by imp_e g1 zb
         therefore In z c -> In z a
-      i: Iff (In z a) (In z c)            by and_i f g
+      i: Iff (In z a) (In z c) by and_i f g
       therefore Eq a c
     therefore forall a b c. Eq a b -> Eq b c -> Eq a c
   therefore forall a b c. Eq a b -> Eq b c -> Eq a c
@@ -227,21 +227,21 @@ theorem single_move:
     assume sa: Single s a
     lemma m:
       variable w
-      hw: Iff (In w s) (Eq w a)           by forall_e sa w
+      hw: Iff (In w s) (Eq w a) by forall_e sa w
       lemma f:
         assume h: In w s
-        f1: In w s -> Eq w a              by and_e hw
-        wa: Eq w a                        by imp_e f1 h
-        wb: Eq w b                        by imp_e eq_trans wa ab
+        f1: In w s -> Eq w a by and_e hw
+        wa: Eq w a           by imp_e f1 h
+        wb: Eq w b           by imp_e eq_trans wa ab
         therefore In w s -> Eq w b
       lemma g:
         assume h: Eq w b
-        ba: Eq b a                        by imp_e eq_sym ab
-        wa: Eq w a                        by imp_e eq_trans h ba
-        g1: Eq w a -> In w s              by and_e hw
-        ws: In w s                        by imp_e g1 wa
+        ba: Eq b a           by imp_e eq_sym ab
+        wa: Eq w a           by imp_e eq_trans h ba
+        g1: Eq w a -> In w s by and_e hw
+        ws: In w s           by imp_e g1 wa
         therefore Eq w b -> In w s
-      i: Iff (In w s) (Eq w b)            by and_i f g
+      i: Iff (In w s) (Eq w b) by and_i f g
       therefore Single s b
     therefore forall s a b. Eq a b -> Single s a -> Single s b
   therefore forall s a b. Eq a b -> Single s a -> Single s b
@@ -251,41 +251,41 @@ theorem doub_move:
     variable d a b c
     assume ab: Eq a b
     assume da: Doub d a c
-    ba: Eq b a                            by imp_e eq_sym ab
+    ba: Eq b a by imp_e eq_sym ab
     lemma m:
       variable w
       hw: Iff (In w d) (Eq w a or Eq w c) by forall_e da w
       lemma f:
         assume h: In w d
-        f1: In w d -> Eq w a or Eq w c    by and_e hw
-        o:  Eq w a or Eq w c              by imp_e f1 h
+        f1: In w d -> Eq w a or Eq w c by and_e hw
+        o: Eq w a or Eq w c            by imp_e f1 h
         lemma l:
           assume e: Eq w a
-          wb: Eq w b                      by imp_e eq_trans e ab
-          k:  Eq w b or Eq w c            by or_i wb
+          wb: Eq w b          by imp_e eq_trans e ab
+          k: Eq w b or Eq w c by or_i wb
           therefore Eq w a -> Eq w b or Eq w c
         lemma r:
           assume e: Eq w c
-          k: Eq w b or Eq w c             by or_i e
+          k: Eq w b or Eq w c by or_i e
           therefore Eq w c -> Eq w b or Eq w c
-        o2: Eq w b or Eq w c              by or_e o l r
+        o2: Eq w b or Eq w c by or_e o l r
         therefore In w d -> Eq w b or Eq w c
       lemma g:
         assume h: Eq w b or Eq w c
         lemma l:
           assume e: Eq w b
-          wa: Eq w a                      by imp_e eq_trans e ba
-          k:  Eq w a or Eq w c            by or_i wa
+          wa: Eq w a          by imp_e eq_trans e ba
+          k: Eq w a or Eq w c by or_i wa
           therefore Eq w b -> Eq w a or Eq w c
         lemma r:
           assume e: Eq w c
-          k: Eq w a or Eq w c             by or_i e
+          k: Eq w a or Eq w c by or_i e
           therefore Eq w c -> Eq w a or Eq w c
-        o:  Eq w a or Eq w c              by or_e h l r
-        g1: Eq w a or Eq w c -> In w d    by and_e hw
-        wd: In w d                        by imp_e g1 o
+        o: Eq w a or Eq w c            by or_e h l r
+        g1: Eq w a or Eq w c -> In w d by and_e hw
+        wd: In w d                     by imp_e g1 o
         therefore Eq w b or Eq w c -> In w d
-      i: Iff (In w d) (Eq w b or Eq w c)  by and_i f g
+      i: Iff (In w d) (Eq w b or Eq w c) by and_i f g
       therefore Doub d b c
     therefore forall d a b c. Eq a b -> Doub d a c -> Doub d b c
   therefore forall d a b c. Eq a b -> Doub d a c -> Doub d b c
@@ -295,47 +295,47 @@ theorem pair_move:
     variable p a b c
     assume ab: Eq a b
     assume pa: OPair p a c
-    ba: Eq b a                            by imp_e eq_sym ab
+    ba: Eq b a by imp_e eq_sym ab
     lemma m:
       variable z
       hz: Iff (In z p) (Single z a or Doub z a c)
-                                          by forall_e pa z
+          by forall_e pa z
       lemma f:
         assume h: In z p
         f1: In z p -> Single z a or Doub z a c
-                                          by and_e hz
-        o:  Single z a or Doub z a c      by imp_e f1 h
+                                    by and_e hz
+        o: Single z a or Doub z a c by imp_e f1 h
         lemma l:
           assume s1: Single z a
-          sb: Single z b                  by imp_e single_move ab s1
-          k:  Single z b or Doub z b c    by or_i sb
+          sb: Single z b              by imp_e single_move ab s1
+          k: Single z b or Doub z b c by or_i sb
           therefore Single z a -> Single z b or Doub z b c
         lemma r:
           assume d1: Doub z a c
-          db: Doub z b c                  by imp_e doub_move ab d1
-          k:  Single z b or Doub z b c    by or_i db
+          db: Doub z b c              by imp_e doub_move ab d1
+          k: Single z b or Doub z b c by or_i db
           therefore Doub z a c -> Single z b or Doub z b c
-        o2: Single z b or Doub z b c      by or_e o l r
+        o2: Single z b or Doub z b c by or_e o l r
         therefore In z p -> Single z b or Doub z b c
       lemma g:
         assume h: Single z b or Doub z b c
         lemma l:
           assume s1: Single z b
-          sa: Single z a                  by imp_e single_move ba s1
-          k:  Single z a or Doub z a c    by or_i sa
+          sa: Single z a              by imp_e single_move ba s1
+          k: Single z a or Doub z a c by or_i sa
           therefore Single z b -> Single z a or Doub z a c
         lemma r:
           assume d1: Doub z b c
-          da: Doub z a c                  by imp_e doub_move ba d1
-          k:  Single z a or Doub z a c    by or_i da
+          da: Doub z a c              by imp_e doub_move ba d1
+          k: Single z a or Doub z a c by or_i da
           therefore Doub z b c -> Single z a or Doub z a c
-        o:  Single z a or Doub z a c      by or_e h l r
+        o: Single z a or Doub z a c by or_e h l r
         g1: Single z a or Doub z a c -> In z p
-                                          by and_e hz
-        zp: In z p                        by imp_e g1 o
+                                    by and_e hz
+        zp: In z p                  by imp_e g1 o
         therefore Single z b or Doub z b c -> In z p
       i: Iff (In z p) (Single z b or Doub z b c)
-                                          by and_i f g
+          by and_i f g
       therefore OPair p b c
     therefore forall p a b c. Eq a b -> OPair p a c -> OPair p b c
   therefore forall p a b c. Eq a b -> OPair p a c -> OPair p b c
@@ -348,13 +348,13 @@ theorem maps_move:
     lemma found:
       variable p
       assume hp: OPair p a c and In p f
-      pa:   OPair p a c                   by and_e hp
-      pf:   In p f                        by and_e hp
-      pb:   OPair p b c                   by imp_e pair_move ab pa
-      both: OPair p b c and In p f        by and_i pb pf
-      ex:   Maps f b c                    by exists_i both
+      pa: OPair p a c              by and_e hp
+      pf: In p f                   by and_e hp
+      pb: OPair p b c              by imp_e pair_move ab pa
+      both: OPair p b c and In p f by and_i pb pf
+      ex: Maps f b c               by exists_i both
       therefore forall p. (OPair p a c and In p f) -> Maps f b c
-    k: Maps f b c                         by exists_e m found
+    k: Maps f b c by exists_e m found
     therefore forall f a b c. Eq a b -> Maps f a c -> Maps f b c
   therefore forall f a b c. Eq a b -> Maps f a c -> Maps f b c
 
@@ -366,9 +366,9 @@ theorem eq_in:
     variable x y a
     assume e: Eq x y
     assume h: In a x
-    i: Iff (In a x) (In a y)              by forall_e e a
-    k: In a x -> In a y                   by and_e i
-    m: In a y                             by imp_e k h
+    i: Iff (In a x) (In a y) by forall_e e a
+    k: In a x -> In a y      by and_e i
+    m: In a y                by imp_e k h
     therefore forall x y a. Eq x y -> In a x -> In a y
   therefore forall x y a. Eq x y -> In a x -> In a y
 
@@ -377,9 +377,9 @@ theorem eq_in_back:
     variable x y a
     assume e: Eq x y
     assume h: In a y
-    i: Iff (In a x) (In a y)              by forall_e e a
-    k: In a y -> In a x                   by and_e i
-    m: In a x                             by imp_e k h
+    i: Iff (In a x) (In a y) by forall_e e a
+    k: In a y -> In a x      by and_e i
+    m: In a x                by imp_e k h
     therefore forall x y a. Eq x y -> In a y -> In a x
   therefore forall x y a. Eq x y -> In a y -> In a x
 
@@ -387,11 +387,11 @@ theorem pairing_in1:
   lemma all:
     variable p a b
     assume h: Pairing p a b
-    r: Eq a a                             by forall_e eq_refl a
-    o: Eq a a or Eq a b                   by or_i r
-    i: Iff (In a p) (Eq a a or Eq a b)    by forall_e h a
-    k: Eq a a or Eq a b -> In a p         by and_e i
-    m: In a p                             by imp_e k o
+    r: Eq a a                          by forall_e eq_refl a
+    o: Eq a a or Eq a b                by or_i r
+    i: Iff (In a p) (Eq a a or Eq a b) by forall_e h a
+    k: Eq a a or Eq a b -> In a p      by and_e i
+    m: In a p                          by imp_e k o
     therefore forall p a b. Pairing p a b -> In a p
   therefore forall p a b. Pairing p a b -> In a p
 
@@ -399,30 +399,30 @@ theorem pairing_in2:
   lemma all:
     variable p a b
     assume h: Pairing p a b
-    r: Eq b b                             by forall_e eq_refl b
-    o: Eq b a or Eq b b                   by or_i r
-    i: Iff (In b p) (Eq b a or Eq b b)    by forall_e h b
-    k: Eq b a or Eq b b -> In b p         by and_e i
-    m: In b p                             by imp_e k o
+    r: Eq b b                          by forall_e eq_refl b
+    o: Eq b a or Eq b b                by or_i r
+    i: Iff (In b p) (Eq b a or Eq b b) by forall_e h b
+    k: Eq b a or Eq b b -> In b p      by and_e i
+    m: In b p                          by imp_e k o
     therefore forall p a b. Pairing p a b -> In b p
   therefore forall p a b. Pairing p a b -> In b p
 
 -- Diaconescu: choice implies excluded middle, for any statement A.
-define EqOr A e z = Eq z e or A
-define SepBy A s u e = forall z. Iff (In z s) (In z u and EqOr A e z)   -- s = {z in u | z = e or A}
+define EqOr A e z    = Eq z e or A
+define SepBy A s u e = forall z. Iff (In z s) (In z u and EqOr A e z)  -- s = {z in u | z = e or A}
 
 theorem sepby_in:
   predicate A
   lemma all:
     variable s u e z
-    assume h:  SepBy A s u e
+    assume h: SepBy A s u e
     assume zu: In z u
-    assume c:  EqOr A e z
+    assume c: EqOr A e z
     i: Iff (In z s) (In z u and EqOr A e z)
-                                          by forall_e h z
-    k: In z u and EqOr A e z -> In z s    by and_e i
-    j: In z u and EqOr A e z              by and_i zu c
-    m: In z s                             by imp_e k j
+                                       by forall_e h z
+    k: In z u and EqOr A e z -> In z s by and_e i
+    j: In z u and EqOr A e z           by and_i zu c
+    m: In z s                          by imp_e k j
     therefore forall s u e z. SepBy A s u e -> In z u -> EqOr A e z -> In z s
   therefore forall s u e z. SepBy A s u e -> In z u -> EqOr A e z -> In z s
 
@@ -430,87 +430,87 @@ theorem sepby_out:
   predicate A
   lemma all:
     variable s u e z
-    assume h:  SepBy A s u e
+    assume h: SepBy A s u e
     assume zs: In z s
     i: Iff (In z s) (In z u and EqOr A e z)
-                                          by forall_e h z
-    k: In z s -> In z u and EqOr A e z    by and_e i
-    m: In z u and EqOr A e z              by imp_e k zs
+                                       by forall_e h z
+    k: In z s -> In z u and EqOr A e z by and_e i
+    m: In z u and EqOr A e z           by imp_e k zs
     therefore forall s u e z. SepBy A s u e -> In z s -> In z u and EqOr A e z
   therefore forall s u e z. SepBy A s u e -> In z s -> In z u and EqOr A e z
 
 -- Foundation implies excluded middle.
 theorem em_from_foundation:
   predicate A
-  assume sets:  Sets
+  assume sets: Sets
   assume found: Foundation
   assume sep_c: forall o. Separation (EqOr A o)
-  empty: EmptyExists                      by and_e sets
-  pair:  PairExists                       by and_e sets
+  empty: EmptyExists by and_e sets
+  pair: PairExists   by and_e sets
   -- e = {}, o = {e}, u = {e, o}, c = {z in u | z = o or A}
   lemma we:
     variable e
     assume he: Empty e
-    po: exists o. Pairing o e e           by forall_e pair e e
+    po: exists o. Pairing o e e by forall_e pair e e
     lemma wo:
       variable o
       assume ho: Pairing o e e
-      pu: exists u. Pairing u e o         by forall_e pair e o
+      pu: exists u. Pairing u e o by forall_e pair e o
       lemma wu:
         variable u
         assume hu: Pairing u e o
-        sc: exists c. SepBy A c u o       by forall_e sep_c o u
+        sc: exists c. SepBy A c u o by forall_e sep_c o u
         lemma wc:
           variable c
           assume hc: SepBy A c u o
-          eu:  In e u                     by imp_e pairing_in1 hu
-          ou:  In o u                     by imp_e pairing_in2 hu
-          eo:  In e o                     by imp_e pairing_in1 ho
-          roo: Eq o o                     by forall_e eq_refl o
-          co:  EqOr A o o                 by or_i roo
-          oc:  In o c                     by imp_e sepby_in A hc ou co
-          ne:  exists x. In x c           by exists_i oc
+          eu: In e u           by imp_e pairing_in1 hu
+          ou: In o u           by imp_e pairing_in2 hu
+          eo: In e o           by imp_e pairing_in1 ho
+          roo: Eq o o          by forall_e eq_refl o
+          co: EqOr A o o       by or_i roo
+          oc: In o c           by imp_e sepby_in A hc ou co
+          ne: exists x. In x c by exists_i oc
           lemma yes:
             assume h: A
-            y1: A or not A                by or_i h
+            y1: A or not A by or_i h
             therefore A -> A or not A
           -- foundation gives a y in c disjoint from c
           fd: (exists x. In x c) -> exists y. In y c and not (exists z. In z y and In z c)
-                                          by forall_e found c
+              by forall_e found c
           fy: exists y. In y c and not (exists z. In z y and In z c)
-                                          by imp_e fd ne
+              by imp_e fd ne
           lemma wy:
             variable y
             assume hy: In y c and not (exists z. In z y and In z c)
-            yc: In y c                    by and_e hy
+            yc: In y c               by and_e hy
             nz: not (exists z. In z y and In z c)
-                                          by and_e hy
-            d:  In y u and EqOr A o y     by imp_e sepby_out A hc yc
-            cy: EqOr A o y                by and_e d
+                                     by and_e hy
+            d: In y u and EqOr A o y by imp_e sepby_out A hc yc
+            cy: EqOr A o y           by and_e d
             -- y = o is impossible under A: then e would be in both y and c
             lemma yo:
               assume q: Eq y o
               lemma na:
                 assume h: A
-                ey:   In e y              by imp_e eq_in_back q eo
-                d3:   EqOr A o e          by or_i h
-                ec:   In e c              by imp_e sepby_in A hc eu d3
-                both: In e y and In e c   by and_i ey ec
-                ex:   exists z. In z y and In z c
-                                          by exists_i both
-                f:    absurd              by imp_e nz ex
+                ey: In e y              by imp_e eq_in_back q eo
+                d3: EqOr A o e          by or_i h
+                ec: In e c              by imp_e sepby_in A hc eu d3
+                both: In e y and In e c by and_i ey ec
+                ex: exists z. In z y and In z c
+                                        by exists_i both
+                f: absurd               by imp_e nz ex
                 therefore not A
-              k: A or not A               by or_i na
+              k: A or not A by or_i na
               therefore Eq y o -> A or not A
-            r0: A or not A                by or_e cy yo yes
+            r0: A or not A by or_e cy yo yes
             therefore forall y. (In y c and not (exists z. In z y and In z c)) -> A or not A
-          chosen: A or not A              by exists_e fy wy
+          chosen: A or not A by exists_e fy wy
           therefore forall c. SepBy A c u o -> A or not A
-        r2: A or not A                    by exists_e sc wc
+        r2: A or not A by exists_e sc wc
         therefore forall u. Pairing u e o -> A or not A
-      r3: A or not A                      by exists_e pu wu
+      r3: A or not A by exists_e pu wu
       therefore forall o. Pairing o e e -> A or not A
-    r4: A or not A                        by exists_e po wo
+    r4: A or not A by exists_e po wo
     therefore forall e. Empty e -> A or not A
-  r: A or not A                           by exists_e empty we
+  r: A or not A by exists_e empty we
   therefore Sets -> Foundation -> (forall o. Separation (EqOr A o)) -> A or not A

@@ -14,14 +14,14 @@ theorem zero_or_succ:
   lemma base:
     variable x
     assume zx: Zero x
-    k: ZeroOrSucc x                       by or_i zx
+    k: ZeroOrSucc x by or_i zx
     therefore forall x. Zero x -> ZeroOrSucc x
   lemma step:
     variable y x
     assume ih: ZeroOrSucc x
     assume sxy: Succ x y
-    e: exists p. Succ p y                 by exists_i sxy
-    k: ZeroOrSucc y                       by or_i e
+    e: exists p. Succ p y by exists_i sxy
+    k: ZeroOrSucc y       by or_i e
     therefore forall y x. ZeroOrSucc x -> Succ x y -> ZeroOrSucc y
-  r: forall x. ZeroOrSucc x               by imp_e ind base step
+  r: forall x. ZeroOrSucc x by imp_e ind base step
   therefore Induction ZeroOrSucc -> forall x. ZeroOrSucc x

@@ -681,7 +681,7 @@ theorem diaconescu_sets:
             lemma ws:
               variable s
               assume hs: Pairing s x y
-              c: Setup A e o u x y s                     by and_i he ho hu hx hy hs
+              c: Setup A e o u x y s                                 by and_i he ho hu hx hy hs
               k: exists e1 o1 u1 x1 y1 s1. Setup A e1 o1 u1 x1 y1 s1 by exists_i c
               therefore forall s. Pairing s x y -> exists e1 o1 u1 x1 y1 s1. Setup A e1 o1 u1 x1 y1 s1
             r5: exists e1 o1 u1 x1 y1 s. Setup A e1 o1 u1 x1 y1 s by exists_e ps ws

@@ -9,7 +9,7 @@ predicate Chain n z h
 
 define Cz = forall n z a h0 h. Nil n -> Pool n z -> ZeroAt z a -> Nil h0 -> Pair a h0 h -> Chain n z h
 define Cs = forall n z h m z1 s h1. Chain n z h -> Suc n m -> Pool m z1 -> SuccAt z z1 s -> Pair s h h1
-              -> Chain m z1 h1
+    -> Chain m z1 h1
 
 define CHAIN = Cz and Cs
 

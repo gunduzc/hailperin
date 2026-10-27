@@ -3,9 +3,10 @@
 -- equality, defined. Compare russell.hai, which is the same diagonal with no sets at all.
 
 predicate In x y
-define Iff A B = (A -> B) and (B -> A)
-define Eq x y = forall z. Iff (In z x) (In z y)
-define Diag (F x y) z = forall y. F z y -> not (In z y)     -- z is in no set F sends it to
+
+define Iff A B        = (A -> B) and (B -> A)
+define Eq x y         = forall z. Iff (In z x) (In z y)
+define Diag (F x y) z = forall y. F z y -> not (In z y)  -- z is in no set F sends it to
 
 define Separation (P z) = forall a. exists s. forall z. Iff (In z s) (In z a and P z)
 
@@ -16,47 +17,47 @@ theorem cantor:
   lemma all:
     variable a
     sep: exists d. forall z. Iff (In z d) (In z a and Diag F z)
-                                          by forall_e sep_diag a
+        by forall_e sep_diag a
     lemma escapes:
       variable d
       assume hd: forall z. Iff (In z d) (In z a and Diag F z)
       lemma nohit:
         variable x
-        assume xa:  In x a
+        assume xa: In x a
         assume fxd: F x d
         hdx: Iff (In x d) (In x a and Diag F x)
-                                          by forall_e hd x
+            by forall_e hd x
         fwd: In x d -> In x a and Diag F x
-                                          by and_e hdx
+            by and_e hdx
         bwd: In x a and Diag F x -> In x d
-                                          by and_e hdx
+            by and_e hdx
         lemma notin:
           assume xd: In x d
-          c:   In x a and Diag F x        by imp_e fwd xd
-          dg:  Diag F x                   by and_e c
-          nxd: not (In x d)               by imp_e dg fxd
-          f:   absurd                     by imp_e nxd xd
+          c: In x a and Diag F x by imp_e fwd xd
+          dg: Diag F x           by and_e c
+          nxd: not (In x d)      by imp_e dg fxd
+          f: absurd              by imp_e nxd xd
           therefore not (In x d)
         lemma diag:
           variable y
           assume fxy: F x y
-          assume xy:  In x y
-          e:   Eq y d                     by imp_e fun fxy fxd
-          ex:  Iff (In x y) (In x d)      by forall_e e x
-          ex1: In x y -> In x d           by and_e ex
-          xd:  In x d                     by imp_e ex1 xy
-          f:   absurd                     by imp_e notin xd
+          assume xy: In x y
+          e: Eq y d                 by imp_e fun fxy fxd
+          ex: Iff (In x y) (In x d) by forall_e e x
+          ex1: In x y -> In x d     by and_e ex
+          xd: In x d                by imp_e ex1 xy
+          f: absurd                 by imp_e notin xd
           therefore Diag F x
-        c2:  In x a and Diag F x          by and_i xa diag
-        xd2: In x d                       by imp_e bwd c2
-        f2:  absurd                       by imp_e notin xd2
+        c2: In x a and Diag F x by and_i xa diag
+        xd2: In x d             by imp_e bwd c2
+        f2: absurd              by imp_e notin xd2
         therefore forall x. In x a -> not (F x d)
       ex: exists d1. forall x. In x a -> not (F x d1)
-                                          by exists_i nohit
+          by exists_i nohit
       therefore forall d. (forall z. Iff (In z d) (In z a and Diag F z))
-                            -> exists d1. forall x. In x a -> not (F x d1)
+          -> exists d1. forall x. In x a -> not (F x d1)
     k: exists d. forall x. In x a -> not (F x d)
-                                          by exists_e sep escapes
+        by exists_e sep escapes
     therefore forall a. exists d. forall x. In x a -> not (F x d)
   therefore Separation (Diag F) -> (forall x y y1. F x y -> F x y1 -> Eq y y1)
-              -> forall a. exists d. forall x. In x a -> not (F x d)
+      -> forall a. exists d. forall x. In x a -> not (F x d)

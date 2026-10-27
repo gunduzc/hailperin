@@ -6,271 +6,271 @@ import sball1
 
 -- Everything the bounded case needs beyond SC's own context, once.
 define SBCtx = SCCtx and SynCtx and TRUTH and ValLeast ValInv and NamesMLeast NamesMNum and BelowInLeast BelowLt
-               and BelowInLeast BelowNames and NamesMLeast NamesFr
+    and BelowInLeast BelowNames and NamesMLeast NamesFr
 
 theorem ball_case:
   variable e v m a l3 u j zw ep n0 z0 m0
-  assume sb:  SBCtx
-  assume ih:  forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
-  assume cv:  Covers e l3
+  assume sb: SBCtx
+  assume ih: forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
+  assume cv: Covers e l3
   assume ctx: Ctx n0 z0 l3
   assume sm0: Suc n0 m0
-  assume av:  Avoids l3 a
-  assume fa:  Form a
-  assume ca:  Clean a
-  assume np:  NoPool a
-  assume eb:  EvenB a
+  assume av: Avoids l3 a
+  assume fa: Form a
+  assume ca: Clean a
+  assume np: NoPool a
+  assume eb: EvenB a
   assume nba: not (Bound v a)
-  assume nv:  Nat v
-  assume ev:  Even v
-  assume bi:  BelowIn l3 u j zw m
-  assume ea:  EqAt v u ep
-  sc:    SCCtx                            by and_e sb
-  syn:   SynCtx                           by and_e sb
-  tr:    TRUTH                            by and_e sb
-  lv:    ValLeast ValInv                  by and_e sb
-  lmn:   NamesMLeast NamesMNum            by and_e sb
-  lbl:   BelowInLeast BelowLt             by and_e sb
-  lbn:   BelowInLeast BelowNames          by and_e sb
-  lfr:   NamesMLeast NamesFr              by and_e sb
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  g:     GrowCtx                          by and_e sc
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  nat:   NAT                              by and_e form
-  refl:  Refl                             by and_e fs0
-  pe:    Pe                               by and_e fs0
-  list:  LIST                             by and_e g
-  pc:    PoolCtx                          by and_e g
-  dtp:   PrfLeast QAx DTP                 by and_e g
-  mc:    MemLeast MemCons                 by and_e g
-  free:  FREE                             by and_e g
-  ll:    FrLLeast FrLInv                  by and_e g
-  lf:    FrLeast FrInv                    by and_e g
-  lt:    LT                               by and_e pc
-  leq:   LtLeast LtEq                     by and_e pc
-  names: NAMES                            by and_e nc
-  nm:    NAMESM                           by and_e nc
-  lmm:   NamesMLeast NamesMMono           by and_e nc
-  lmn2:  NamesMLeast NamesMN              by and_e nc
-  lnat:  NamesLeast NamesNat              by and_e nc
-  times: TIMES                            by and_e nc
-  plus:  PLUS                             by and_e times
-  qfr:   Qfr                              by and_e free
-  bound: BOUND                            by and_e syn
-  mh:    Mh                               by and_e list
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
+  assume nv: Nat v
+  assume ev: Even v
+  assume bi: BelowIn l3 u j zw m
+  assume ea: EqAt v u ep
+  sc: SCCtx                          by and_e sb
+  syn: SynCtx                        by and_e sb
+  tr: TRUTH                          by and_e sb
+  lv: ValLeast ValInv                by and_e sb
+  lmn: NamesMLeast NamesMNum         by and_e sb
+  lbl: BelowInLeast BelowLt          by and_e sb
+  lbn: BelowInLeast BelowNames       by and_e sb
+  lfr: NamesMLeast NamesFr           by and_e sb
+  q: QCtx                            by and_e sc
+  nc: NamesCtx                       by and_e sc
+  g: GrowCtx                         by and_e sc
+  fs0: FS0                           by and_e q
+  form: FORM                         by and_e q
+  logax: LOGAX                       by and_e q
+  prf: PRF QAx                       by and_e q
+  nat: NAT                           by and_e form
+  refl: Refl                         by and_e fs0
+  pe: Pe                             by and_e fs0
+  list: LIST                         by and_e g
+  pc: PoolCtx                        by and_e g
+  dtp: PrfLeast QAx DTP              by and_e g
+  mc: MemLeast MemCons               by and_e g
+  free: FREE                         by and_e g
+  ll: FrLLeast FrLInv                by and_e g
+  lf: FrLeast FrInv                  by and_e g
+  lt: LT                             by and_e pc
+  leq: LtLeast LtEq                  by and_e pc
+  names: NAMES                       by and_e nc
+  nm: NAMESM                         by and_e nc
+  lmm: NamesMLeast NamesMMono        by and_e nc
+  lmn2: NamesMLeast NamesMN          by and_e nc
+  lnat: NamesLeast NamesNat          by and_e nc
+  times: TIMES                       by and_e nc
+  plus: PLUS                         by and_e times
+  qfr: Qfr                           by and_e free
+  bound: BOUND                       by and_e syn
+  mh: Mh                             by and_e list
+  tags: Tags                         by imp_e tag_exists fs0
+  t2: exists t. T2 t                 by and_e tags
   -- u names j, below m
-  un: NamesM l3 u j                       by imp_e belowin_names lbn bi
-  mns:   forall h z j1. NamesM h z j1 -> NamesMN h z j1
-                                          by imp_e namesm_names q names lmn2
-  unn: NamesMN l3 u j                     by imp_e mns un
-  nu:  Nat u                              by and_e unn
-  nun: Names l3 u j                       by and_e unn
+  un: NamesM l3 u j                  by imp_e belowin_names lbn bi
+  mns: forall h z j1. NamesM h z j1 -> NamesMN h z j1
+                                     by imp_e namesm_names q names lmn2
+  unn: NamesMN l3 u j                by imp_e mns un
+  nu: Nat u                          by and_e unn
+  nun: Names l3 u j                  by and_e unn
   nnats: forall h z j1. Names h z j1 -> NamesNat h z j1
-                                          by imp_e names_nat nat lnat
-  nj: Nat j                               by imp_e nnats nun
-  blt:   forall h u1 j1 c m1. BelowIn h u1 j1 c m1 -> BelowLt h u1 j1 c m1
-                                          by imp_e belowin_lt plus lbl
-  blj: BelowLt l3 u j zw m                by imp_e blt bi
-  ljm: LtN j m                            by imp_e blj nj
+                                     by imp_e names_nat nat lnat
+  nj: Nat j                          by imp_e nnats nun
+  blt: forall h u1 j1 c m1. BelowIn h u1 j1 c m1 -> BelowLt h u1 j1 c m1
+                                     by imp_e belowin_lt plus lbl
+  blj: BelowLt l3 u j zw m           by imp_e blt bi
+  ljm: LtN j m                       by imp_e blj nj
   -- u is free in a member of l3, which avoids a
-  ufr: exists b. Mem b l3 and Fr u b      by imp_e namesm_fr free lfr un
-  okv: VarOK m0 v                         by or_i ev
+  ufr: exists b. Mem b l3 and Fr u b by imp_e namesm_fr free lfr un
+  okv: VarOK m0 v                    by or_i ev
   lemma oku:
     variable b
     assume hb: Mem b l3 and Fr u b
-    mb: Mem b l3                          by and_e hb
-    fb: Fr u b                            by and_e hb
-    fv: FvOK n0 l3                        by and_e ctx
-    r:  VarOK m0 u                        by imp_e fv sm0 mb fb
+    mb: Mem b l3   by and_e hb
+    fb: Fr u b     by and_e hb
+    fv: FvOK n0 l3 by and_e ctx
+    r: VarOK m0 u  by imp_e fv sm0 mb fb
     therefore forall b. (Mem b l3 and Fr u b) -> VarOK m0 u
-  oku0: VarOK m0 u                        by exists_e ufr oku
-  mono:  forall h z j1. NamesM h z j1 -> NamesMMono h z j1
-                                          by imp_e namesm_mono nm lmm
-  fep: Form ep                            by imp_e eqat_form form nv nu ea
+  oku0: VarOK m0 u          by exists_e ufr oku
+  mono: forall h z j1. NamesM h z j1 -> NamesMMono h z j1
+                            by imp_e namesm_mono nm lmm
+  fep: Form ep              by imp_e eqat_form form nv nu ea
   -- the extended assignment, and the hypothesis Eq u v
-  ee1: exists y. Pair v j y               by forall_e pe v j
+  ee1: exists y. Pair v j y by forall_e pe v j
   lemma w1:
     variable en
     assume p1: Pair v j en
-    ee2: exists y. Pair en e y            by forall_e pe en e
+    ee2: exists y. Pair en e y by forall_e pe en e
     lemma w2:
       variable e2
       assume p2: Pair en e e2
-      kx:  Pair v j en and Pair en e e2   by and_i p1 p2
-      ext: Ext e v j e2                   by exists_i kx
-      sce: SC e2 a                        by imp_e ih ljm ext
-      eec: exists y. EqAt u v y           by imp_e eqat_exists fs0
+      kx: Pair v j en and Pair en e e2 by and_i p1 p2
+      ext: Ext e v j e2                by exists_i kx
+      sce: SC e2 a                     by imp_e ih ljm ext
+      eec: exists y. EqAt u v y        by imp_e eqat_exists fs0
       lemma w3:
         variable c
         assume ec: EqAt u v c
-        fc: Form c                        by imp_e eqat_form form nu nv ec
-        eh: exists y. Pair c l3 y         by forall_e pe c l3
+        fc: Form c                by imp_e eqat_form form nu nv ec
+        eh: exists y. Pair c l3 y by forall_e pe c l3
         lemma w4:
           variable h1
           assume ph: Pair c l3 h1
-          mc1: Mem c h1                   by imp_e mh ph
-          i1:  Incl l3 h1                 by imp_e incl_cons list ph
-          mo:  NamesMMono l3 u j          by imp_e mono un
-          un1: NamesM h1 u j              by imp_e mo i1
-          cv2: Covers e2 h1               by imp_e covers_ext q nc tr lv lmn cv ext i1 nv un1 ec mc1
+          mc1: Mem c h1         by imp_e mh ph
+          i1: Incl l3 h1        by imp_e incl_cons list ph
+          mo: NamesMMono l3 u j by imp_e mono un
+          un1: NamesM h1 u j    by imp_e mo i1
+          cv2: Covers e2 h1     by imp_e covers_ext q nc tr lv lmn cv ext i1 nv un1 ec mc1
           lemma okc:
             variable y
             assume fy: Fr y c
             lemma wit:
               variable p l
               assume hp: T4 p and List2 u v l and Node2 T1 p l c
-              nd: Node2 T1 p l c          by and_e hp
-              li: List2 u v l             by and_e hp
-              fl: FrL y l                 by imp_e fr_at fs0 free lf fy nd
-              o2: Eq y u or Eq y v        by imp_e frl_list2 fs0 free ll fl li
+              nd: Node2 T1 p l c   by and_e hp
+              li: List2 u v l      by and_e hp
+              fl: FrL y l          by imp_e fr_at fs0 free lf fy nd
+              o2: Eq y u or Eq y v by imp_e frl_list2 fs0 free ll fl li
               lemma isu:
                 assume e1: Eq y u
-                e3: Eq u y                by imp_e eq_sym fs0 e1
-                r:  VarOK m0 y            by imp_e varok_eq fs0 oku0 e3
+                e3: Eq u y    by imp_e eq_sym fs0 e1
+                r: VarOK m0 y by imp_e varok_eq fs0 oku0 e3
                 therefore Eq y u -> VarOK m0 y
               lemma isv:
                 assume e1: Eq y v
-                e3: Eq v y                by imp_e eq_sym fs0 e1
-                r:  VarOK m0 y            by imp_e varok_eq fs0 okv e3
+                e3: Eq v y    by imp_e eq_sym fs0 e1
+                r: VarOK m0 y by imp_e varok_eq fs0 okv e3
                 therefore Eq y v -> VarOK m0 y
-              r: VarOK m0 y               by or_e o2 isu isv
+              r: VarOK m0 y by or_e o2 isu isv
               therefore forall p l. (T4 p and List2 u v l and Node2 T1 p l c) -> VarOK m0 y
-            r: VarOK m0 y                 by exists_e ec wit
+            r: VarOK m0 y by exists_e ec wit
             therefore forall y. Fr y c -> VarOK m0 y
-          cx1: Ctx n0 z0 h1               by imp_e ctx_add fs0 free list lt mc leq ctx sm0 okc ph
+          cx1: Ctx n0 z0 h1 by imp_e ctx_add fs0 free list lt mc leq ctx sm0 okc ph
           -- h1 avoids a: a bound variable of a is not v (clean), nor u (free in l3, which avoids a)
           lemma av1:
             variable y
             assume bdy: Bound y a
-            nfl: NoFree y l3              by imp_e av bdy
+            nfl: NoFree y l3 by imp_e av bdy
             lemma each:
               variable b
               assume mb: Mem b h1
               lemma no:
                 assume fy: Fr y b
-                mcb: MemCons b h1         by imp_e mem_cons list mc mb
-                ob:  Eq b c or Mem b l3   by imp_e mcb ph
+                mcb: MemCons b h1      by imp_e mem_cons list mc mb
+                ob: Eq b c or Mem b l3 by imp_e mcb ph
                 lemma isc:
                   assume ebc: Eq b c
-                  ry:  Eq y y             by forall_e refl y
-                  fyc: Fr y c             by imp_e qfr ry ebc fy
+                  ry: Eq y y  by forall_e refl y
+                  fyc: Fr y c by imp_e qfr ry ebc fy
                   lemma wit:
                     variable p l
                     assume hp: T4 p and List2 u v l and Node2 T1 p l c
-                    nd: Node2 T1 p l c    by and_e hp
-                    li: List2 u v l       by and_e hp
-                    fl: FrL y l           by imp_e fr_at fs0 free lf fyc nd
-                    o2: Eq y u or Eq y v  by imp_e frl_list2 fs0 free ll fl li
+                    nd: Node2 T1 p l c   by and_e hp
+                    li: List2 u v l      by and_e hp
+                    fl: FrL y l          by imp_e fr_at fs0 free lf fyc nd
+                    o2: Eq y u or Eq y v by imp_e frl_list2 fs0 free ll fl li
                     lemma isu:
                       assume e1: Eq y u
                       lemma wb:
                         variable b1
                         assume hb: Mem b1 l3 and Fr u b1
-                        mb1: Mem b1 l3    by and_e hb
-                        fu:  Fr u b1      by and_e hb
-                        e3:  Eq u y       by imp_e eq_sym fs0 e1
-                        rb:  Eq b1 b1     by forall_e refl b1
-                        fyb: Fr y b1      by imp_e qfr e3 rb fu
-                        nb:  not (Fr y b1)
-                                          by imp_e nfl mb1
-                        bad: absurd       by imp_e nb fyb
+                        mb1: Mem b1 l3 by and_e hb
+                        fu: Fr u b1    by and_e hb
+                        e3: Eq u y     by imp_e eq_sym fs0 e1
+                        rb: Eq b1 b1   by forall_e refl b1
+                        fyb: Fr y b1   by imp_e qfr e3 rb fu
+                        nb: not (Fr y b1)
+                                       by imp_e nfl mb1
+                        bad: absurd    by imp_e nb fyb
                         therefore forall b1. (Mem b1 l3 and Fr u b1) -> absurd
-                      bad: absurd         by exists_e ufr wb
+                      bad: absurd by exists_e ufr wb
                       therefore Eq y u -> absurd
                     lemma isv:
                       assume e1: Eq y v
-                      ra:  Eq a a         by forall_e refl a
-                      qb:  Qb             by and_e bound
-                      bv:  Bound v a      by imp_e qb e1 ra bdy
-                      bad: absurd         by imp_e nba bv
+                      ra: Eq a a    by forall_e refl a
+                      qb: Qb        by and_e bound
+                      bv: Bound v a by imp_e qb e1 ra bdy
+                      bad: absurd   by imp_e nba bv
                       therefore Eq y v -> absurd
-                    bad: absurd           by or_e o2 isu isv
+                    bad: absurd by or_e o2 isu isv
                     therefore forall p l. (T4 p and List2 u v l and Node2 T1 p l c) -> absurd
-                  bad: absurd             by exists_e ec wit
+                  bad: absurd by exists_e ec wit
                   therefore Eq b c -> absurd
                 lemma old:
                   assume ml: Mem b l3
-                  nb:  not (Fr y b)       by imp_e nfl ml
-                  bad: absurd             by imp_e nb fy
+                  nb: not (Fr y b) by imp_e nfl ml
+                  bad: absurd      by imp_e nb fy
                   therefore Mem b l3 -> absurd
-                bad: absurd               by or_e ob isc old
+                bad: absurd by or_e ob isc old
                 therefore not (Fr y b)
               therefore forall b. Mem b h1 -> not (Fr y b)
             therefore forall y. Bound y a -> NoFree y h1
-          pa1: PrH h1 a                   by imp_e sce fa ca cv2 cx1 av1 np eb
-          ei:  exists y. Node2 T2 c a y   by imp_e node2_exists T2 fs0 t2
+          pa1: PrH h1 a                by imp_e sce fa ca cv2 cx1 av1 np eb
+          ei: exists y. Node2 T2 c a y by imp_e node2_exists T2 fs0 t2
           lemma w5:
             variable i
             assume ii: ImpCode c a i
-            pi: PrH l3 i                  by imp_e deduction QAx fs0 form logax list prf dtp mc ph fc ii pa1
-            k:  ImpCode c a i and PrH l3 i
-                                          by and_i ii pi
-            qc: QI l3 c a                 by exists_i k
-            sy: QI l3 ep c                by imp_e qeq_sym_i q nv nu ea ec
-            r:  QI l3 ep a                by imp_e qi_hs fs0 form logax prf fep fc fa sy qc
+            pi: PrH l3 i   by imp_e deduction QAx fs0 form logax list prf dtp mc ph fc ii pa1
+            k: ImpCode c a i and PrH l3 i
+                           by and_i ii pi
+            qc: QI l3 c a  by exists_i k
+            sy: QI l3 ep c by imp_e qeq_sym_i q nv nu ea ec
+            r: QI l3 ep a  by imp_e qi_hs fs0 form logax prf fep fc fa sy qc
             therefore forall i. ImpCode c a i -> QI l3 ep a
-          r: QI l3 ep a                   by exists_e ei w5
+          r: QI l3 ep a by exists_e ei w5
           therefore forall h1. Pair c l3 h1 -> QI l3 ep a
-        r: QI l3 ep a                     by exists_e eh w4
+        r: QI l3 ep a by exists_e eh w4
         therefore forall c. EqAt u v c -> QI l3 ep a
-      r: QI l3 ep a                       by exists_e eec w3
+      r: QI l3 ep a by exists_e eec w3
       therefore forall e2. Pair en e e2 -> QI l3 ep a
-    r: QI l3 ep a                         by exists_e ee2 w2
+    r: QI l3 ep a by exists_e ee2 w2
     therefore forall en. Pair v j en -> QI l3 ep a
-  r: QI l3 ep a                           by exists_e ee1 w1
+  r: QI l3 ep a by exists_e ee1 w1
   therefore forall e v m a l3 u j zw ep n0 z0 m0. SBCtx -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> Covers e l3
-              -> Ctx n0 z0 l3 -> Suc n0 m0 -> Avoids l3 a -> Form a -> Clean a -> NoPool a -> EvenB a -> not (Bound v a)
-              -> Nat v -> Even v -> BelowIn l3 u j zw m -> EqAt v u ep -> QI l3 ep a
+      -> Ctx n0 z0 l3 -> Suc n0 m0 -> Avoids l3 a -> Form a -> Clean a -> NoPool a -> EvenB a -> not (Bound v a)
+      -> Nat v -> Even v -> BelowIn l3 u j zw m -> EqAt v u ep -> QI l3 ep a
 
 -- With Succ k k1 and Plus v k1 zw among the hypotheses l3, and zw naming the bound m: l3
 -- proves a. The disjunction below zw is proved, and each disjunct gives a.
 theorem ball_body:
   variable e v m a l3 zw k k1 n0 z0 m0
-  assume sb:   SBCtx
-  assume bc:   BCtx
-  assume lbp:  BelowOrLeast BLemP
-  assume lbe:  BelowOrLeast BorElim
-  assume lbx:  NamesMLeast BorEx
-  assume ih:   forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
-  assume cv:   Covers e l3
-  assume ctx:  Ctx n0 z0 l3
-  assume sm0:  Suc n0 m0
-  assume nm0:  Nat m0
-  assume av:   Avoids l3 a
-  assume fa:   Form a
-  assume ca:   Clean a
-  assume np:   NoPool a
-  assume eb:   EvenB a
-  assume nba:  not (Bound v a)
-  assume nv:   Nat v
-  assume ev:   Even v
-  assume nzw:  NamesM l3 zw m
-  assume ms:   MSucc l3 k k1
-  assume mp:   MPlus l3 v k1 zw
-  assume nk:   Nat k
-  assume nk1:  Nat k1
-  assume okk:  VarOK m0 k
-  assume dvk:  not (Eq v k)
-  sc:    SCCtx                            by and_e sb
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  nm:    NAMESM                           by and_e nc
-  below: BELOW                            by and_e bc
-  bx:    BorEx l3 zw m                    by imp_e bor_namesm fs0 below lbx nzw
-  nzn:   Nat zw                           by and_e bx
-  exd:   forall v1. Nat v1 -> exists d. BelowOr l3 zw m v1 d
-                                          by and_e bx
-  ed: exists d. BelowOr l3 zw m v d       by imp_e exd nv
-  fv: FvOK n0 l3                          by and_e ctx
-  fb: FreshB m0 l3                        by imp_e fv sm0
+  assume sb: SBCtx
+  assume bc: BCtx
+  assume lbp: BelowOrLeast BLemP
+  assume lbe: BelowOrLeast BorElim
+  assume lbx: NamesMLeast BorEx
+  assume ih: forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
+  assume cv: Covers e l3
+  assume ctx: Ctx n0 z0 l3
+  assume sm0: Suc n0 m0
+  assume nm0: Nat m0
+  assume av: Avoids l3 a
+  assume fa: Form a
+  assume ca: Clean a
+  assume np: NoPool a
+  assume eb: EvenB a
+  assume nba: not (Bound v a)
+  assume nv: Nat v
+  assume ev: Even v
+  assume nzw: NamesM l3 zw m
+  assume ms: MSucc l3 k k1
+  assume mp: MPlus l3 v k1 zw
+  assume nk: Nat k
+  assume nk1: Nat k1
+  assume okk: VarOK m0 k
+  assume dvk: not (Eq v k)
+  sc: SCCtx                         by and_e sb
+  q: QCtx                           by and_e sc
+  nc: NamesCtx                      by and_e sc
+  fs0: FS0                          by and_e q
+  prf: PRF QAx                      by and_e q
+  nm: NAMESM                        by and_e nc
+  below: BELOW                      by and_e bc
+  bx: BorEx l3 zw m                 by imp_e bor_namesm fs0 below lbx nzw
+  nzn: Nat zw                       by and_e bx
+  exd: forall v1. Nat v1 -> exists d. BelowOr l3 zw m v1 d
+                                    by and_e bx
+  ed: exists d. BelowOr l3 zw m v d by imp_e exd nv
+  fv: FvOK n0 l3                    by and_e ctx
+  fb: FreshB m0 l3                  by imp_e fv sm0
   lemma inc:
     variable b
     assume mb: Mem b l3
@@ -279,237 +279,237 @@ theorem ball_body:
     variable u j ep
     assume bi: BelowIn l3 u j zw m
     assume ea: EqAt v u ep
-    r: QI l3 ep a                         by imp_e ball_case sb ih cv ctx sm0 av fa ca np eb nba nv ev bi ea
+    r: QI l3 ep a by imp_e ball_case sb ih cv ctx sm0 av fa ca np eb nba nv ev bi ea
     therefore forall u j ep. BelowIn l3 u j zw m -> EqAt v u ep -> QI l3 ep a
   lemma wd:
     variable d
     assume bo: BelowOr l3 zw m v d
-    bp: BLemP l3 zw m v d                 by imp_e blem_all bc lbp bo
-    bl: BLem l3 zw v d                    by and_e bp
-    pd: PrH l3 d                          by imp_e bl inc ms mp nv nk nk1 nzn nm0 ev okk dvk fb
-    be: BorElim l3 zw m v d               by imp_e bor_elim q below nm lbe bo
+    bp: BLemP l3 zw m v d   by imp_e blem_all bc lbp bo
+    bl: BLem l3 zw v d      by and_e bp
+    pd: PrH l3 d            by imp_e bl inc ms mp nv nk nk1 nzn nm0 ev okk dvk fb
+    be: BorElim l3 zw m v d by imp_e bor_elim q below nm lbe bo
     bee: forall a1. Form a1 -> (forall u j e1. BelowIn l3 u j zw m -> EqAt v u e1 -> QI l3 e1 a1) -> QI l3 d a1
-                                          by and_e be
-    qd: QI l3 d a                         by imp_e bee fa cases
+                            by and_e be
+    qd: QI l3 d a           by imp_e bee fa cases
     lemma wi:
       variable i
       assume hi: ImpCode d a i and PrH l3 i
-      ii: ImpCode d a i                   by and_e hi
-      pi: PrH l3 i                        by and_e hi
-      r:  PrH l3 a                        by imp_e prh_mp QAx fs0 prf fa ii pi pd
+      ii: ImpCode d a i by and_e hi
+      pi: PrH l3 i      by and_e hi
+      r: PrH l3 a       by imp_e prh_mp QAx fs0 prf fa ii pi pd
       therefore forall i. (ImpCode d a i and PrH l3 i) -> PrH l3 a
-    r: PrH l3 a                           by exists_e qd wi
+    r: PrH l3 a by exists_e qd wi
     therefore forall d. BelowOr l3 zw m v d -> PrH l3 a
-  r: PrH l3 a                             by exists_e ed wd
+  r: PrH l3 a by exists_e ed wd
   therefore forall e v m a l3 zw k k1 n0 z0 m0. SBCtx -> BCtx -> BelowOrLeast BLemP -> BelowOrLeast BorElim
-              -> NamesMLeast BorEx -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> Covers e l3 -> Ctx n0 z0 l3
-              -> Suc n0 m0 -> Nat m0 -> Avoids l3 a -> Form a -> Clean a -> NoPool a -> EvenB a -> not (Bound v a) -> Nat v
-              -> Even v -> NamesM l3 zw m -> MSucc l3 k k1 -> MPlus l3 v k1 zw -> Nat k -> Nat k1 -> VarOK m0 k
-              -> not (Eq v k) -> PrH l3 a
+      -> NamesMLeast BorEx -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> Covers e l3 -> Ctx n0 z0 l3
+      -> Suc n0 m0 -> Nat m0 -> Avoids l3 a -> Form a -> Clean a -> NoPool a -> EvenB a -> not (Bound v a) -> Nat v
+      -> Even v -> NamesM l3 zw m -> MSucc l3 k k1 -> MPlus l3 v k1 zw -> Nat k -> Nat k1 -> VarOK m0 k
+      -> not (Eq v k) -> PrH l3 a
 
 -- Both variables of an equation atom are free in it.
 theorem eqat_fr:
   variable a b x
   assume free: FREE
-  assume ea:   EqAt a b x
-  frl1: Frl1                              by and_e free
-  frl2: Frl2                              by and_e free
-  frat: Frat                              by and_e free
+  assume ea: EqAt a b x
+  frl1: Frl1 by and_e free
+  frl2: Frl2 by and_e free
+  frat: Frat by and_e free
   lemma wit:
     variable p l
     assume h: T4 p and List2 a b l and Node2 T1 p l x
-    nd: Node2 T1 p l x                    by and_e h
-    li: List2 a b l                       by and_e h
+    nd: Node2 T1 p l x by and_e h
+    li: List2 a b l    by and_e h
     lemma w2:
       variable t
       assume ht: List1 b t and Pair a t l
-      lt1: List1 b t                      by and_e ht
-      pl:  Pair a t l                     by and_e ht
-      fla: FrL a l                        by imp_e frl1 pl
-      fa:  Fr a x                         by imp_e frat nd fla
+      lt1: List1 b t by and_e ht
+      pl: Pair a t l by and_e ht
+      fla: FrL a l   by imp_e frl1 pl
+      fa: Fr a x     by imp_e frat nd fla
       lemma w3:
         variable n
         assume hn: Nil n and Pair b n t
-        pt: Pair b n t                    by and_e hn
-        ft: FrL b t                       by imp_e frl1 pt
-        fl: FrL b l                       by imp_e frl2 pl ft
-        fb: Fr b x                        by imp_e frat nd fl
-        r:  Fr a x and Fr b x             by and_i fa fb
+        pt: Pair b n t       by and_e hn
+        ft: FrL b t          by imp_e frl1 pt
+        fl: FrL b l          by imp_e frl2 pl ft
+        fb: Fr b x           by imp_e frat nd fl
+        r: Fr a x and Fr b x by and_i fa fb
         therefore forall n. (Nil n and Pair b n t) -> Fr a x and Fr b x
-      r: Fr a x and Fr b x                by exists_e lt1 w3
+      r: Fr a x and Fr b x by exists_e lt1 w3
       therefore forall t. (List1 b t and Pair a t l) -> Fr a x and Fr b x
-    r: Fr a x and Fr b x                  by exists_e li w2
+    r: Fr a x and Fr b x by exists_e li w2
     therefore forall p l. (T4 p and List2 a b l and Node2 T1 p l x) -> Fr a x and Fr b x
-  r: Fr a x and Fr b x                    by exists_e ea wit
+  r: Fr a x and Fr b x by exists_e ea wit
   therefore forall a b x. FREE -> EqAt a b x -> Fr a x and Fr b x
 
 -- The three atoms sc_ball adds to h keep every variable bound in a out of the hypotheses:
 -- their variables are not bound in a, or are free in a member of h, which a avoids.
 theorem ball_avoid:
-  assume fs0:   FS0
-  assume free:  FREE
-  assume list:  LIST
-  assume mc:    MemLeast MemCons
-  assume ll:    FrLLeast FrLInv
-  assume lf:    FrLeast FrInv
+  assume fs0: FS0
+  assume free: FREE
+  assume list: LIST
+  assume mc: MemLeast MemCons
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
   assume bound: BOUND
   lemma all:
     variable a x h v w zw cw k k1 s pp pz l1 l2 l3
-    assume bax:  forall u. Bound u a -> Bound u x
-    assume av:   Avoids h x
-    assume nba:  not (Bound v a)
-    assume nbk:  not (Bound k a)
+    assume bax: forall u. Bound u a -> Bound u x
+    assume av: Avoids h x
+    assume nba: not (Bound v a)
+    assume nbk: not (Bound k a)
     assume nbk1: not (Bound k1 a)
-    assume mcw:  Mem cw h
-    assume fwc:  Fr w cw
-    assume fzc:  Fr zw cw
-    assume sa:   SuccAt k k1 s
-    assume pa:   PlusAt v k1 w pp
-    assume xpz:  PlusAt v k1 zw pz
-    assume pl1:  Pair s h l1
-    assume pl2:  Pair pp l1 l2
-    assume pl3:  Pair pz l2 l3
+    assume mcw: Mem cw h
+    assume fwc: Fr w cw
+    assume fzc: Fr zw cw
+    assume sa: SuccAt k k1 s
+    assume pa: PlusAt v k1 w pp
+    assume xpz: PlusAt v k1 zw pz
+    assume pl1: Pair s h l1
+    assume pl2: Pair pp l1 l2
+    assume pl3: Pair pz l2 l3
     lemma each:
       variable y
       assume yb: Bound y a
-      bx:   Bound y x                     by imp_e bax yb
-      nfh:  NoFree y h                    by imp_e av bx
-      nv:   not (Eq y v)                  by imp_e bound_ne fs0 bound nba yb
-      nk:   not (Eq y k)                  by imp_e bound_ne fs0 bound nbk yb
-      nk1:  not (Eq y k1)                 by imp_e bound_ne fs0 bound nbk1 yb
-      nw:   not (Eq y w)                  by imp_e nofree_ne fs0 free nfh mcw fwc
-      nzw:  not (Eq y zw)                 by imp_e nofree_ne fs0 free nfh mcw fzc
-      nfs:  not (Fr y s)                  by imp_e succat_nofree fs0 free ll lf sa nk nk1
-      nfpp: not (Fr y pp)                 by imp_e plusat_nofree fs0 free ll lf pa nv nk1 nw
-      nfpz: not (Fr y pz)                 by imp_e plusat_nofree fs0 free ll lf xpz nv nk1 nzw
-      n1:   NoFree y l1                   by imp_e nofree_cons free list mc nfh nfs pl1
-      n2:   NoFree y l2                   by imp_e nofree_cons free list mc n1 nfpp pl2
-      n3:   NoFree y l3                   by imp_e nofree_cons free list mc n2 nfpz pl3
+      bx: Bound y x       by imp_e bax yb
+      nfh: NoFree y h     by imp_e av bx
+      nv: not (Eq y v)    by imp_e bound_ne fs0 bound nba yb
+      nk: not (Eq y k)    by imp_e bound_ne fs0 bound nbk yb
+      nk1: not (Eq y k1)  by imp_e bound_ne fs0 bound nbk1 yb
+      nw: not (Eq y w)    by imp_e nofree_ne fs0 free nfh mcw fwc
+      nzw: not (Eq y zw)  by imp_e nofree_ne fs0 free nfh mcw fzc
+      nfs: not (Fr y s)   by imp_e succat_nofree fs0 free ll lf sa nk nk1
+      nfpp: not (Fr y pp) by imp_e plusat_nofree fs0 free ll lf pa nv nk1 nw
+      nfpz: not (Fr y pz) by imp_e plusat_nofree fs0 free ll lf xpz nv nk1 nzw
+      n1: NoFree y l1     by imp_e nofree_cons free list mc nfh nfs pl1
+      n2: NoFree y l2     by imp_e nofree_cons free list mc n1 nfpp pl2
+      n3: NoFree y l3     by imp_e nofree_cons free list mc n2 nfpz pl3
       therefore forall y. Bound y a -> NoFree y l3
     therefore forall a x h v w zw cw k k1 s pp pz l1 l2 l3. (forall u. Bound u a -> Bound u x) -> Avoids h x
-                -> not (Bound v a) -> not (Bound k a) -> not (Bound k1 a) -> Mem cw h -> Fr w cw -> Fr zw cw
-                -> SuccAt k k1 s -> PlusAt v k1 w pp -> PlusAt v k1 zw pz -> Pair s h l1 -> Pair pp l1 l2
-                -> Pair pz l2 l3 -> forall y. Bound y a -> NoFree y l3
+        -> not (Bound v a) -> not (Bound k a) -> not (Bound k1 a) -> Mem cw h -> Fr w cw -> Fr zw cw
+        -> SuccAt k k1 s -> PlusAt v k1 w pp -> PlusAt v k1 zw pz -> Pair s h l1 -> Pair pp l1 l2
+        -> Pair pz l2 l3 -> forall y. Bound y a -> NoFree y l3
   therefore FS0 -> FREE -> LIST -> MemLeast MemCons -> FrLLeast FrLInv -> FrLeast FrInv -> BOUND
-              -> forall a x h v w zw cw k k1 s pp pz l1 l2 l3. (forall u. Bound u a -> Bound u x) -> Avoids h x
-              -> not (Bound v a) -> not (Bound k a) -> not (Bound k1 a) -> Mem cw h -> Fr w cw -> Fr zw cw
-              -> SuccAt k k1 s -> PlusAt v k1 w pp -> PlusAt v k1 zw pz -> Pair s h l1 -> Pair pp l1 l2
-              -> Pair pz l2 l3 -> forall y. Bound y a -> NoFree y l3
+      -> forall a x h v w zw cw k k1 s pp pz l1 l2 l3. (forall u. Bound u a -> Bound u x) -> Avoids h x
+      -> not (Bound v a) -> not (Bound k a) -> not (Bound k1 a) -> Mem cw h -> Fr w cw -> Fr zw cw
+      -> SuccAt k k1 s -> PlusAt v k1 w pp -> PlusAt v k1 zw pz -> Pair s h l1 -> Pair pp l1 l2
+      -> Pair pz l2 l3 -> forall y. Bound y a -> NoFree y l3
 
 -- Bounded forall: the antecedent's atoms become hypotheses, the body follows (ball_body), and
 -- the hypotheses are discharged: deduction, uncurrying, exists-elimination over k1 and k, and
 -- generalization over v.
 theorem sc_ball:
   variable e v w m a x
-  assume sb:   SBCtx
-  assume bc:   BCtx
-  assume lbp:  BelowOrLeast BLemP
-  assume lbe:  BelowOrLeast BorElim
-  assume lbx:  NamesMLeast BorEx
-  assume ba:   BAllCode v w a x
-  assume vw:   Val e w m
-  assume ih:   forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
-  sc:    SCCtx                            by and_e sb
-  syn:   SynCtx                           by and_e sb
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  g:     GrowCtx                          by and_e sc
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  nat:   NAT                              by and_e form
-  pe:    Pe                               by and_e fs0
-  list:  LIST                             by and_e g
-  pc:    PoolCtx                          by and_e g
-  dtp:   PrfLeast QAx DTP                 by and_e g
-  mc:    MemLeast MemCons                 by and_e g
-  free:  FREE                             by and_e g
-  ll:    FrLLeast FrLInv                  by and_e g
-  lf:    FrLeast FrInv                    by and_e g
-  lt:    LT                               by and_e pc
-  dnat:  DblLeast DblNat                  by and_e pc
-  dbl:   DBL                              by and_e pc
-  dinv:  DblLeast DblInv                  by and_e pc
-  dodd:  DblLeast DblOdd                  by and_e pc
-  leq:   LtLeast LtEq                     by and_e pc
-  nm:    NAMESM                           by and_e nc
-  lmm:   NamesMLeast NamesMMono           by and_e nc
-  flf:   FormLeast FormInv                by and_e syn
-  bound: BOUND                            by and_e syn
-  clean: CLEAN                            by and_e syn
-  lcl:   CleanLeast CleanInv              by and_e syn
-  bq:    Bq                               by and_e bound
-  bl:    Bl                               by and_e bound
-  br:    Br                               by and_e bound
-  binq:  Binq                             by and_e bound
-  frq:   Frq                              by and_e free
-  frr:   Frright                          by and_e free
-  sucs:  forall s. exists t. Suc s t      by imp_e suc_exists fs0
-  mono:  forall h z j. NamesM h z j -> NamesMMono h z j
-                                          by imp_e namesm_mono nm lmm
+  assume sb: SBCtx
+  assume bc: BCtx
+  assume lbp: BelowOrLeast BLemP
+  assume lbe: BelowOrLeast BorElim
+  assume lbx: NamesMLeast BorEx
+  assume ba: BAllCode v w a x
+  assume vw: Val e w m
+  assume ih: forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
+  sc: SCCtx                         by and_e sb
+  syn: SynCtx                       by and_e sb
+  q: QCtx                           by and_e sc
+  nc: NamesCtx                      by and_e sc
+  g: GrowCtx                        by and_e sc
+  fs0: FS0                          by and_e q
+  form: FORM                        by and_e q
+  logax: LOGAX                      by and_e q
+  prf: PRF QAx                      by and_e q
+  nat: NAT                          by and_e form
+  pe: Pe                            by and_e fs0
+  list: LIST                        by and_e g
+  pc: PoolCtx                       by and_e g
+  dtp: PrfLeast QAx DTP             by and_e g
+  mc: MemLeast MemCons              by and_e g
+  free: FREE                        by and_e g
+  ll: FrLLeast FrLInv               by and_e g
+  lf: FrLeast FrInv                 by and_e g
+  lt: LT                            by and_e pc
+  dnat: DblLeast DblNat             by and_e pc
+  dbl: DBL                          by and_e pc
+  dinv: DblLeast DblInv             by and_e pc
+  dodd: DblLeast DblOdd             by and_e pc
+  leq: LtLeast LtEq                 by and_e pc
+  nm: NAMESM                        by and_e nc
+  lmm: NamesMLeast NamesMMono       by and_e nc
+  flf: FormLeast FormInv            by and_e syn
+  bound: BOUND                      by and_e syn
+  clean: CLEAN                      by and_e syn
+  lcl: CleanLeast CleanInv          by and_e syn
+  bq: Bq                            by and_e bound
+  bl: Bl                            by and_e bound
+  br: Br                            by and_e bound
+  binq: Binq                        by and_e bound
+  frq: Frq                          by and_e free
+  frr: Frright                      by and_e free
+  sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
+  mono: forall h z j. NamesM h z j -> NamesMMono h z j
+                                    by imp_e namesm_mono nm lmm
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume np:  NoPool x
-    assume eb:  EvenB x
-    names: NAMES                          by and_e nc
-    lmn2:  NamesMLeast NamesMN            by and_e nc
+    assume av: Avoids h x
+    assume np: NoPool x
+    assume eb: EvenB x
+    names: NAMES              by and_e nc
+    lmn2: NamesMLeast NamesMN by and_e nc
     lemma wk:
       variable k k1 y i
       assume hb: Nat k and Nat k1 and Apart4 v w k k1 and not (Fr k a) and not (Fr k1 a) and not (Bound k a)
-                 and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x
-      nk:   Nat k                         by and_e hb
-      nk1:  Nat k1                        by and_e hb
-      ap:   Apart4 v w k k1               by and_e hb
-      nfk:  not (Fr k a)                  by and_e hb
-      nfk1: not (Fr k1 a)                 by and_e hb
-      nbk:  not (Bound k a)               by and_e hb
-      nbk1: not (Bound k1 a)              by and_e hb
-      ltf:  LtF v w k k1 y                by and_e hb
-      iya:  ImpCode y a i                 by and_e hb
-      avi:  AllCode v i x                 by and_e hb
-      dkv:  not (Eq k v)                  by and_e ap
-      qnx:  QNode v i x                   by or_i avi
-      fvi:  Nat v and Form i              by imp_e form_all form flf fx avi
-      nv:   Nat v                         by and_e fvi
-      fi:   Form i                        by and_e fvi
-      fya:  Form y and Form a             by imp_e form_imp form flf fi iya
-      fa:   Form a                        by and_e fya
-      clq:  Clean i and not (Bound v i)   by imp_e clean_q fs0 clean bound lcl cl qnx
-      ci:   Clean i                       by and_e clq
-      nbvi: not (Bound v i)               by and_e clq
-      bni:  BinNode y a i                 by or_i iya
-      cya:  Clean y and Clean a           by imp_e clean_bin fs0 clean lcl ci bni
-      ca:   Clean a                       by and_e cya
-      bvx:  Bound v x                     by imp_e bq qnx
-      ev:   Even v                        by imp_e eb bvx
-      nfvh: NoFree v h                    by imp_e av bvx
+          and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x
+      nk: Nat k                        by and_e hb
+      nk1: Nat k1                      by and_e hb
+      ap: Apart4 v w k k1              by and_e hb
+      nfk: not (Fr k a)                by and_e hb
+      nfk1: not (Fr k1 a)              by and_e hb
+      nbk: not (Bound k a)             by and_e hb
+      nbk1: not (Bound k1 a)           by and_e hb
+      ltf: LtF v w k k1 y              by and_e hb
+      iya: ImpCode y a i               by and_e hb
+      avi: AllCode v i x               by and_e hb
+      dkv: not (Eq k v)                by and_e ap
+      qnx: QNode v i x                 by or_i avi
+      fvi: Nat v and Form i            by imp_e form_all form flf fx avi
+      nv: Nat v                        by and_e fvi
+      fi: Form i                       by and_e fvi
+      fya: Form y and Form a           by imp_e form_imp form flf fi iya
+      fa: Form a                       by and_e fya
+      clq: Clean i and not (Bound v i) by imp_e clean_q fs0 clean bound lcl cl qnx
+      ci: Clean i                      by and_e clq
+      nbvi: not (Bound v i)            by and_e clq
+      bni: BinNode y a i               by or_i iya
+      cya: Clean y and Clean a         by imp_e clean_bin fs0 clean lcl ci bni
+      ca: Clean a                      by and_e cya
+      bvx: Bound v x                   by imp_e bq qnx
+      ev: Even v                       by imp_e eb bvx
+      nfvh: NoFree v h                 by imp_e av bvx
       lemma dvk:
         assume e1: Eq v k
-        e2:  Eq k v                       by imp_e eq_sym fs0 e1
-        bad: absurd                       by imp_e dkv e2
+        e2: Eq k v  by imp_e eq_sym fs0 e1
+        bad: absurd by imp_e dkv e2
         therefore not (Eq v k)
       lemma nba:
         assume b1: Bound v a
-        b2:  Bound v i                    by imp_e br bni b1
-        bad: absurd                       by imp_e nbvi b2
+        b2: Bound v i by imp_e br bni b1
+        bad: absurd   by imp_e nbvi b2
         therefore not (Bound v a)
       lemma bax:
         variable u
         assume bu: Bound u a
-        b2: Bound u i                     by imp_e br bni bu
-        r:  Bound u x                     by imp_e binq qnx b2
+        b2: Bound u i by imp_e br bni bu
+        r: Bound u x  by imp_e binq qnx b2
         therefore forall u. Bound u a -> Bound u x
       lemma eba:
         variable u
         assume bu: Bound u a
-        b1: Bound u x                     by imp_e bax bu
-        r:  Even u                        by imp_e eb b1
+        b1: Bound u x by imp_e bax bu
+        r: Even u     by imp_e eb b1
         therefore forall u. Bound u a -> Even u
       lemma npa:
         variable u j
@@ -517,202 +517,202 @@ theorem sc_ball:
         assume fr: Fr u a
         lemma isv:
           assume e1: Eq v u
-          e3:  Eq u v                     by imp_e eq_sym fs0 e1
-          bad: absurd                     by imp_e even_pool fs0 dbl dinv dodd ev pu e3
+          e3: Eq u v  by imp_e eq_sym fs0 e1
+          bad: absurd by imp_e even_pool fs0 dbl dinv dodd ev pu e3
           therefore not (Eq v u)
-        f1:  Fr u i                       by imp_e frr bni fr
-        f2:  Fr u x                       by imp_e frq qnx isv f1
-        bad: absurd                       by imp_e np pu f2
+        f1: Fr u i  by imp_e frr bni fr
+        f2: Fr u x  by imp_e frq qnx isv f1
+        bad: absurd by imp_e np pu f2
         therefore forall u j. Pool j u -> not (Fr u a)
       lemma wl:
         variable s pp qq rk
         assume hl: SuccAt k k1 s and PlusAt v k1 w pp and AndCode s pp qq and ExCode k1 qq rk and ExCode k rk y
-        sa:    SuccAt k k1 s              by and_e hl
-        pa:    PlusAt v k1 w pp           by and_e hl
-        aq:    AndCode s pp qq            by and_e hl
-        er:    ExCode k1 qq rk            by and_e hl
-        ey:    ExCode k rk y              by and_e hl
-        qny:   QNode k rk y               by or_i ey
-        qnr:   QNode k1 qq rk             by or_i er
-        bky:   Bound k y                  by imp_e bq qny
-        bki:   Bound k i                  by imp_e bl bni bky
-        bkx:   Bound k x                  by imp_e binq qnx bki
-        evk:   Even k                     by imp_e eb bkx
-        bk1r:  Bound k1 rk                by imp_e bq qnr
-        bk1y:  Bound k1 y                 by imp_e binq qny bk1r
-        bk1i:  Bound k1 i                 by imp_e bl bni bk1y
-        bk1x:  Bound k1 x                 by imp_e binq qnx bk1i
-        evk1:  Even k1                    by imp_e eb bk1x
-        nfkh:  NoFree k h                 by imp_e av bkx
-        nfk1h: NoFree k1 h                by imp_e av bk1x
-        fvh:   FvOK n0 h                  by and_e ctx
-        pz0:   Pool n0 z0                 by and_e ctx
-        nn0:   Nat n0                     by imp_e pool_index_nat nat dnat pz0
-        fs:    Form s                     by imp_e succat_form form nk nk1 sa
+        sa: SuccAt k k1 s    by and_e hl
+        pa: PlusAt v k1 w pp by and_e hl
+        aq: AndCode s pp qq  by and_e hl
+        er: ExCode k1 qq rk  by and_e hl
+        ey: ExCode k rk y    by and_e hl
+        qny: QNode k rk y    by or_i ey
+        qnr: QNode k1 qq rk  by or_i er
+        bky: Bound k y       by imp_e bq qny
+        bki: Bound k i       by imp_e bl bni bky
+        bkx: Bound k x       by imp_e binq qnx bki
+        evk: Even k          by imp_e eb bkx
+        bk1r: Bound k1 rk    by imp_e bq qnr
+        bk1y: Bound k1 y     by imp_e binq qny bk1r
+        bk1i: Bound k1 i     by imp_e bl bni bk1y
+        bk1x: Bound k1 x     by imp_e binq qnx bk1i
+        evk1: Even k1        by imp_e eb bk1x
+        nfkh: NoFree k h     by imp_e av bkx
+        nfk1h: NoFree k1 h   by imp_e av bk1x
+        fvh: FvOK n0 h       by and_e ctx
+        pz0: Pool n0 z0      by and_e ctx
+        nn0: Nat n0          by imp_e pool_index_nat nat dnat pz0
+        fs: Form s           by imp_e succat_form form nk nk1 sa
         ecw: exists z c. Nat w and NamesM h z m and EqAt z w c and Mem c h
-                                          by imp_e cv vw
+                             by imp_e cv vw
         lemma wz:
           variable zw cw
           assume hz: Nat w and NamesM h zw m and EqAt zw w cw and Mem cw h
-          nw:  Nat w                      by and_e hz
-          nzm: NamesM h zw m              by and_e hz
-          ezw: EqAt zw w cw               by and_e hz
-          mcw: Mem cw h                   by and_e hz
+          nw: Nat w                 by and_e hz
+          nzm: NamesM h zw m        by and_e hz
+          ezw: EqAt zw w cw         by and_e hz
+          mcw: Mem cw h             by and_e hz
           mns: forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
-                                          by imp_e namesm_names q names lmn2
-          mzn:  NamesMN h zw m            by imp_e mns nzm
-          nzw:  Nat zw                    by and_e mzn
-          fzw:  Fr zw cw and Fr w cw      by imp_e eqat_fr free ezw
-          fzc:  Fr zw cw                  by and_e fzw
-          fwc:  Fr w cw                   by and_e fzw
-          fpp:  Form pp                   by imp_e plusat_form form nv nk1 nw pa
-          fan:  Fan                       by and_e form
-          fex:  Fex                       by and_e form
-          fqq:  Form qq                   by imp_e fan fs fpp aq
-          fr:   Form rk                   by imp_e fex nk1 fqq er
-          e_m0: exists t. Suc n0 t        by forall_e sucs n0
+                                    by imp_e namesm_names q names lmn2
+          mzn: NamesMN h zw m       by imp_e mns nzm
+          nzw: Nat zw               by and_e mzn
+          fzw: Fr zw cw and Fr w cw by imp_e eqat_fr free ezw
+          fzc: Fr zw cw             by and_e fzw
+          fwc: Fr w cw              by and_e fzw
+          fpp: Form pp              by imp_e plusat_form form nv nk1 nw pa
+          fan: Fan                  by and_e form
+          fex: Fex                  by and_e form
+          fqq: Form qq              by imp_e fan fs fpp aq
+          fr: Form rk               by imp_e fex nk1 fqq er
+          e_m0: exists t. Suc n0 t  by forall_e sucs n0
           lemma w_m0:
             variable m0
             assume sm0: Suc n0 m0
-            nm0:  Nat m0                  by imp_e nat_suc nat nn0 sm0
-            okv:  VarOK m0 v              by or_i ev
-            okk:  VarOK m0 k              by or_i evk
-            okk1: VarOK m0 k1             by or_i evk1
-            okw:  VarOK m0 w              by imp_e fvh sm0 mcw fwc
-            okzw: VarOK m0 zw             by imp_e fvh sm0 mcw fzc
+            nm0: Nat m0       by imp_e nat_suc nat nn0 sm0
+            okv: VarOK m0 v   by or_i ev
+            okk: VarOK m0 k   by or_i evk
+            okk1: VarOK m0 k1 by or_i evk1
+            okw: VarOK m0 w   by imp_e fvh sm0 mcw fwc
+            okzw: VarOK m0 zw by imp_e fvh sm0 mcw fzc
             oks: forall u. Fr u s -> VarOK m0 u
-                                          by imp_e atom_ok_succ fs0 free ll lf okk okk1 sa
+                              by imp_e atom_ok_succ fs0 free ll lf okk okk1 sa
             okpp: forall u. Fr u pp -> VarOK m0 u
-                                          by imp_e atom_ok_plus fs0 free ll lf okv okk1 okw pa
+                              by imp_e atom_ok_plus fs0 free ll lf okv okk1 okw pa
             e_pz: exists y1. PlusAt v k1 zw y1
-                                          by imp_e plusat_exists fs0
+                              by imp_e plusat_exists fs0
             lemma w_pz:
               variable pz
               assume xpz: PlusAt v k1 zw pz
-              fpz: Form pz                by imp_e plusat_form form nv nk1 nzw xpz
+              fpz: Form pz                 by imp_e plusat_form form nv nk1 nzw xpz
               okpz: forall u. Fr u pz -> VarOK m0 u
-                                          by imp_e atom_ok_plus fs0 free ll lf okv okk1 okzw xpz
-              e_l1: exists y1. Pair s h y1  by forall_e pe s h
+                                           by imp_e atom_ok_plus fs0 free ll lf okv okk1 okzw xpz
+              e_l1: exists y1. Pair s h y1 by forall_e pe s h
               lemma w_l1:
                 variable l1
                 assume pl1: Pair s h l1
                 e_l2: exists y1. Pair pp l1 y1
-                                          by forall_e pe pp l1
+                    by forall_e pe pp l1
                 lemma w_l2:
                   variable l2
                   assume pl2: Pair pp l1 l2
                   e_l3: exists y1. Pair pz l2 y1
-                                          by forall_e pe pz l2
+                      by forall_e pe pz l2
                   lemma w_l3:
                     variable l3
                     assume pl3: Pair pz l2 l3
                     cx1: Ctx n0 z0 l1
-                                by imp_e ctx_add fs0 free list lt mc leq ctx sm0 oks pl1
+                        by imp_e ctx_add fs0 free list lt mc leq ctx sm0 oks pl1
                     cx2: Ctx n0 z0 l2
-                                by imp_e ctx_add fs0 free list lt mc leq cx1 sm0 okpp pl2
+                        by imp_e ctx_add fs0 free list lt mc leq cx1 sm0 okpp pl2
                     cx3: Ctx n0 z0 l3
-                                by imp_e ctx_add fs0 free list lt mc leq cx2 sm0 okpz pl3
+                        by imp_e ctx_add fs0 free list lt mc leq cx2 sm0 okpz pl3
                     i1: Incl h l1
-                                by imp_e incl_cons list pl1
+                        by imp_e incl_cons list pl1
                     i12: Incl l1 l2
-                                by imp_e incl_cons list pl2
+                        by imp_e incl_cons list pl2
                     i23: Incl l2 l3
-                                by imp_e incl_cons list pl3
+                        by imp_e incl_cons list pl3
                     i2: Incl h l2
-                                by imp_e incl_trans i1 i12
+                        by imp_e incl_trans i1 i12
                     i3: Incl h l3
-                                by imp_e incl_trans i2 i23
+                        by imp_e incl_trans i2 i23
                     cv3: Covers e l3
-                                by imp_e covers_mono nc cv i3
+                        by imp_e covers_mono nc cv i3
                     mo: NamesMMono h zw m
-                                by imp_e mono nzm
+                        by imp_e mono nzm
                     nz3: NamesM l3 zw m
-                                by imp_e mo i3
+                        by imp_e mo i3
                     ms1: MSucc l1 k k1
-                                by imp_e msucc_cons list sa pl1
+                        by imp_e msucc_cons list sa pl1
                     ms2: MSucc l2 k k1
-                                by imp_e msucc_incl ms1 i12
+                        by imp_e msucc_incl ms1 i12
                     ms3: MSucc l3 k k1
-                                by imp_e msucc_incl ms2 i23
+                        by imp_e msucc_incl ms2 i23
                     mp3: MPlus l3 v k1 zw
-                                by imp_e mplus_cons list xpz pl3
+                        by imp_e mplus_cons list xpz pl3
                     mpp2: MPlus l2 v k1 w
-                                by imp_e mplus_cons list pa pl2
+                        by imp_e mplus_cons list pa pl2
                     av3: forall y1. Bound y1 a -> NoFree y1 l3
-                                          by imp_e ball_avoid fs0 free list mc ll lf bound bax av nba nbk nbk1 mcw fwc fzc sa pa xpz pl1 pl2 pl3
+                        by imp_e ball_avoid fs0 free list mc ll lf bound bax av nba nbk nbk1 mcw fwc fzc sa pa xpz pl1 pl2 pl3
                     pa3: PrH l3 a
-                                by imp_e ball_body sb bc lbp lbe lbx ih cv3 cx3 sm0 nm0 av3 fa ca npa eba nba nv ev nz3 ms3 mp3 nk nk1 okk dvk
+                        by imp_e ball_body sb bc lbp lbe lbx ih cv3 cx3 sm0 nm0 av3 fa ca npa eba nba nv ev nz3 ms3 mp3 nk nk1 okk dvk
                     d1: QI l2 pz a
-                                          by imp_e qi_ded fs0 form logax list prf dtp mc pl3 fpz fa pa3
+                        by imp_e qi_ded fs0 form logax list prf dtp mc pl3 fpz fa pa3
                     qpw: QPlus l2 v k1 w
-                                by imp_e mplus_q q nv nk1 nw mpp2
+                        by imp_e mplus_q q nv nk1 nw mpp2
                     mcw2: Mem cw l2
-                                by imp_e i2 mcw
+                        by imp_e i2 mcw
                     fcw: Form cw
-                                by imp_e eqat_form form nzw nw ezw
+                        by imp_e eqat_form form nzw nw ezw
                     leaf: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> QAx a2 -> PrH h2 a2)
-                          and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
-                                by imp_e prh_leaf QAx fs0 prf
+                        and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
+                        by imp_e prh_leaf QAx fs0 prf
                     hyp: forall h1 a1. Form a1 -> Mem a1 h1 -> PrH h1 a1
-                                by and_e leaf
+                        by and_e leaf
                     pcw: PrH l2 cw
-                                by imp_e hyp fcw mcw2
+                        by imp_e hyp fcw mcw2
                     kc: EqAt zw w cw and PrH l2 cw
-                                by and_i ezw pcw
+                        by and_i ezw pcw
                     qzw: QEq l2 zw w
-                                by exists_i kc
+                        by exists_i kc
                     qwz: QEq l2 w zw
-                                by imp_e qe_sym q nzw nw qzw
+                        by imp_e qe_sym q nzw nw qzw
                     qpz: QPlus l2 v k1 zw
-                                by imp_e qp_tr q nv nk1 nw nzw qpw qwz
+                        by imp_e qp_tr q nv nk1 nw nzw qpw qwz
                     lemma code:
                       variable y2
                       assume hy: PlusAt v k1 zw y2 and PrH l2 y2
                       xy: PlusAt v k1 zw y2
-                                by and_e hy
+                          by and_e hy
                       py: PrH l2 y2
-                                by and_e hy
+                          by and_e hy
                       ey2: Eq y2 pz
-                                by imp_e plusat_fun fs0 xy xpz
+                          by imp_e plusat_fun fs0 xy xpz
                       r: PrH l2 pz
-                                by imp_e prh_eq QAx fs0 prf py ey2
+                          by imp_e prh_eq QAx fs0 prf py ey2
                       therefore forall y2. (PlusAt v k1 zw y2 and PrH l2 y2) -> PrH l2 pz
                     ppz: PrH l2 pz
-                                by exists_e qpz code
+                        by exists_e qpz code
                     pa2: PrH l2 a
-                                          by imp_e qi_mp fs0 prf fa d1 ppz
+                        by imp_e qi_mp fs0 prf fa d1 ppz
                     d2: QI l1 pp a
-                                          by imp_e qi_ded fs0 form logax list prf dtp mc pl2 fpp fa pa2
+                        by imp_e qi_ded fs0 form logax list prf dtp mc pl2 fpp fa pa2
                     d3: QI2 h s pp a
-                                          by imp_e qi_ded2 fs0 form logax list prf dtp mc pl1 fs fpp fa d2
+                        by imp_e qi_ded2 fs0 form logax list prf dtp mc pl1 fs fpp fa d2
                     q1: QI h qq a
-                                          by imp_e qi_uncurry fs0 form logax list prf dtp mc fs fpp fa d3 aq
+                        by imp_e qi_uncurry fs0 form logax list prf dtp mc fs fpp fa d3 aq
                     q2: QI h rk a
-                                          by imp_e qi_exe fs0 form logax prf nk1 fqq fa nfk1 nfk1h q1 er
+                        by imp_e qi_exe fs0 form logax prf nk1 fqq fa nfk1 nfk1h q1 er
                     q3: QI h y a
-                                          by imp_e qi_exe fs0 form logax prf nk fr fa nfk nfkh q2 ey
+                        by imp_e qi_exe fs0 form logax prf nk fr fa nfk nfkh q2 ey
                     pi: PrH h i
-                                          by imp_e qi_code fs0 prf q3 iya
+                        by imp_e qi_code fs0 prf q3 iya
                     r: PrH h x
-                                          by imp_e prh_gen QAx fs0 prf nv nfvh pi avi
+                        by imp_e prh_gen QAx fs0 prf nv nfvh pi avi
                     therefore forall l3. Pair pz l2 l3 -> PrH h x
-                  r: PrH h x              by exists_e e_l3 w_l3
+                  r: PrH h x by exists_e e_l3 w_l3
                   therefore forall l2. Pair pp l1 l2 -> PrH h x
-                r: PrH h x                by exists_e e_l2 w_l2
+                r: PrH h x by exists_e e_l2 w_l2
                 therefore forall l1. Pair s h l1 -> PrH h x
-              r: PrH h x                  by exists_e e_l1 w_l1
+              r: PrH h x by exists_e e_l1 w_l1
               therefore forall pz. PlusAt v k1 zw pz -> PrH h x
-            r: PrH h x                    by exists_e e_pz w_pz
+            r: PrH h x by exists_e e_pz w_pz
             therefore forall m0. Suc n0 m0 -> PrH h x
-          r: PrH h x                      by exists_e e_m0 w_m0
+          r: PrH h x by exists_e e_m0 w_m0
           therefore forall zw cw. (Nat w and NamesM h zw m and EqAt zw w cw and Mem cw h) -> PrH h x
-        r: PrH h x                        by exists_e ecw wz
+        r: PrH h x by exists_e ecw wz
         therefore forall s pp qq rk. (SuccAt k k1 s and PlusAt v k1 w pp and AndCode s pp qq and ExCode k1 qq rk and ExCode k rk y)
-                    -> PrH h x
-      r: PrH h x                          by exists_e ltf wl
+            -> PrH h x
+      r: PrH h x by exists_e ltf wl
       therefore forall k k1 y i. (Nat k and Nat k1 and Apart4 v w k k1 and not (Fr k a) and not (Fr k1 a) and not (Bound k a)
-                  and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x) -> PrH h x
-    r: PrH h x                            by exists_e ba wk
+          and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x) -> PrH h x
+    r: PrH h x by exists_e ba wk
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w m a x. SBCtx -> BCtx -> BelowOrLeast BLemP -> BelowOrLeast BorElim -> NamesMLeast BorEx
-              -> BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> SC e x
+      -> BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> SC e x

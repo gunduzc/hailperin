@@ -17,19 +17,19 @@ define Bl   = forall v a b x. BinNode a b x -> Bound v a -> Bound v x
 define Br   = forall v a b x. BinNode a b x -> Bound v b -> Bound v x
 define Binq = forall v u a x. QNode u a x -> Bound v a -> Bound v x
 
-define Qb   = forall v a v1 a1. Eq v v1 -> Eq a a1 -> Bound v a -> Bound v1 a1
+define Qb = forall v a v1 a1. Eq v v1 -> Eq a a1 -> Bound v a -> Bound v1 a1
 
 define BOUND = Bq and Bl and Br and Binq and Qb
 
 -- e2 is e with v set to n.
 define Ext e v n e2 = exists en. Pair v n en and Pair en e e2
 
-define Vh = forall e v n en r. Pair v n en -> Pair en r e -> Val e v n
-define Vt = forall e v n u m en r. Pair u m en -> not (Eq u v) -> Pair en r e -> Val r v n -> Val e v n
+define Vh   = forall e v n en r. Pair v n en -> Pair en r e -> Val e v n
+define Vt   = forall e v n u m en r. Pair u m en -> not (Eq u v) -> Pair en r e -> Val r v n -> Val e v n
 define Qval = forall e v n e1 v1 n1. Eq e e1 -> Eq v v1 -> Eq n n1 -> Val e v n -> Val e1 v1 n1
 
 -- The atoms Plus v w u, Times v w u and Eq v w.
-define List3 v w u l = exists t. List2 w u t and Pair v t l
+define List3 v w u l   = exists t. List2 w u t and Pair v t l
 define PlusAt v w u x  = exists p l. T2 p and List3 v w u l and Node2 T1 p l x
 define TimesAt v w u x = exists p l. T3 p and List3 v w u l and Node2 T1 p l x
 define EqAt v w x      = exists p l. T4 p and List2 v w l and Node2 T1 p l x
@@ -47,28 +47,28 @@ define Hex    = forall e v n e2 a x. Nat n -> Ext e v n e2 -> Holds e2 a -> ExCo
 
 -- False atoms, negated: not a is a -> absurd.
 define NotCode a x = exists z. BotCode z and ImpCode a z x
-define Hnzero  = forall e v n a x. Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x -> Holds e x
-define Hnsucc  = forall e v w n m a x. Val e v n -> Val e w m -> not (Suc n m) -> SuccAt v w a -> NotCode a x -> Holds e x
-define Hnplus  = forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Add n m k) -> PlusAt v w u a
-                   -> NotCode a x -> Holds e x
-define Hntimes = forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Mul n m k) -> TimesAt v w u a
-                   -> NotCode a x -> Holds e x
-define Hneq    = forall e v w n m a x. Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a -> NotCode a x -> Holds e x
+define Hnzero      = forall e v n a x. Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x -> Holds e x
+define Hnsucc      = forall e v w n m a x. Val e v n -> Val e w m -> not (Suc n m) -> SuccAt v w a -> NotCode a x -> Holds e x
+define Hnplus      = forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Add n m k) -> PlusAt v w u a
+    -> NotCode a x -> Holds e x
+define Hntimes     = forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Mul n m k) -> TimesAt v w u a
+    -> NotCode a x -> Holds e x
+define Hneq        = forall e v w n m a x. Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a -> NotCode a x -> Holds e x
 
 -- Bounded forall v < w. a, written forall v. (exists k k1. Succ k k1 and Plus v k1 w) -> a, with
 -- k and k1 apart from v, w and each other, so that the antecedent says v < w, and neither free
 -- nor bound in a, so that a proof can take them off and assume the antecedent's atoms.
-define LtF v w k k1 y = exists s p q r. SuccAt k k1 s and PlusAt v k1 w p and AndCode s p q and ExCode k1 q r
-                        and ExCode k r y
-define Apart4 v w k k1 = not (Eq v w) and not (Eq k v) and not (Eq k w) and not (Eq k1 v) and not (Eq k1 w)
-                         and not (Eq k k1)
+define LtF v w k k1 y   = exists s p q r. SuccAt k k1 s and PlusAt v k1 w p and AndCode s p q and ExCode k1 q r
+    and ExCode k r y
+define Apart4 v w k k1  = not (Eq v w) and not (Eq k v) and not (Eq k w) and not (Eq k1 v) and not (Eq k1 w)
+    and not (Eq k k1)
 define BAllCode v w a x = exists k k1 y i. Nat k and Nat k1 and Apart4 v w k k1 and not (Fr k a) and not (Fr k1 a)
-                          and not (Bound k a) and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x
-define Hball = forall e v w m a x. BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> Holds e2 a)
-                 -> Holds e x
+    and not (Bound k a) and not (Bound k1 a) and LtF v w k k1 y and ImpCode y a i and AllCode v i x
+define Hball            = forall e v w m a x. BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> Holds e2 a)
+    -> Holds e x
 
 define TRUTH = Vh and Vt and Qval and Hzero and Hsucc and Hplus and Htimes and Heq and Hand and Hor1 and Hor2 and Hex
-               and Hnzero and Hnsucc and Hnplus and Hntimes and Hneq and Hball
+    and Hnzero and Hnsucc and Hnplus and Hntimes and Hneq and Hball
 
 define HoldsLeast (P e f) = (forall e v n x. Val e v n -> Nil n -> ZeroAt v x -> P e x)
     -> (forall e v w n m x. Val e v n -> Val e w m -> Suc n m -> SuccAt v w x -> P e x)
@@ -82,9 +82,9 @@ define HoldsLeast (P e f) = (forall e v n x. Val e v n -> Nil n -> ZeroAt v x ->
     -> (forall e v n a x. Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x -> P e x)
     -> (forall e v w n m a x. Val e v n -> Val e w m -> not (Suc n m) -> SuccAt v w a -> NotCode a x -> P e x)
     -> (forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Add n m k) -> PlusAt v w u a
-          -> NotCode a x -> P e x)
+    -> NotCode a x -> P e x)
     -> (forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Mul n m k) -> TimesAt v w u a
-          -> NotCode a x -> P e x)
+    -> NotCode a x -> P e x)
     -> (forall e v w n m a x. Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a -> NotCode a x -> P e x)
     -> (forall e v w m a x. BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> P e2 a) -> P e x)
     -> forall e f. Holds e f -> P e f
@@ -93,56 +93,56 @@ define HoldsLeast (P e f) = (forall e v n x. Val e v n -> Nil n -> ZeroAt v x ->
 theorem val_ext:
   variable e v n e2
   assume truth: TRUTH
-  assume ext:   Ext e v n e2
-  vh: Vh                                  by and_e truth
+  assume ext: Ext e v n e2
+  vh: Vh by and_e truth
   lemma w:
     variable en
     assume h: Pair v n en and Pair en e e2
-    p1: Pair v n en                       by and_e h
-    p2: Pair en e e2                      by and_e h
-    k:  Val e2 v n                        by imp_e vh p1 p2
+    p1: Pair v n en  by and_e h
+    p2: Pair en e e2 by and_e h
+    k: Val e2 v n    by imp_e vh p1 p2
     therefore forall en. (Pair v n en and Pair en e e2) -> Val e2 v n
-  r: Val e2 v n                           by exists_e ext w
+  r: Val e2 v n by exists_e ext w
   therefore forall e v n e2. TRUTH -> Ext e v n e2 -> Val e2 v n
 
 -- So Zero is true of a variable set to 0, through an existential: exists v. Zero v.
 theorem holds_some_zero:
   variable e v n e2 z x
   assume truth: TRUTH
-  assume nn:    Nil n
-  assume ext:   Ext e v n e2
-  assume za:    ZeroAt v z
-  assume ex:    ExCode v z x
-  assume nat:   Nat n
-  hzero: Hzero                            by and_e truth
-  hex:   Hex                              by and_e truth
-  vn:    Val e2 v n                       by imp_e val_ext truth ext
-  s2:    Holds e2 z                       by imp_e hzero vn nn za
-  s:     Holds e x                        by imp_e hex nat ext s2 ex
+  assume nn: Nil n
+  assume ext: Ext e v n e2
+  assume za: ZeroAt v z
+  assume ex: ExCode v z x
+  assume nat: Nat n
+  hzero: Hzero   by and_e truth
+  hex: Hex       by and_e truth
+  vn: Val e2 v n by imp_e val_ext truth ext
+  s2: Holds e2 z by imp_e hzero vn nn za
+  s: Holds e x   by imp_e hex nat ext s2 ex
   therefore forall e v n e2 z x. TRUTH -> Nil n -> Ext e v n e2 -> ZeroAt v z -> ExCode v z x -> Nat n -> Holds e x
 
 -- Zero is false of a successor, so its negation holds.
 theorem holds_not_zero:
   variable e v k n a x
   assume truth: TRUTH
-  assume fs0:   FS0
-  assume val:   Val e v n
-  assume sk:    Suc k n
-  assume za:    ZeroAt v a
-  assume na:    NotCode a x
-  hnzero: Hnzero                          by and_e truth
-  pn:     Pn                              by and_e fs0
-  refl:   Refl                            by and_e fs0
+  assume fs0: FS0
+  assume val: Val e v n
+  assume sk: Suc k n
+  assume za: ZeroAt v a
+  assume na: NotCode a x
+  hnzero: Hnzero by and_e truth
+  pn: Pn         by and_e fs0
+  refl: Refl     by and_e fs0
   lemma notnil:
     assume nn: Nil n
-    rn: Eq n n                            by forall_e refl n
+    rn: Eq n n by forall_e refl n
     lemma w:
       variable z
       assume h: Nil z and Pair z k n
-      pz: Pair z k n                      by and_e h
-      f:  absurd                          by imp_e pn pz nn rn
+      pz: Pair z k n by and_e h
+      f: absurd      by imp_e pn pz nn rn
       therefore forall z. (Nil z and Pair z k n) -> absurd
-    f: absurd                             by exists_e sk w
+    f: absurd by exists_e sk w
     therefore not (Nil n)
-  h: Holds e x                            by imp_e hnzero val notnil za na
+  h: Holds e x by imp_e hnzero val notnil za na
   therefore forall e v k n a x. TRUTH -> FS0 -> Val e v n -> Suc k n -> ZeroAt v a -> NotCode a x -> Holds e x

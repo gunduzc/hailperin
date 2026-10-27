@@ -8,324 +8,324 @@ import clean
 
 theorem form_and:
   variable a b x
-  assume form:  FORM
+  assume form: FORM
   assume least: FormLeast FormInv
-  assume fx:    Form x
-  assume nd:    Node2 T3 a b x
-  nat: NAT                                by and_e form
-  fs0: FS0                                by and_e nat
-  qf:  Qf                                 by and_e form
+  assume fx: Form x
+  assume nd: Node2 T3 a b x
+  nat: NAT        by and_e form
+  fs0: FS0        by and_e nat
+  qf: Qf          by and_e form
   a13: forall s s1. T1 s -> T3 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_1_3 fs0
+                  by imp_e ap_1_3 fs0
   a23: forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_2_3 fs0
+                  by imp_e ap_2_3 fs0
   a34: forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_3_4 fs0
+                  by imp_e ap_3_4 fs0
   a35: forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_3_5 fs0
+                  by imp_e ap_3_5 fs0
   a36: forall s s1. T3 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_3_6 fs0
-  sh: FormShape x                         by imp_e form_inv form least fx
+                  by imp_e ap_3_6 fs0
+  sh: FormShape x by imp_e form_inv form least fx
   lemma c0:
     assume ex: exists n1. Nil n1 and Node1 T0 n1 x
     lemma wit:
       variable n1
       assume hw: Nil n1 and Node1 T0 n1 x
-      nn: Nil n1                          by and_e hw
-      n0: Node1 T0 n1 x                   by and_e hw
-      f:  absurd                          by imp_e node1_node2_apart T0 T3 fs0 nn n0 nd
-      r:  Form a and Form b               by absurd_e f
+      nn: Nil n1           by and_e hw
+      n0: Node1 T0 n1 x    by and_e hw
+      f: absurd            by imp_e node1_node2_apart T0 T3 fs0 nn n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall n1. (Nil n1 and Node1 T0 n1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists n1. Nil n1 and Node1 T0 n1 x) -> Form a and Form b
   lemma c1:
     assume ex: exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x
     lemma wit:
       variable p1 l1
       assume hw: Nat p1 and Vs l1 and Node2 T1 p1 l1 x
-      n0: Node2 T1 p1 l1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T1 T3 fs0 a13 n0 nd
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T1 p1 l1 x by and_e hw
+      f: absurd            by imp_e node2_apart T1 T3 fs0 a13 n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall p1 l1. (Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
   lemma c2:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T2 a1 b1 x
-      n0: Node2 T2 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T2 T3 fs0 a23 n0 nd
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T2 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T2 T3 fs0 a23 n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
   lemma c3:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T3 a1 b1 x
-      f1: Form a1                         by and_e hw
-      f2: Form b1                         by and_e hw
-      n0: Node2 T3 a1 b1 x                by and_e hw
-      e:  Eq a1 a and Eq b1 b             by imp_e node2_parts T3 T3 fs0 n0 nd
-      ea: Eq a1 a                         by and_e e
-      eb: Eq b1 b                         by and_e e
-      ga: Form a                          by imp_e qf ea f1
-      gb: Form b                          by imp_e qf eb f2
-      r:  Form a and Form b               by and_i ga gb
+      f1: Form a1            by and_e hw
+      f2: Form b1            by and_e hw
+      n0: Node2 T3 a1 b1 x   by and_e hw
+      e: Eq a1 a and Eq b1 b by imp_e node2_parts T3 T3 fs0 n0 nd
+      ea: Eq a1 a            by and_e e
+      eb: Eq b1 b            by and_e e
+      ga: Form a             by imp_e qf ea f1
+      gb: Form b             by imp_e qf eb f2
+      r: Form a and Form b   by and_i ga gb
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
   lemma c4:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T4 a1 b1 x
-      n0: Node2 T4 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T3 T4 fs0 a34 nd n0
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T4 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T3 T4 fs0 a34 nd n0
+      r: Form a and Form b by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
   lemma c5:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T5 v1 a1 x
-      n0: Node2 T5 v1 a1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T3 T5 fs0 a35 nd n0
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T5 v1 a1 x by and_e hw
+      f: absurd            by imp_e node2_apart T3 T5 fs0 a35 nd n0
+      r: Form a and Form b by absurd_e f
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
   lemma c6:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T6 v1 a1 x
-      n0: Node2 T6 v1 a1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T3 T6 fs0 a36 nd n0
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T6 v1 a1 x by and_e hw
+      f: absurd            by imp_e node2_apart T3 T6 fs0 a36 nd n0
+      r: Form a and Form b by absurd_e f
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
-  r: Form a and Form b                    by or_e sh c0 c1 c2 c3 c4 c5 c6
+  r: Form a and Form b by or_e sh c0 c1 c2 c3 c4 c5 c6
   therefore forall a b x. FORM -> FormLeast FormInv -> Form x -> Node2 T3 a b x -> Form a and Form b
 
 theorem form_or:
   variable a b x
-  assume form:  FORM
+  assume form: FORM
   assume least: FormLeast FormInv
-  assume fx:    Form x
-  assume nd:    Node2 T4 a b x
-  nat: NAT                                by and_e form
-  fs0: FS0                                by and_e nat
-  qf:  Qf                                 by and_e form
+  assume fx: Form x
+  assume nd: Node2 T4 a b x
+  nat: NAT        by and_e form
+  fs0: FS0        by and_e nat
+  qf: Qf          by and_e form
   a14: forall s s1. T1 s -> T4 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_1_4 fs0
+                  by imp_e ap_1_4 fs0
   a24: forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_2_4 fs0
+                  by imp_e ap_2_4 fs0
   a34: forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_3_4 fs0
+                  by imp_e ap_3_4 fs0
   a45: forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_4_5 fs0
+                  by imp_e ap_4_5 fs0
   a46: forall s s1. T4 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_4_6 fs0
-  sh: FormShape x                         by imp_e form_inv form least fx
+                  by imp_e ap_4_6 fs0
+  sh: FormShape x by imp_e form_inv form least fx
   lemma c0:
     assume ex: exists n1. Nil n1 and Node1 T0 n1 x
     lemma wit:
       variable n1
       assume hw: Nil n1 and Node1 T0 n1 x
-      nn: Nil n1                          by and_e hw
-      n0: Node1 T0 n1 x                   by and_e hw
-      f:  absurd                          by imp_e node1_node2_apart T0 T4 fs0 nn n0 nd
-      r:  Form a and Form b               by absurd_e f
+      nn: Nil n1           by and_e hw
+      n0: Node1 T0 n1 x    by and_e hw
+      f: absurd            by imp_e node1_node2_apart T0 T4 fs0 nn n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall n1. (Nil n1 and Node1 T0 n1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists n1. Nil n1 and Node1 T0 n1 x) -> Form a and Form b
   lemma c1:
     assume ex: exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x
     lemma wit:
       variable p1 l1
       assume hw: Nat p1 and Vs l1 and Node2 T1 p1 l1 x
-      n0: Node2 T1 p1 l1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T1 T4 fs0 a14 n0 nd
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T1 p1 l1 x by and_e hw
+      f: absurd            by imp_e node2_apart T1 T4 fs0 a14 n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall p1 l1. (Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
   lemma c2:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T2 a1 b1 x
-      n0: Node2 T2 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T2 T4 fs0 a24 n0 nd
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T2 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T2 T4 fs0 a24 n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
   lemma c3:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T3 a1 b1 x
-      n0: Node2 T3 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T3 T4 fs0 a34 n0 nd
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T3 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T3 T4 fs0 a34 n0 nd
+      r: Form a and Form b by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
   lemma c4:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T4 a1 b1 x
-      f1: Form a1                         by and_e hw
-      f2: Form b1                         by and_e hw
-      n0: Node2 T4 a1 b1 x                by and_e hw
-      e:  Eq a1 a and Eq b1 b             by imp_e node2_parts T4 T4 fs0 n0 nd
-      ea: Eq a1 a                         by and_e e
-      eb: Eq b1 b                         by and_e e
-      ga: Form a                          by imp_e qf ea f1
-      gb: Form b                          by imp_e qf eb f2
-      r:  Form a and Form b               by and_i ga gb
+      f1: Form a1            by and_e hw
+      f2: Form b1            by and_e hw
+      n0: Node2 T4 a1 b1 x   by and_e hw
+      e: Eq a1 a and Eq b1 b by imp_e node2_parts T4 T4 fs0 n0 nd
+      ea: Eq a1 a            by and_e e
+      eb: Eq b1 b            by and_e e
+      ga: Form a             by imp_e qf ea f1
+      gb: Form b             by imp_e qf eb f2
+      r: Form a and Form b   by and_i ga gb
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
   lemma c5:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T5 v1 a1 x
-      n0: Node2 T5 v1 a1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T4 T5 fs0 a45 nd n0
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T5 v1 a1 x by and_e hw
+      f: absurd            by imp_e node2_apart T4 T5 fs0 a45 nd n0
+      r: Form a and Form b by absurd_e f
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
   lemma c6:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T6 v1 a1 x
-      n0: Node2 T6 v1 a1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T4 T6 fs0 a46 nd n0
-      r:  Form a and Form b               by absurd_e f
+      n0: Node2 T6 v1 a1 x by and_e hw
+      f: absurd            by imp_e node2_apart T4 T6 fs0 a46 nd n0
+      r: Form a and Form b by absurd_e f
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
-    r: Form a and Form b                  by exists_e ex wit
+    r: Form a and Form b by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
-  r: Form a and Form b                    by or_e sh c0 c1 c2 c3 c4 c5 c6
+  r: Form a and Form b by or_e sh c0 c1 c2 c3 c4 c5 c6
   therefore forall a b x. FORM -> FormLeast FormInv -> Form x -> Node2 T4 a b x -> Form a and Form b
 
 theorem form_ex:
   variable v a x
-  assume form:  FORM
+  assume form: FORM
   assume least: FormLeast FormInv
-  assume fx:    Form x
-  assume nd:    Node2 T6 v a x
-  nat: NAT                                by and_e form
-  fs0: FS0                                by and_e nat
-  qf:  Qf                                 by and_e form
-  qn:  Qn                                 by and_e nat
+  assume fx: Form x
+  assume nd: Node2 T6 v a x
+  nat: NAT        by and_e form
+  fs0: FS0        by and_e nat
+  qf: Qf          by and_e form
+  qn: Qn          by and_e nat
   a16: forall s s1. T1 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_1_6 fs0
+                  by imp_e ap_1_6 fs0
   a26: forall s s1. T2 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_2_6 fs0
+                  by imp_e ap_2_6 fs0
   a36: forall s s1. T3 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_3_6 fs0
+                  by imp_e ap_3_6 fs0
   a46: forall s s1. T4 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_4_6 fs0
+                  by imp_e ap_4_6 fs0
   a56: forall s s1. T5 s -> T6 s1 -> Eq s s1 -> absurd
-                                          by imp_e ap_5_6 fs0
-  sh: FormShape x                         by imp_e form_inv form least fx
+                  by imp_e ap_5_6 fs0
+  sh: FormShape x by imp_e form_inv form least fx
   lemma c0:
     assume ex: exists n1. Nil n1 and Node1 T0 n1 x
     lemma wit:
       variable n1
       assume hw: Nil n1 and Node1 T0 n1 x
-      nn: Nil n1                          by and_e hw
-      n0: Node1 T0 n1 x                   by and_e hw
-      f:  absurd                          by imp_e node1_node2_apart T0 T6 fs0 nn n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      nn: Nil n1          by and_e hw
+      n0: Node1 T0 n1 x   by and_e hw
+      f: absurd           by imp_e node1_node2_apart T0 T6 fs0 nn n0 nd
+      r: Nat v and Form a by absurd_e f
       therefore forall n1. (Nil n1 and Node1 T0 n1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists n1. Nil n1 and Node1 T0 n1 x) -> Nat v and Form a
   lemma c1:
     assume ex: exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x
     lemma wit:
       variable p1 l1
       assume hw: Nat p1 and Vs l1 and Node2 T1 p1 l1 x
-      n0: Node2 T1 p1 l1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T1 T6 fs0 a16 n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      n0: Node2 T1 p1 l1 x by and_e hw
+      f: absurd            by imp_e node2_apart T1 T6 fs0 a16 n0 nd
+      r: Nat v and Form a  by absurd_e f
       therefore forall p1 l1. (Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Nat v and Form a
   lemma c2:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T2 a1 b1 x
-      n0: Node2 T2 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T2 T6 fs0 a26 n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      n0: Node2 T2 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T2 T6 fs0 a26 n0 nd
+      r: Nat v and Form a  by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Nat v and Form a
   lemma c3:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T3 a1 b1 x
-      n0: Node2 T3 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T3 T6 fs0 a36 n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      n0: Node2 T3 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T3 T6 fs0 a36 n0 nd
+      r: Nat v and Form a  by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Nat v and Form a
   lemma c4:
     assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x
     lemma wit:
       variable a1 b1
       assume hw: Form a1 and Form b1 and Node2 T4 a1 b1 x
-      n0: Node2 T4 a1 b1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T4 T6 fs0 a46 n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      n0: Node2 T4 a1 b1 x by and_e hw
+      f: absurd            by imp_e node2_apart T4 T6 fs0 a46 n0 nd
+      r: Nat v and Form a  by absurd_e f
       therefore forall a1 b1. (Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Nat v and Form a
   lemma c5:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T5 v1 a1 x
-      n0: Node2 T5 v1 a1 x                by and_e hw
-      f:  absurd                          by imp_e node2_apart T5 T6 fs0 a56 n0 nd
-      r:  Nat v and Form a                by absurd_e f
+      n0: Node2 T5 v1 a1 x by and_e hw
+      f: absurd            by imp_e node2_apart T5 T6 fs0 a56 n0 nd
+      r: Nat v and Form a  by absurd_e f
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Nat v and Form a
   lemma c6:
     assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x
     lemma wit:
       variable v1 a1
       assume hw: Nat v1 and Form a1 and Node2 T6 v1 a1 x
-      f1: Nat v1                          by and_e hw
-      f2: Form a1                         by and_e hw
-      n0: Node2 T6 v1 a1 x                by and_e hw
-      e:  Eq v1 v and Eq a1 a             by imp_e node2_parts T6 T6 fs0 n0 nd
-      ev: Eq v1 v                         by and_e e
-      ea: Eq a1 a                         by and_e e
-      gv: Nat v                           by imp_e qn ev f1
-      ga: Form a                          by imp_e qf ea f2
-      r:  Nat v and Form a                by and_i gv ga
+      f1: Nat v1             by and_e hw
+      f2: Form a1            by and_e hw
+      n0: Node2 T6 v1 a1 x   by and_e hw
+      e: Eq v1 v and Eq a1 a by imp_e node2_parts T6 T6 fs0 n0 nd
+      ev: Eq v1 v            by and_e e
+      ea: Eq a1 a            by and_e e
+      gv: Nat v              by imp_e qn ev f1
+      ga: Form a             by imp_e qf ea f2
+      r: Nat v and Form a    by and_i gv ga
       therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Nat v and Form a
-    r: Nat v and Form a                   by exists_e ex wit
+    r: Nat v and Form a by exists_e ex wit
     therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Nat v and Form a
-  r: Nat v and Form a                     by or_e sh c0 c1 c2 c3 c4 c5 c6
+  r: Nat v and Form a by or_e sh c0 c1 c2 c3 c4 c5 c6
   therefore forall v a x. FORM -> FormLeast FormInv -> Form x -> Node2 T6 v a x -> Nat v and Form a
 
 define EvenB f = forall v. Bound v f -> Even v
@@ -338,385 +338,394 @@ define SynCtx = FormLeast FormInv and BOUND and FREE and CLEAN and CleanLeast Cl
 theorem sc_parts:
   variable h a b x
   assume syn: SynCtx
-  assume bn:  BinNode a b x
-  assume av:  Avoids h x
-  assume ef:  NoPool x
-  assume eb:  EvenB x
-  bound:   BOUND                          by and_e syn
-  free:    FREE                           by and_e syn
-  bl:      Bl                             by and_e bound
-  br:      Br                             by and_e bound
-  frleft:  Frleft                         by and_e free
-  frright: Frright                        by and_e free
-  avs:     Avoids h a and Avoids h b      by imp_e avoids_bin bound av bn
+  assume bn: BinNode a b x
+  assume av: Avoids h x
+  assume ef: NoPool x
+  assume eb: EvenB x
+  bound: BOUND                   by and_e syn
+  free: FREE                     by and_e syn
+  bl: Bl                         by and_e bound
+  br: Br                         by and_e bound
+  frleft: Frleft                 by and_e free
+  frright: Frright               by and_e free
+  avs: Avoids h a and Avoids h b by imp_e avoids_bin bound av bn
   lemma efa:
     variable u i
     assume pu: Pool i u
     assume fr: Fr u a
-    fx: Fr u x                            by imp_e frleft bn fr
-    r:  absurd                            by imp_e ef pu fx
+    fx: Fr u x by imp_e frleft bn fr
+    r: absurd  by imp_e ef pu fx
     therefore forall u i. Pool i u -> not (Fr u a)
   lemma efb:
     variable u i
     assume pu: Pool i u
     assume fr: Fr u b
-    fx: Fr u x                            by imp_e frright bn fr
-    r:  absurd                            by imp_e ef pu fx
+    fx: Fr u x by imp_e frright bn fr
+    r: absurd  by imp_e ef pu fx
     therefore forall u i. Pool i u -> not (Fr u b)
   lemma eba:
     variable v
     assume bv: Bound v a
-    bx: Bound v x                         by imp_e bl bn bv
-    r:  Even v                            by imp_e eb bx
+    bx: Bound v x by imp_e bl bn bv
+    r: Even v     by imp_e eb bx
     therefore forall v. Bound v a -> Even v
   lemma ebb:
     variable v
     assume bv: Bound v b
-    bx: Bound v x                         by imp_e br bn bv
-    r:  Even v                            by imp_e eb bx
+    bx: Bound v x by imp_e br bn bv
+    r: Even v     by imp_e eb bx
     therefore forall v. Bound v b -> Even v
   r: (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
-                                          by and_i avs efa efb eba ebb
+      by and_i avs efa efb eba ebb
   therefore forall h a b x. SynCtx -> BinNode a b x -> Avoids h x -> NoPool x -> EvenB x
-              -> (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
+      -> (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
 
 theorem sc_and:
   variable e a b x
-  assume q:   QCtx
+  assume q: QCtx
   assume syn: SynCtx
-  assume ia:  SC e a
-  assume ib:  SC e b
-  assume ac:  AndCode a b x
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  flf:   FormLeast FormInv                by and_e syn
-  clean: CLEAN                            by and_e syn
-  lcl:   CleanLeast CleanInv              by and_e syn
-  bn:    BinNode a b x                    by or_i ac
+  assume ia: SC e a
+  assume ib: SC e b
+  assume ac: AndCode a b x
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  flf: FormLeast FormInv   by and_e syn
+  clean: CLEAN             by and_e syn
+  lcl: CleanLeast CleanInv by and_e syn
+  bn: BinNode a b x        by or_i ac
   lemma each:
     variable n z h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n z h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    fp: Form a and Form b                 by imp_e form_and form flf fx ac
-    fa: Form a                            by and_e fp
-    fb: Form b                            by and_e fp
-    cp: Clean a and Clean b               by imp_e clean_bin fs0 clean lcl cl bn
-    ca: Clean a                           by and_e cp
-    cb: Clean b                           by and_e cp
-    ps:  (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
-                                          by imp_e sc_parts syn bn av ef eb
-    ava: Avoids h a                       by and_e ps
-    avb: Avoids h b                       by and_e ps
-    efa: NoPool a                         by and_e ps
-    efb: NoPool b                         by and_e ps
-    eba: EvenB a                          by and_e ps
-    ebb: EvenB b                          by and_e ps
-    pa:  PrH h a                          by imp_e ia fa ca cv ctx ava efa eba
-    pb:  PrH h b                          by imp_e ib fb cb cv ctx avb efb ebb
-    r:   PrH h x                          by imp_e prh_and_i QAx fs0 form logax prf fa fb ac pa pb
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    fp: Form a and Form b   by imp_e form_and form flf fx ac
+    fa: Form a              by and_e fp
+    fb: Form b              by and_e fp
+    cp: Clean a and Clean b by imp_e clean_bin fs0 clean lcl cl bn
+    ca: Clean a             by and_e cp
+    cb: Clean b             by and_e cp
+    ps: (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
+                            by imp_e sc_parts syn bn av ef eb
+    ava: Avoids h a         by and_e ps
+    avb: Avoids h b         by and_e ps
+    efa: NoPool a           by and_e ps
+    efb: NoPool b           by and_e ps
+    eba: EvenB a            by and_e ps
+    ebb: EvenB b            by and_e ps
+    pa: PrH h a             by imp_e ia fa ca cv ctx ava efa eba
+    pb: PrH h b             by imp_e ib fb cb cv ctx avb efb ebb
+    r: PrH h x              by imp_e prh_and_i QAx fs0 form logax prf fa fb ac pa pb
     therefore forall n z h. Form x -> Clean x -> Covers e h -> Ctx n z h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e a b x. QCtx -> SynCtx -> SC e a -> SC e b -> AndCode a b x -> SC e x
 
 theorem sc_or1:
   variable e a b x
-  assume q:   QCtx
+  assume q: QCtx
   assume syn: SynCtx
-  assume ia:  SC e a
-  assume oc:  OrCode a b x
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  flf:   FormLeast FormInv                by and_e syn
-  clean: CLEAN                            by and_e syn
-  lcl:   CleanLeast CleanInv              by and_e syn
-  bn:    BinNode a b x                    by or_i oc
+  assume ia: SC e a
+  assume oc: OrCode a b x
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  flf: FormLeast FormInv   by and_e syn
+  clean: CLEAN             by and_e syn
+  lcl: CleanLeast CleanInv by and_e syn
+  bn: BinNode a b x        by or_i oc
   lemma each:
     variable n z h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n z h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    fp: Form a and Form b                 by imp_e form_or form flf fx oc
-    fa: Form a                            by and_e fp
-    fb: Form b                            by and_e fp
-    cp: Clean a and Clean b               by imp_e clean_bin fs0 clean lcl cl bn
-    ca: Clean a                           by and_e cp
-    ps:  (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
-                                          by imp_e sc_parts syn bn av ef eb
-    av1: Avoids h a                       by and_e ps
-    ef1: NoPool a                         by and_e ps
-    eb1: EvenB a                          by and_e ps
-    p1:  PrH h a                          by imp_e ia fa ca cv ctx av1 ef1 eb1
-    oi:  (PrH h a -> PrH h x) and (PrH h b -> PrH h x)
-                                          by imp_e prh_or_i QAx fs0 form logax prf fa fb oc
-    k: PrH h a -> PrH h x                 by and_e oi
-    r: PrH h x                            by imp_e k p1
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    fp: Form a and Form b   by imp_e form_or form flf fx oc
+    fa: Form a              by and_e fp
+    fb: Form b              by and_e fp
+    cp: Clean a and Clean b by imp_e clean_bin fs0 clean lcl cl bn
+    ca: Clean a             by and_e cp
+    ps: (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
+                            by imp_e sc_parts syn bn av ef eb
+    av1: Avoids h a         by and_e ps
+    ef1: NoPool a           by and_e ps
+    eb1: EvenB a            by and_e ps
+    p1: PrH h a             by imp_e ia fa ca cv ctx av1 ef1 eb1
+    oi: (PrH h a -> PrH h x) and (PrH h b -> PrH h x)
+                            by imp_e prh_or_i QAx fs0 form logax prf fa fb oc
+    k: PrH h a -> PrH h x   by and_e oi
+    r: PrH h x              by imp_e k p1
     therefore forall n z h. Form x -> Clean x -> Covers e h -> Ctx n z h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e a b x. QCtx -> SynCtx -> SC e a -> OrCode a b x -> SC e x
 
 theorem sc_or2:
   variable e a b x
-  assume q:   QCtx
+  assume q: QCtx
   assume syn: SynCtx
-  assume ib:  SC e b
-  assume oc:  OrCode a b x
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  flf:   FormLeast FormInv                by and_e syn
-  clean: CLEAN                            by and_e syn
-  lcl:   CleanLeast CleanInv              by and_e syn
-  bn:    BinNode a b x                    by or_i oc
+  assume ib: SC e b
+  assume oc: OrCode a b x
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  flf: FormLeast FormInv   by and_e syn
+  clean: CLEAN             by and_e syn
+  lcl: CleanLeast CleanInv by and_e syn
+  bn: BinNode a b x        by or_i oc
   lemma each:
     variable n z h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n z h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    fp: Form a and Form b                 by imp_e form_or form flf fx oc
-    fa: Form a                            by and_e fp
-    fb: Form b                            by and_e fp
-    cp: Clean a and Clean b               by imp_e clean_bin fs0 clean lcl cl bn
-    cb: Clean b                           by and_e cp
-    ps:  (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
-                                          by imp_e sc_parts syn bn av ef eb
-    av1: Avoids h b                       by and_e ps
-    ef1: NoPool b                         by and_e ps
-    eb1: EvenB b                          by and_e ps
-    p1:  PrH h b                          by imp_e ib fb cb cv ctx av1 ef1 eb1
-    oi:  (PrH h a -> PrH h x) and (PrH h b -> PrH h x)
-                                          by imp_e prh_or_i QAx fs0 form logax prf fa fb oc
-    k: PrH h b -> PrH h x                 by and_e oi
-    r: PrH h x                            by imp_e k p1
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    fp: Form a and Form b   by imp_e form_or form flf fx oc
+    fa: Form a              by and_e fp
+    fb: Form b              by and_e fp
+    cp: Clean a and Clean b by imp_e clean_bin fs0 clean lcl cl bn
+    cb: Clean b             by and_e cp
+    ps: (Avoids h a and Avoids h b) and NoPool a and NoPool b and EvenB a and EvenB b
+                            by imp_e sc_parts syn bn av ef eb
+    av1: Avoids h b         by and_e ps
+    ef1: NoPool b           by and_e ps
+    eb1: EvenB b            by and_e ps
+    p1: PrH h b             by imp_e ib fb cb cv ctx av1 ef1 eb1
+    oi: (PrH h a -> PrH h x) and (PrH h b -> PrH h x)
+                            by imp_e prh_or_i QAx fs0 form logax prf fa fb oc
+    k: PrH h b -> PrH h x   by and_e oi
+    r: PrH h x              by imp_e k p1
     therefore forall n z h. Form x -> Clean x -> Covers e h -> Ctx n z h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e a b x. QCtx -> SynCtx -> SC e b -> OrCode a b x -> SC e x
 
 -- The atoms as cases of SC: the lemmas above, under SC's hypotheses.
 theorem sc_zero:
   variable e v n x
-  assume sc:  SCCtx
-  assume vl:  Val e v n
-  assume nn:  Nil n
-  assume za:  ZeroAt v x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vl: Val e v n
+  assume nn: Nil n
+  assume za: ZeroAt v x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e true_zero q nc cv vl nn za
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e true_zero q nc cv vl nn za
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v n x. SCCtx -> Val e v n -> Nil n -> ZeroAt v x -> SC e x
+
 theorem sc_succ:
   variable e v w n m x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume sn:  Suc n m
-  assume sa:  SuccAt v w x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume sn: Suc n m
+  assume sa: SuccAt v w x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e true_succ q nc cv vv vw sn sa
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e true_succ q nc cv vv vw sn sa
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w n m x. SCCtx -> Val e v n -> Val e w m -> Suc n m -> SuccAt v w x -> SC e x
+
 theorem sc_plus:
   variable e v w u n m k x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume ad:  Add n m k
-  assume pa:  PlusAt v w u x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume ad: Add n m k
+  assume pa: PlusAt v w u x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e true_plus q nc cv vv vw vu ad pa
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e true_plus q nc cv vv vw vu ad pa
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w u n m k x. SCCtx -> Val e v n -> Val e w m -> Val e u k -> Add n m k -> PlusAt v w u x -> SC e x
+
 theorem sc_times:
   variable e v w u n m k x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume ad:  Mul n m k
-  assume pa:  TimesAt v w u x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume ad: Mul n m k
+  assume pa: TimesAt v w u x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e true_times q nc cv vv vw vu ad pa
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e true_times q nc cv vv vw vu ad pa
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w u n m k x. SCCtx -> Val e v n -> Val e w m -> Val e u k -> Mul n m k -> TimesAt v w u x -> SC e x
+
 theorem sc_eq:
   variable e v w n m x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume en:  Eq n m
-  assume ea:  EqAt v w x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume en: Eq n m
+  assume ea: EqAt v w x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e true_eq q nc cv vv vw en ea
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e true_eq q nc cv vv vw en ea
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w n m x. SCCtx -> Val e v n -> Val e w m -> Eq n m -> EqAt v w x -> SC e x
+
 theorem sc_nzero:
   variable e v n a x
-  assume sc:  SCCtx
-  assume vl:  Val e v n
-  assume nn:  not (Nil n)
-  assume za:  ZeroAt v a
-  assume nx:  NotCode a x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vl: Val e v n
+  assume nn: not (Nil n)
+  assume za: ZeroAt v a
+  assume nx: NotCode a x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e false_zero q nc cv vl nn za nx
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e false_zero q nc cv vl nn za nx
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v n a x. SCCtx -> Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x -> SC e x
+
 theorem sc_nsucc:
   variable e v w n m a x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume ns:  not (Suc n m)
-  assume sa:  SuccAt v w a
-  assume nx:  NotCode a x
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume ns: not (Suc n m)
+  assume sa: SuccAt v w a
+  assume nx: NotCode a x
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e false_succ sc cv ctx vv vw ns sa nx fx ef
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e false_succ sc cv ctx vv vw ns sa nx fx ef
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w n m a x. SCCtx -> Val e v n -> Val e w m -> not (Suc n m) -> SuccAt v w a -> NotCode a x -> SC e x
+
 theorem sc_nplus:
   variable e v w u n m k a x
-  assume sc:  SCCtx
-  assume ac:  ArithCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume np:  not (Add n m k)
-  assume pa:  PlusAt v w u a
-  assume nx:  NotCode a x
+  assume sc: SCCtx
+  assume ac: ArithCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume np: not (Add n m k)
+  assume pa: PlusAt v w u a
+  assume nx: NotCode a x
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e false_plus sc ac cv ctx vv vw vu np pa nx fx ef
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e false_plus sc ac cv ctx vv vw vu np pa nx fx ef
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w u n m k a x. SCCtx -> ArithCtx -> Val e v n -> Val e w m -> Val e u k -> not (Add n m k) -> PlusAt v w u a -> NotCode a x -> SC e x
+
 theorem sc_ntimes:
   variable e v w u n m k a x
-  assume sc:  SCCtx
-  assume ac:  ArithCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume np:  not (Mul n m k)
-  assume pa:  TimesAt v w u a
-  assume nx:  NotCode a x
+  assume sc: SCCtx
+  assume ac: ArithCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume np: not (Mul n m k)
+  assume pa: TimesAt v w u a
+  assume nx: NotCode a x
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e false_times sc ac cv ctx vv vw vu np pa nx fx ef
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e false_times sc ac cv ctx vv vw vu np pa nx fx ef
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w u n m k a x. SCCtx -> ArithCtx -> Val e v n -> Val e w m -> Val e u k -> not (Mul n m k) -> TimesAt v w u a -> NotCode a x -> SC e x
+
 theorem sc_neq:
   variable e v w n m a x
-  assume sc:  SCCtx
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume ne:  not (Eq n m)
-  assume ea:  EqAt v w a
-  assume nx:  NotCode a x
-  q:  QCtx                                by and_e sc
-  nc: NamesCtx                            by and_e sc
+  assume sc: SCCtx
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume ne: not (Eq n m)
+  assume ea: EqAt v w a
+  assume nx: NotCode a x
+  q: QCtx      by and_e sc
+  nc: NamesCtx by and_e sc
   lemma each:
     variable n0 z0 h
-    assume fx:  Form x
-    assume cl:  Clean x
-    assume cv:  Covers e h
+    assume fx: Form x
+    assume cl: Clean x
+    assume cv: Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av:  Avoids h x
-    assume ef:  NoPool x
-    assume eb:  EvenB x
-    r: PrH h x                            by imp_e false_eq q nc cv vv vw ne ea nx
+    assume av: Avoids h x
+    assume ef: NoPool x
+    assume eb: EvenB x
+    r: PrH h x by imp_e false_eq q nc cv vv vw ne ea nx
     therefore forall n0 z0 h. Form x -> Clean x -> Covers e h -> Ctx n0 z0 h -> Avoids h x -> NoPool x -> EvenB x -> PrH h x
   therefore forall e v w n m a x. SCCtx -> Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a -> NotCode a x -> SC e x

@@ -11,51 +11,51 @@ define Ds = forall i k i1 k1 k2. Dbl i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 ->
 define DBL = Dz and Ds
 
 define DblLeast (P i k) = (forall n. Nil n -> P n n)
-                          -> (forall i k i1 k1 k2. P i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> P i1 k2)
-                          -> forall i k. Dbl i k -> P i k
+    -> (forall i k i1 k1 k2. P i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> P i1 k2)
+    -> forall i k. Dbl i k -> P i k
 
-define Even v = exists i k. Dbl i k and Eq k v
+define Even v   = exists i k. Dbl i k and Eq k v
 define Pool i z = exists k. Dbl i k and Suc k z
 
 -- A successor is not the atom, and has one predecessor.
 theorem suc_nil:
   variable a b
   assume fs0: FS0
-  assume sb:  Suc a b
-  assume nb:  Nil b
-  pn:   Pn                                by and_e fs0
-  refl: Refl                              by and_e fs0
-  rb:   Eq b b                            by forall_e refl b
+  assume sb: Suc a b
+  assume nb: Nil b
+  pn: Pn     by and_e fs0
+  refl: Refl by and_e fs0
+  rb: Eq b b by forall_e refl b
   lemma wit:
     variable z
     assume h: Nil z and Pair z a b
-    pb: Pair z a b                        by and_e h
-    f:  absurd                            by imp_e pn pb nb rb
+    pb: Pair z a b by and_e h
+    f: absurd      by imp_e pn pb nb rb
     therefore forall z. (Nil z and Pair z a b) -> absurd
-  f: absurd                               by exists_e sb wit
+  f: absurd by exists_e sb wit
   therefore forall a b. FS0 -> Suc a b -> Nil b -> absurd
 
 theorem suc_inj:
   variable a b c d
   assume fs0: FS0
-  assume sb:  Suc a b
-  assume sd:  Suc c d
+  assume sb: Suc a b
+  assume sd: Suc c d
   assume ebd: Eq b d
-  pj: Pj                                  by and_e fs0
+  pj: Pj by and_e fs0
   lemma w1:
     variable z
     assume h1: Nil z and Pair z a b
     lemma w2:
       variable z1
       assume h2: Nil z1 and Pair z1 c d
-      pb: Pair z a b                      by and_e h1
-      pd: Pair z1 c d                     by and_e h2
-      e:  Eq z z1 and Eq a c              by imp_e pj pb pd ebd
-      r:  Eq a c                          by and_e e
+      pb: Pair z a b        by and_e h1
+      pd: Pair z1 c d       by and_e h2
+      e: Eq z z1 and Eq a c by imp_e pj pb pd ebd
+      r: Eq a c             by and_e e
       therefore forall z1. (Nil z1 and Pair z1 c d) -> Eq a c
-    r: Eq a c                             by exists_e sd w2
+    r: Eq a c by exists_e sd w2
     therefore forall z. (Nil z and Pair z a b) -> Eq a c
-  r: Eq a c                               by exists_e sb w1
+  r: Eq a c by exists_e sb w1
   therefore forall a b c d. FS0 -> Suc a b -> Suc c d -> Eq b d -> Eq a c
 
 -- Every doubling is the atom's, or two successors past another.
@@ -63,17 +63,17 @@ define DblShape i k = (Nil i and Nil k) or (exists j m m1. Dbl j m and Suc j i a
 define DblInv i k   = Dbl i k and DblShape i k
 
 theorem dbl_inv:
-  assume dbl:   DBL
+  assume dbl: DBL
   assume least: DblLeast DblInv
-  dz: Dz                                  by and_e dbl
-  ds: Ds                                  by and_e dbl
+  dz: Dz by and_e dbl
+  ds: Ds by and_e dbl
   lemma c0:
     variable n
     assume nn: Nil n
-    d:  Dbl n n                           by imp_e dz nn
-    b:  Nil n and Nil n                   by and_i nn nn
-    sh: DblShape n n                      by or_i b
-    r:  DblInv n n                        by and_i d sh
+    d: Dbl n n         by imp_e dz nn
+    b: Nil n and Nil n by and_i nn nn
+    sh: DblShape n n   by or_i b
+    r: DblInv n n      by and_i d sh
     therefore forall n. Nil n -> DblInv n n
   lemma c1:
     variable i k i1 k1 k2
@@ -81,56 +81,56 @@ theorem dbl_inv:
     assume si: Suc i i1
     assume sk: Suc k k1
     assume s1: Suc k1 k2
-    d:  Dbl i k                           by and_e ih
-    d1: Dbl i1 k2                         by imp_e ds d si sk s1
-    c:  Dbl i k and Suc i i1 and Suc k k1 and Suc k1 k2
-                                          by and_i d si sk s1
-    e:  exists j m m1. Dbl j m and Suc j i1 and Suc m m1 and Suc m1 k2
-                                          by exists_i c
-    sh: DblShape i1 k2                    by or_i e
-    r:  DblInv i1 k2                      by and_i d1 sh
+    d: Dbl i k         by and_e ih
+    d1: Dbl i1 k2      by imp_e ds d si sk s1
+    c: Dbl i k and Suc i i1 and Suc k k1 and Suc k1 k2
+                       by and_i d si sk s1
+    e: exists j m m1. Dbl j m and Suc j i1 and Suc m m1 and Suc m1 k2
+                       by exists_i c
+    sh: DblShape i1 k2 by or_i e
+    r: DblInv i1 k2    by and_i d1 sh
     therefore forall i k i1 k1 k2. DblInv i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> DblInv i1 k2
-  r: forall i k. Dbl i k -> DblInv i k    by imp_e least c0 c1
+  r: forall i k. Dbl i k -> DblInv i k by imp_e least c0 c1
   therefore DBL -> DblLeast DblInv -> forall i k. Dbl i k -> DblInv i k
 
 -- Doubling is one to one.
 define DblInj i k = forall j l. Dbl j l -> Eq k l -> Eq i j
 
 theorem dbl_inj:
-  assume fs0:   FS0
-  assume dbl:   DBL
-  assume linv:  DblLeast DblInv
+  assume fs0: FS0
+  assume dbl: DBL
+  assume linv: DblLeast DblInv
   assume least: DblLeast DblInj
-  nu:  Nu                                 by and_e fs0
-  en:  En                                 by and_e fs0
-  inv: forall i k. Dbl i k -> DblInv i k  by imp_e dbl_inv dbl linv
+  nu: Nu                                 by and_e fs0
+  en: En                                 by and_e fs0
+  inv: forall i k. Dbl i k -> DblInv i k by imp_e dbl_inv dbl linv
   lemma c0:
     variable n
     assume nn: Nil n
     lemma each:
       variable j l
-      assume dj:  Dbl j l
+      assume dj: Dbl j l
       assume enl: Eq n l
-      ij: DblInv j l                      by imp_e inv dj
-      sh: DblShape j l                    by and_e ij
+      ij: DblInv j l   by imp_e inv dj
+      sh: DblShape j l by and_e ij
       lemma zero:
         assume z: Nil j and Nil l
-        nj: Nil j                         by and_e z
-        r:  Eq n j                        by imp_e nu nn nj
+        nj: Nil j by and_e z
+        r: Eq n j by imp_e nu nn nj
         therefore (Nil j and Nil l) -> Eq n j
       lemma succ:
         assume h: exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
         lemma wit:
           variable j1 m m1
           assume c: Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
-          sl: Suc m1 l                    by and_e c
-          nl: Nil l                       by imp_e en enl nn
-          f:  absurd                      by imp_e suc_nil fs0 sl nl
-          r:  Eq n j                      by absurd_e f
+          sl: Suc m1 l by and_e c
+          nl: Nil l    by imp_e en enl nn
+          f: absurd    by imp_e suc_nil fs0 sl nl
+          r: Eq n j    by absurd_e f
           therefore forall j1 m m1. (Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> Eq n j
-        r: Eq n j                         by exists_e h wit
+        r: Eq n j by exists_e h wit
         therefore (exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> Eq n j
-      r: Eq n j                           by or_e sh zero succ
+      r: Eq n j by or_e sh zero succ
       therefore forall j l. Dbl j l -> Eq n l -> Eq n j
     therefore forall n. Nil n -> DblInj n n
   lemma c1:
@@ -141,81 +141,81 @@ theorem dbl_inj:
     assume s1: Suc k1 k2
     lemma each:
       variable j l
-      assume dj:  Dbl j l
+      assume dj: Dbl j l
       assume ekl: Eq k2 l
-      ij: DblInv j l                      by imp_e inv dj
-      sh: DblShape j l                    by and_e ij
+      ij: DblInv j l   by imp_e inv dj
+      sh: DblShape j l by and_e ij
       lemma zero:
         assume z: Nil j and Nil l
-        nl:  Nil l                        by and_e z
-        elk: Eq l k2                      by imp_e eq_sym fs0 ekl
-        nk:  Nil k2                       by imp_e en elk nl
-        f:   absurd                       by imp_e suc_nil fs0 s1 nk
-        r:   Eq i1 j                      by absurd_e f
+        nl: Nil l    by and_e z
+        elk: Eq l k2 by imp_e eq_sym fs0 ekl
+        nk: Nil k2   by imp_e en elk nl
+        f: absurd    by imp_e suc_nil fs0 s1 nk
+        r: Eq i1 j   by absurd_e f
         therefore (Nil j and Nil l) -> Eq i1 j
       lemma succ:
         assume h: exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
         lemma wit:
           variable j1 m m1
           assume c: Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
-          dm:  Dbl j1 m                   by and_e c
-          sj:  Suc j1 j                   by and_e c
-          sm:  Suc m m1                   by and_e c
-          sl:  Suc m1 l                   by and_e c
-          e1:  Eq k1 m1                   by imp_e suc_inj fs0 s1 sl ekl
-          e2:  Eq k m                     by imp_e suc_inj fs0 sk sm e1
-          eij: Eq i j1                    by imp_e ih dm e2
-          r:   Eq i1 j                    by imp_e suc_fun fs0 eij si sj
+          dm: Dbl j1 m by and_e c
+          sj: Suc j1 j by and_e c
+          sm: Suc m m1 by and_e c
+          sl: Suc m1 l by and_e c
+          e1: Eq k1 m1 by imp_e suc_inj fs0 s1 sl ekl
+          e2: Eq k m   by imp_e suc_inj fs0 sk sm e1
+          eij: Eq i j1 by imp_e ih dm e2
+          r: Eq i1 j   by imp_e suc_fun fs0 eij si sj
           therefore forall j1 m m1. (Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> Eq i1 j
-        r: Eq i1 j                        by exists_e h wit
+        r: Eq i1 j by exists_e h wit
         therefore (exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> Eq i1 j
-      r: Eq i1 j                          by or_e sh zero succ
+      r: Eq i1 j by or_e sh zero succ
       therefore forall j l. Dbl j l -> Eq k2 l -> Eq i1 j
     therefore forall i k i1 k1 k2. DblInj i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> DblInj i1 k2
-  r: forall i k. Dbl i k -> DblInj i k    by imp_e least c0 c1
+  r: forall i k. Dbl i k -> DblInj i k by imp_e least c0 c1
   therefore FS0 -> DBL -> DblLeast DblInv -> DblLeast DblInj -> forall i k. Dbl i k -> DblInj i k
 
 -- No double is one past a double.
 define DblOdd i k = forall z j l. Suc k z -> Dbl j l -> Eq z l -> absurd
 
 theorem dbl_odd:
-  assume fs0:   FS0
-  assume dbl:   DBL
-  assume linv:  DblLeast DblInv
+  assume fs0: FS0
+  assume dbl: DBL
+  assume linv: DblLeast DblInv
   assume least: DblLeast DblOdd
-  en:  En                                 by and_e fs0
-  inv: forall i k. Dbl i k -> DblInv i k  by imp_e dbl_inv dbl linv
+  en: En                                 by and_e fs0
+  inv: forall i k. Dbl i k -> DblInv i k by imp_e dbl_inv dbl linv
   lemma c0:
     variable n
     assume nn: Nil n
     lemma each:
       variable z j l
-      assume sz:  Suc n z
-      assume dj:  Dbl j l
+      assume sz: Suc n z
+      assume dj: Dbl j l
       assume ezl: Eq z l
-      ij: DblInv j l                      by imp_e inv dj
-      sh: DblShape j l                    by and_e ij
+      ij: DblInv j l   by imp_e inv dj
+      sh: DblShape j l by and_e ij
       lemma zero:
         assume b: Nil j and Nil l
-        nl:  Nil l                        by and_e b
-        elz: Eq l z                       by imp_e eq_sym fs0 ezl
-        nz:  Nil z                        by imp_e en elz nl
-        f:   absurd                       by imp_e suc_nil fs0 sz nz
+        nl: Nil l   by and_e b
+        elz: Eq l z by imp_e eq_sym fs0 ezl
+        nz: Nil z   by imp_e en elz nl
+        f: absurd   by imp_e suc_nil fs0 sz nz
         therefore (Nil j and Nil l) -> absurd
       lemma succ:
         assume h: exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
         lemma wit:
           variable j1 m m1
           assume c: Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
-          sm: Suc m m1                    by and_e c
-          sl: Suc m1 l                    by and_e c
-          e1: Eq n m1                     by imp_e suc_inj fs0 sz sl ezl
-          nm: Nil m1                      by imp_e en e1 nn
-          f:  absurd                      by imp_e suc_nil fs0 sm nm
+          sm: Suc m m1 by and_e c
+          sl: Suc m1 l by and_e c
+          e1: Eq n m1  by imp_e suc_inj fs0 sz sl ezl
+          nm: Nil m1   by imp_e en e1 nn
+          f: absurd    by imp_e suc_nil fs0 sm nm
           therefore forall j1 m m1. (Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> absurd
-        f: absurd                         by exists_e h wit
+        f: absurd by exists_e h wit
         therefore (exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> absurd
-      f: absurd                           by or_e sh zero succ
+      f: absurd by or_e sh zero succ
       therefore forall z j l. Suc n z -> Dbl j l -> Eq z l -> absurd
     therefore forall n. Nil n -> DblOdd n n
   lemma c1:
@@ -226,103 +226,103 @@ theorem dbl_odd:
     assume s1: Suc k1 k2
     lemma each:
       variable z j l
-      assume sz:  Suc k2 z
-      assume dj:  Dbl j l
+      assume sz: Suc k2 z
+      assume dj: Dbl j l
       assume ezl: Eq z l
-      ij: DblInv j l                      by imp_e inv dj
-      sh: DblShape j l                    by and_e ij
+      ij: DblInv j l   by imp_e inv dj
+      sh: DblShape j l by and_e ij
       lemma zero:
         assume b: Nil j and Nil l
-        nl:  Nil l                        by and_e b
-        elz: Eq l z                       by imp_e eq_sym fs0 ezl
-        nz:  Nil z                        by imp_e en elz nl
-        f:   absurd                       by imp_e suc_nil fs0 sz nz
+        nl: Nil l   by and_e b
+        elz: Eq l z by imp_e eq_sym fs0 ezl
+        nz: Nil z   by imp_e en elz nl
+        f: absurd   by imp_e suc_nil fs0 sz nz
         therefore (Nil j and Nil l) -> absurd
       lemma succ:
         assume h: exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
         lemma wit:
           variable j1 m m1
           assume c: Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l
-          dm: Dbl j1 m                    by and_e c
-          sm: Suc m m1                    by and_e c
-          sl: Suc m1 l                    by and_e c
-          e1: Eq k2 m1                    by imp_e suc_inj fs0 sz sl ezl
-          e2: Eq k1 m                     by imp_e suc_inj fs0 s1 sm e1
-          f:  absurd                      by imp_e ih sk dm e2
+          dm: Dbl j1 m by and_e c
+          sm: Suc m m1 by and_e c
+          sl: Suc m1 l by and_e c
+          e1: Eq k2 m1 by imp_e suc_inj fs0 sz sl ezl
+          e2: Eq k1 m  by imp_e suc_inj fs0 s1 sm e1
+          f: absurd    by imp_e ih sk dm e2
           therefore forall j1 m m1. (Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> absurd
-        f: absurd                         by exists_e h wit
+        f: absurd by exists_e h wit
         therefore (exists j1 m m1. Dbl j1 m and Suc j1 j and Suc m m1 and Suc m1 l) -> absurd
-      f: absurd                           by or_e sh zero succ
+      f: absurd by or_e sh zero succ
       therefore forall z j l. Suc k2 z -> Dbl j l -> Eq z l -> absurd
     therefore forall i k i1 k1 k2. DblOdd i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> DblOdd i1 k2
-  r: forall i k. Dbl i k -> DblOdd i k    by imp_e least c0 c1
+  r: forall i k. Dbl i k -> DblOdd i k by imp_e least c0 c1
   therefore FS0 -> DBL -> DblLeast DblInv -> DblLeast DblOdd -> forall i k. Dbl i k -> DblOdd i k
 
 -- So pool variables are one to one, and none is even.
 theorem pool_inj:
   variable i j z z1
-  assume fs0:  FS0
-  assume dbl:  DBL
+  assume fs0: FS0
+  assume dbl: DBL
   assume linv: DblLeast DblInv
   assume linj: DblLeast DblInj
-  assume pi:   Pool i z
-  assume pj:   Pool j z1
-  assume ez:   Eq z z1
-  inj: forall i1 k. Dbl i1 k -> DblInj i1 k  by imp_e dbl_inj fs0 dbl linv linj
+  assume pi: Pool i z
+  assume pj: Pool j z1
+  assume ez: Eq z z1
+  inj: forall i1 k. Dbl i1 k -> DblInj i1 k by imp_e dbl_inj fs0 dbl linv linj
   lemma w1:
     variable k
     assume h1: Dbl i k and Suc k z
     lemma w2:
       variable l
       assume h2: Dbl j l and Suc l z1
-      dk: Dbl i k                         by and_e h1
-      sk: Suc k z                         by and_e h1
-      dl: Dbl j l                         by and_e h2
-      sl: Suc l z1                        by and_e h2
-      e:  Eq k l                          by imp_e suc_inj fs0 sk sl ez
-      di: DblInj i k                      by imp_e inj dk
-      r:  Eq i j                          by imp_e di dl e
+      dk: Dbl i k    by and_e h1
+      sk: Suc k z    by and_e h1
+      dl: Dbl j l    by and_e h2
+      sl: Suc l z1   by and_e h2
+      e: Eq k l      by imp_e suc_inj fs0 sk sl ez
+      di: DblInj i k by imp_e inj dk
+      r: Eq i j      by imp_e di dl e
       therefore forall l. (Dbl j l and Suc l z1) -> Eq i j
-    r: Eq i j                             by exists_e pj w2
+    r: Eq i j by exists_e pj w2
     therefore forall k. (Dbl i k and Suc k z) -> Eq i j
-  r: Eq i j                               by exists_e pi w1
+  r: Eq i j by exists_e pi w1
   therefore forall i j z z1. FS0 -> DBL -> DblLeast DblInv -> DblLeast DblInj -> Pool i z -> Pool j z1 -> Eq z z1
-              -> Eq i j
+      -> Eq i j
 
 theorem even_pool:
   variable v i z
-  assume fs0:  FS0
-  assume dbl:  DBL
+  assume fs0: FS0
+  assume dbl: DBL
   assume linv: DblLeast DblInv
   assume lodd: DblLeast DblOdd
-  assume ev:   Even v
-  assume pz:   Pool i z
-  assume e:    Eq z v
-  odd: forall i1 k. Dbl i1 k -> DblOdd i1 k  by imp_e dbl_odd fs0 dbl linv lodd
+  assume ev: Even v
+  assume pz: Pool i z
+  assume e: Eq z v
+  odd: forall i1 k. Dbl i1 k -> DblOdd i1 k by imp_e dbl_odd fs0 dbl linv lodd
   lemma w1:
     variable j l
     assume hv: Dbl j l and Eq l v
-    dv:  Dbl j l                          by and_e hv
-    elv: Eq l v                           by and_e hv
-    evl: Eq v l                           by imp_e eq_sym fs0 elv
-    ezl: Eq z l                           by imp_e eq_trans fs0 e evl
+    dv: Dbl j l by and_e hv
+    elv: Eq l v by and_e hv
+    evl: Eq v l by imp_e eq_sym fs0 elv
+    ezl: Eq z l by imp_e eq_trans fs0 e evl
     lemma w2:
       variable k
       assume h: Dbl i k and Suc k z
-      dk: Dbl i k                         by and_e h
-      sk: Suc k z                         by and_e h
-      od: DblOdd i k                      by imp_e odd dk
-      f:  absurd                          by imp_e od sk dv ezl
+      dk: Dbl i k    by and_e h
+      sk: Suc k z    by and_e h
+      od: DblOdd i k by imp_e odd dk
+      f: absurd      by imp_e od sk dv ezl
       therefore forall k. (Dbl i k and Suc k z) -> absurd
-    f: absurd                             by exists_e pz w2
+    f: absurd by exists_e pz w2
     therefore forall j l. (Dbl j l and Eq l v) -> absurd
-  f: absurd                               by exists_e ev w1
+  f: absurd by exists_e ev w1
   therefore forall v i z. FS0 -> DBL -> DblLeast DblInv -> DblLeast DblOdd -> Even v -> Pool i z -> Eq z v -> absurd
 
 -- So an even variable is never a pool variable.
 theorem even_pool_ne:
-  assume fs0:  FS0
-  assume dbl:  DBL
+  assume fs0: FS0
+  assume dbl: DBL
   assume dinv: DblLeast DblInv
   assume dodd: DblLeast DblOdd
   lemma all:
@@ -331,8 +331,8 @@ theorem even_pool_ne:
     assume pu: Pool i u
     lemma ne:
       assume e1: Eq w u
-      e2:  Eq u w                         by imp_e eq_sym fs0 e1
-      bad: absurd                         by imp_e even_pool fs0 dbl dinv dodd ew pu e2
+      e2: Eq u w  by imp_e eq_sym fs0 e1
+      bad: absurd by imp_e even_pool fs0 dbl dinv dodd ew pu e2
       therefore not (Eq w u)
     therefore forall w i u. Even w -> Pool i u -> not (Eq w u)
   therefore FS0 -> DBL -> DblLeast DblInv -> DblLeast DblOdd -> forall w i u. Even w -> Pool i u -> not (Eq w u)
@@ -341,30 +341,30 @@ theorem even_pool_ne:
 theorem nat_suc:
   variable v w
   assume nat: NAT
-  assume nv:  Nat v
-  assume sw:  Suc v w
-  sn: Sn                                  by and_e nat
+  assume nv: Nat v
+  assume sw: Suc v w
+  sn: Sn by and_e nat
   lemma wit:
     variable z
     assume h: Nil z and Pair z v w
-    nz: Nil z                             by and_e h
-    pw: Pair z v w                        by and_e h
-    r:  Nat w                             by imp_e sn nz nv pw
+    nz: Nil z      by and_e h
+    pw: Pair z v w by and_e h
+    r: Nat w       by imp_e sn nz nv pw
     therefore forall z. (Nil z and Pair z v w) -> Nat w
-  r: Nat w                                by exists_e sw wit
+  r: Nat w by exists_e sw wit
   therefore forall v w. NAT -> Nat v -> Suc v w -> Nat w
 
 define DblNat i k = Nat i and Nat k
 
 theorem dbl_nat:
-  assume nat:   NAT
+  assume nat: NAT
   assume least: DblLeast DblNat
-  zn: Zn                                  by and_e nat
+  zn: Zn by and_e nat
   lemma c0:
     variable n
     assume nn: Nil n
-    k: Nat n                              by imp_e zn nn
-    r: Nat n and Nat n                    by and_i k k
+    k: Nat n           by imp_e zn nn
+    r: Nat n and Nat n by and_i k k
     therefore forall n. Nil n -> DblNat n n
   lemma c1:
     variable i k i1 k1 k2
@@ -372,14 +372,14 @@ theorem dbl_nat:
     assume si: Suc i i1
     assume sk: Suc k k1
     assume s1: Suc k1 k2
-    ni:  Nat i                            by and_e ih
-    nk:  Nat k                            by and_e ih
-    ni1: Nat i1                           by imp_e nat_suc nat ni si
-    nk1: Nat k1                           by imp_e nat_suc nat nk sk
-    nk2: Nat k2                           by imp_e nat_suc nat nk1 s1
-    r:   Nat i1 and Nat k2                by and_i ni1 nk2
+    ni: Nat i            by and_e ih
+    nk: Nat k            by and_e ih
+    ni1: Nat i1          by imp_e nat_suc nat ni si
+    nk1: Nat k1          by imp_e nat_suc nat nk sk
+    nk2: Nat k2          by imp_e nat_suc nat nk1 s1
+    r: Nat i1 and Nat k2 by and_i ni1 nk2
     therefore forall i k i1 k1 k2. DblNat i k -> Suc i i1 -> Suc k k1 -> Suc k1 k2 -> DblNat i1 k2
-  r: forall i k. Dbl i k -> DblNat i k    by imp_e least c0 c1
+  r: forall i k. Dbl i k -> DblNat i k by imp_e least c0 c1
   therefore NAT -> DblLeast DblNat -> forall i k. Dbl i k -> DblNat i k
 
 -- Order on the pool's indices, for freshness: a chain through z_0 ... z_N mentions no z_M past N.
@@ -391,40 +391,40 @@ define Lt1 = forall n m m1. Lt n m -> Suc m m1 -> Lt n m1
 define LT = Lt0 and Lt1
 
 define LtLeast (P n m) = (forall n m. Suc n m -> P n m)
-                         -> (forall n m m1. P n m -> Suc m m1 -> P n m1)
-                         -> forall n m. Lt n m -> P n m
+    -> (forall n m m1. P n m -> Suc m m1 -> P n m1)
+    -> forall n m. Lt n m -> P n m
 
 -- Successors respect equality.
 theorem suc_eq:
   variable a b a1 b1
   assume fs0: FS0
-  assume ea:  Eq a a1
-  assume eb:  Eq b b1
-  assume sb:  Suc a b
-  ep:   Ep                                by and_e fs0
-  refl: Refl                              by and_e fs0
+  assume ea: Eq a a1
+  assume eb: Eq b b1
+  assume sb: Suc a b
+  ep: Ep     by and_e fs0
+  refl: Refl by and_e fs0
   lemma wit:
     variable z
     assume h: Nil z and Pair z a b
-    nz: Nil z                             by and_e h
-    pb: Pair z a b                        by and_e h
-    rz: Eq z z                            by forall_e refl z
-    p1: Pair z a1 b1                      by imp_e ep rz ea eb pb
-    c:  Nil z and Pair z a1 b1            by and_i nz p1
-    r:  Suc a1 b1                         by exists_i c
+    nz: Nil z                 by and_e h
+    pb: Pair z a b            by and_e h
+    rz: Eq z z                by forall_e refl z
+    p1: Pair z a1 b1          by imp_e ep rz ea eb pb
+    c: Nil z and Pair z a1 b1 by and_i nz p1
+    r: Suc a1 b1              by exists_i c
     therefore forall z. (Nil z and Pair z a b) -> Suc a1 b1
-  r: Suc a1 b1                            by exists_e sb wit
+  r: Suc a1 b1 by exists_e sb wit
   therefore forall a b a1 b1. FS0 -> Eq a a1 -> Eq b b1 -> Suc a b -> Suc a1 b1
 
 define LtEq n m = forall n1 m1. Eq n n1 -> Eq m m1 -> Lt n1 m1
 
 theorem lt_eq:
-  assume fs0:   FS0
-  assume lt:    LT
+  assume fs0: FS0
+  assume lt: LT
   assume least: LtLeast LtEq
-  lt0:  Lt0                               by and_e lt
-  lt1:  Lt1                               by and_e lt
-  refl: Refl                              by and_e fs0
+  lt0: Lt0   by and_e lt
+  lt1: Lt1   by and_e lt
+  refl: Refl by and_e fs0
   lemma c0:
     variable n m
     assume sm: Suc n m
@@ -432,8 +432,8 @@ theorem lt_eq:
       variable n1 m1
       assume en: Eq n n1
       assume em: Eq m m1
-      s1: Suc n1 m1                       by imp_e suc_eq fs0 en em sm
-      r:  Lt n1 m1                        by imp_e lt0 s1
+      s1: Suc n1 m1 by imp_e suc_eq fs0 en em sm
+      r: Lt n1 m1   by imp_e lt0 s1
       therefore forall n1 m1. Eq n n1 -> Eq m m1 -> Lt n1 m1
     therefore forall n m. Suc n m -> LtEq n m
   lemma c1:
@@ -444,28 +444,28 @@ theorem lt_eq:
       variable n1 m2
       assume en: Eq n n1
       assume em: Eq m1 m2
-      rm: Eq m m                          by forall_e refl m
-      l:  Lt n1 m                         by imp_e ih en rm
-      s2: Suc m m2                        by imp_e suc_eq fs0 rm em sm
-      r:  Lt n1 m2                        by imp_e lt1 l s2
+      rm: Eq m m   by forall_e refl m
+      l: Lt n1 m   by imp_e ih en rm
+      s2: Suc m m2 by imp_e suc_eq fs0 rm em sm
+      r: Lt n1 m2  by imp_e lt1 l s2
       therefore forall n1 m2. Eq n n1 -> Eq m1 m2 -> Lt n1 m2
     therefore forall n m m1. LtEq n m -> Suc m m1 -> LtEq n m1
-  r: forall n m. Lt n m -> LtEq n m       by imp_e least c0 c1
+  r: forall n m. Lt n m -> LtEq n m by imp_e least c0 c1
   therefore FS0 -> LT -> LtLeast LtEq -> forall n m. Lt n m -> LtEq n m
 
 define LtTrans b c = forall a. Lt a b -> Lt a c
 
 theorem lt_trans:
-  assume lt:    LT
+  assume lt: LT
   assume least: LtLeast LtTrans
-  lt1: Lt1                                by and_e lt
+  lt1: Lt1 by and_e lt
   lemma c0:
     variable b c
     assume sc: Suc b c
     lemma each:
       variable a
       assume ab: Lt a b
-      r: Lt a c                           by imp_e lt1 ab sc
+      r: Lt a c by imp_e lt1 ab sc
       therefore forall a. Lt a b -> Lt a c
     therefore forall b c. Suc b c -> LtTrans b c
   lemma c1:
@@ -475,80 +475,80 @@ theorem lt_trans:
     lemma each:
       variable a
       assume ab: Lt a b
-      ac: Lt a c                          by imp_e ih ab
-      r:  Lt a c1                         by imp_e lt1 ac sc
+      ac: Lt a c by imp_e ih ab
+      r: Lt a c1 by imp_e lt1 ac sc
       therefore forall a. Lt a b -> Lt a c1
     therefore forall b c c1. LtTrans b c -> Suc c c1 -> LtTrans b c1
-  r: forall b c. Lt b c -> LtTrans b c    by imp_e least c0 c1
+  r: forall b c. Lt b c -> LtTrans b c by imp_e least c0 c1
   therefore LT -> LtLeast LtTrans -> forall b c. Lt b c -> LtTrans b c
 
 define LtShape n m = Suc n m or exists k. Lt n k and Suc k m
 define LtInv n m   = Lt n m and LtShape n m
 
 theorem lt_inv:
-  assume lt:    LT
+  assume lt: LT
   assume least: LtLeast LtInv
-  lt0: Lt0                                by and_e lt
-  lt1: Lt1                                by and_e lt
+  lt0: Lt0 by and_e lt
+  lt1: Lt1 by and_e lt
   lemma c0:
     variable n m
     assume sm: Suc n m
-    l:  Lt n m                            by imp_e lt0 sm
-    sh: LtShape n m                       by or_i sm
-    r:  LtInv n m                         by and_i l sh
+    l: Lt n m       by imp_e lt0 sm
+    sh: LtShape n m by or_i sm
+    r: LtInv n m    by and_i l sh
     therefore forall n m. Suc n m -> LtInv n m
   lemma c1:
     variable n m m1
     assume ih: LtInv n m
     assume sm: Suc m m1
-    l:  Lt n m                            by and_e ih
-    l1: Lt n m1                           by imp_e lt1 l sm
-    c:  Lt n m and Suc m m1               by and_i l sm
-    e:  exists k. Lt n k and Suc k m1     by exists_i c
-    sh: LtShape n m1                      by or_i e
-    r:  LtInv n m1                        by and_i l1 sh
+    l: Lt n m                        by and_e ih
+    l1: Lt n m1                      by imp_e lt1 l sm
+    c: Lt n m and Suc m m1           by and_i l sm
+    e: exists k. Lt n k and Suc k m1 by exists_i c
+    sh: LtShape n m1                 by or_i e
+    r: LtInv n m1                    by and_i l1 sh
     therefore forall n m m1. LtInv n m -> Suc m m1 -> LtInv n m1
-  r: forall n m. Lt n m -> LtInv n m      by imp_e least c0 c1
+  r: forall n m. Lt n m -> LtInv n m by imp_e least c0 c1
   therefore LT -> LtLeast LtInv -> forall n m. Lt n m -> LtInv n m
 
 -- No numeral is below itself.
 define LtIrr n = not (Lt n n)
 
 theorem lt_irrefl:
-  assume fs0:   FS0
-  assume lt:    LT
-  assume linv:  LtLeast LtInv
-  assume leq:   LtLeast LtEq
-  assume ltr:   LtLeast LtTrans
+  assume fs0: FS0
+  assume lt: LT
+  assume linv: LtLeast LtInv
+  assume leq: LtLeast LtEq
+  assume ltr: LtLeast LtTrans
   assume least: NatLeast LtIrr
-  lt0:  Lt0                               by and_e lt
-  refl: Refl                              by and_e fs0
-  inv:  forall n m. Lt n m -> LtInv n m   by imp_e lt_inv lt linv
-  eqs:  forall n m. Lt n m -> LtEq n m    by imp_e lt_eq fs0 lt leq
-  trs:  forall b c. Lt b c -> LtTrans b c
-                                          by imp_e lt_trans lt ltr
+  lt0: Lt0                             by and_e lt
+  refl: Refl                           by and_e fs0
+  inv: forall n m. Lt n m -> LtInv n m by imp_e lt_inv lt linv
+  eqs: forall n m. Lt n m -> LtEq n m  by imp_e lt_eq fs0 lt leq
+  trs: forall b c. Lt b c -> LtTrans b c
+                                       by imp_e lt_trans lt ltr
   lemma c0:
     variable n
     assume nn: Nil n
     lemma no:
       assume l: Lt n n
-      i:  LtInv n n                       by imp_e inv l
-      sh: LtShape n n                     by and_e i
+      i: LtInv n n    by imp_e inv l
+      sh: LtShape n n by and_e i
       lemma one:
         assume s: Suc n n
-        f: absurd                         by imp_e suc_nil fs0 s nn
+        f: absurd by imp_e suc_nil fs0 s nn
         therefore Suc n n -> absurd
       lemma more:
         assume h: exists k. Lt n k and Suc k n
         lemma wit:
           variable k
           assume c: Lt n k and Suc k n
-          s: Suc k n                      by and_e c
-          f: absurd                       by imp_e suc_nil fs0 s nn
+          s: Suc k n by and_e c
+          f: absurd  by imp_e suc_nil fs0 s nn
           therefore forall k. (Lt n k and Suc k n) -> absurd
-        f: absurd                         by exists_e h wit
+        f: absurd by exists_e h wit
         therefore (exists k. Lt n k and Suc k n) -> absurd
-      f: absurd                           by or_e sh one more
+      f: absurd by or_e sh one more
       therefore not (Lt n n)
     therefore forall n. Nil n -> LtIrr n
   lemma c1:
@@ -556,60 +556,60 @@ theorem lt_irrefl:
     assume nz: Nil z
     assume ih: LtIrr n
     assume ps: Pair z n s
-    c:  Nil z and Pair z n s              by and_i nz ps
-    sn: Suc n s                           by exists_i c
-    ns: Lt n s                            by imp_e lt0 sn
-    rn: Eq n n                            by forall_e refl n
-    rs: Eq s s                            by forall_e refl s
+    c: Nil z and Pair z n s by and_i nz ps
+    sn: Suc n s             by exists_i c
+    ns: Lt n s              by imp_e lt0 sn
+    rn: Eq n n              by forall_e refl n
+    rs: Eq s s              by forall_e refl s
     lemma no:
       assume l: Lt s s
-      i:  LtInv s s                       by imp_e inv l
-      sh: LtShape s s                     by and_e i
+      i: LtInv s s    by imp_e inv l
+      sh: LtShape s s by and_e i
       lemma one:
         assume ss: Suc s s
-        e:  Eq s n                        by imp_e suc_inj fs0 ss sn rs
-        q:  LtEq n s                      by imp_e eqs ns
-        nn: Lt n n                        by imp_e q rn e
-        f:  absurd                        by imp_e ih nn
+        e: Eq s n   by imp_e suc_inj fs0 ss sn rs
+        q: LtEq n s by imp_e eqs ns
+        nn: Lt n n  by imp_e q rn e
+        f: absurd   by imp_e ih nn
         therefore Suc s s -> absurd
       lemma more:
         assume h: exists k. Lt s k and Suc k s
         lemma wit:
           variable k
           assume hk: Lt s k and Suc k s
-          lk:  Lt s k                     by and_e hk
-          sk:  Suc k s                    by and_e hk
-          e:   Eq k n                     by imp_e suc_inj fs0 sk sn rs
-          q:   LtEq s k                   by imp_e eqs lk
-          sn1: Lt s n                     by imp_e q rs e
-          t:   LtTrans s n                by imp_e trs sn1
-          nn:  Lt n n                     by imp_e t ns
-          f:   absurd                     by imp_e ih nn
+          lk: Lt s k     by and_e hk
+          sk: Suc k s    by and_e hk
+          e: Eq k n      by imp_e suc_inj fs0 sk sn rs
+          q: LtEq s k    by imp_e eqs lk
+          sn1: Lt s n    by imp_e q rs e
+          t: LtTrans s n by imp_e trs sn1
+          nn: Lt n n     by imp_e t ns
+          f: absurd      by imp_e ih nn
           therefore forall k. (Lt s k and Suc k s) -> absurd
-        f: absurd                         by exists_e h wit
+        f: absurd by exists_e h wit
         therefore (exists k. Lt s k and Suc k s) -> absurd
-      f: absurd                           by or_e sh one more
+      f: absurd by or_e sh one more
       therefore not (Lt s s)
     therefore forall z n s. Nil z -> LtIrr n -> Pair z n s -> LtIrr s
-  r: forall n. Nat n -> LtIrr n           by imp_e least c0 c1
+  r: forall n. Nat n -> LtIrr n by imp_e least c0 c1
   therefore FS0 -> LT -> LtLeast LtInv -> LtLeast LtEq -> LtLeast LtTrans -> NatLeast LtIrr -> forall n. Nat n -> LtIrr n
 
 -- A pool variable stays one along equality.
 theorem pool_eq:
   variable n z u
   assume fs0: FS0
-  assume pz:  Pool n z
-  assume e:   Eq z u
-  refl: Refl                              by and_e fs0
+  assume pz: Pool n z
+  assume e: Eq z u
+  refl: Refl by and_e fs0
   lemma wit:
     variable k
     assume h: Dbl n k and Suc k z
-    dk: Dbl n k                           by and_e h
-    sk: Suc k z                           by and_e h
-    rk: Eq k k                            by forall_e refl k
-    s1: Suc k u                           by imp_e suc_eq fs0 rk e sk
-    c:  Dbl n k and Suc k u               by and_i dk s1
-    r:  Pool n u                          by exists_i c
+    dk: Dbl n k            by and_e h
+    sk: Suc k z            by and_e h
+    rk: Eq k k             by forall_e refl k
+    s1: Suc k u            by imp_e suc_eq fs0 rk e sk
+    c: Dbl n k and Suc k u by and_i dk s1
+    r: Pool n u            by exists_i c
     therefore forall k. (Dbl n k and Suc k z) -> Pool n u
-  r: Pool n u                             by exists_e pz wit
+  r: Pool n u by exists_e pz wit
   therefore forall n z u. FS0 -> Pool n z -> Eq z u -> Pool n u

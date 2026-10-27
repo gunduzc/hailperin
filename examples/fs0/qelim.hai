@@ -9,184 +9,184 @@ define ElimCtx = QCtx and LIST and PrfLeast QAx DTP and MemLeast MemCons
 
 theorem pe_elim:
   variable l v k p g
-  assume ec:  ElimCtx
-  assume nv:  Nat v
-  assume nk:  Nat k
-  assume np:  Nat p
-  assume d1:  not (Eq v k)
-  assume d2:  not (Eq v p)
-  assume d3:  not (Eq k p)
+  assume ec: ElimCtx
+  assume nv: Nat v
+  assume nk: Nat k
+  assume np: Nat p
+  assume d1: not (Eq v k)
+  assume d2: not (Eq v p)
+  assume d3: not (Eq k p)
   assume nfl: NoFree p l
   assume nfg: not (Fr p g)
-  assume fg:  Form g
-  assume kk:  forall s l1. PlusAt v k p s -> Pair s l l1 -> PrH l1 g
-  q:     QCtx                             by and_e ec
-  list:  LIST                             by and_e ec
-  dtp:   PrfLeast QAx DTP                 by and_e ec
-  mc:    MemLeast MemCons                 by and_e ec
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  fex:   Fex                              by and_e form
-  pe:    Pe                               by and_e fs0
-  tags:  Tags                             by imp_e tag_exists fs0
-  t6:    exists t. T6 t                   by and_e tags
-  es: exists y. PlusAt v k p y            by imp_e plusat_exists fs0
+  assume fg: Form g
+  assume kk: forall s l1. PlusAt v k p s -> Pair s l l1 -> PrH l1 g
+  q: QCtx                      by and_e ec
+  list: LIST                   by and_e ec
+  dtp: PrfLeast QAx DTP        by and_e ec
+  mc: MemLeast MemCons         by and_e ec
+  fs0: FS0                     by and_e q
+  form: FORM                   by and_e q
+  logax: LOGAX                 by and_e q
+  prf: PRF QAx                 by and_e q
+  fex: Fex                     by and_e form
+  pe: Pe                       by and_e fs0
+  tags: Tags                   by imp_e tag_exists fs0
+  t6: exists t. T6 t           by and_e tags
+  es: exists y. PlusAt v k p y by imp_e plusat_exists fs0
   lemma w1:
     variable s
     assume xs: PlusAt v k p s
-    fs:  Form s                           by imp_e plusat_form form nv nk np xs
-    ec2: exists y. Node2 T6 p s y         by imp_e node2_exists T6 fs0 t6
+    fs: Form s                    by imp_e plusat_form form nv nk np xs
+    ec2: exists y. Node2 T6 p s y by imp_e node2_exists T6 fs0 t6
     lemma w2:
       variable c2
       assume e2: Node2 T6 p s c2
-      f2:  Form c2                        by imp_e fex np fs e2
-      cf:  Nat v and Nat k and Nat p and not (Eq v k) and not (Eq v p) and not (Eq k p) and ExCode p s c2
-             and PlusAt v k p s
-                                          by and_i nv nk np d1 d2 d3 e2 xs
-      pcd: PeCode c2                      by exists_i cf
-      qa:  QAx c2                         by or_i pcd
-      p2:  PrH l c2                       by imp_e prh_axiom QAx fs0 prf f2 qa
-      el1: exists y. Pair s l y           by forall_e pe s l
+      f2: Form c2               by imp_e fex np fs e2
+      cf: Nat v and Nat k and Nat p and not (Eq v k) and not (Eq v p) and not (Eq k p) and ExCode p s c2
+          and PlusAt v k p s
+                                by and_i nv nk np d1 d2 d3 e2 xs
+      pcd: PeCode c2            by exists_i cf
+      qa: QAx c2                by or_i pcd
+      p2: PrH l c2              by imp_e prh_axiom QAx fs0 prf f2 qa
+      el1: exists y. Pair s l y by forall_e pe s l
       lemma w5:
         variable l1
         assume pl: Pair s l l1
-        pg1: PrH l1 g                     by imp_e kk xs pl
-        r:   PrH l g                      by imp_e prh_exe QAx fs0 form logax list prf dtp mc np fs fg nfg nfl e2 p2 pl pg1
+        pg1: PrH l1 g by imp_e kk xs pl
+        r: PrH l g    by imp_e prh_exe QAx fs0 form logax list prf dtp mc np fs fg nfg nfl e2 p2 pl pg1
         therefore forall l1. Pair s l l1 -> PrH l g
-      r: PrH l g                          by exists_e el1 w5
+      r: PrH l g by exists_e el1 w5
       therefore forall c2. Node2 T6 p s c2 -> PrH l g
-    r: PrH l g                            by exists_e ec2 w2
+    r: PrH l g by exists_e ec2 w2
     therefore forall s. PlusAt v k p s -> PrH l g
-  r: PrH l g                              by exists_e es w1
+  r: PrH l g by exists_e es w1
   therefore forall l v k p g. ElimCtx -> Nat v -> Nat k -> Nat p -> not (Eq v k) -> not (Eq v p) -> not (Eq k p)
-              -> NoFree p l -> not (Fr p g) -> Form g -> (forall s l1. PlusAt v k p s -> Pair s l l1 -> PrH l1 g) -> PrH l g
+      -> NoFree p l -> not (Fr p g) -> Form g -> (forall s l1. PlusAt v k p s -> Pair s l l1 -> PrH l1 g) -> PrH l g
 
 theorem se_elim:
   variable l p q1 g
-  assume ec:  ElimCtx
-  assume np:  Nat p
-  assume nq:  Nat q1
-  assume d1:  not (Eq p q1)
+  assume ec: ElimCtx
+  assume np: Nat p
+  assume nq: Nat q1
+  assume d1: not (Eq p q1)
   assume nfl: NoFree q1 l
   assume nfg: not (Fr q1 g)
-  assume fg:  Form g
-  assume kk:  forall s l1. SuccAt p q1 s -> Pair s l l1 -> PrH l1 g
-  q:     QCtx                             by and_e ec
-  list:  LIST                             by and_e ec
-  dtp:   PrfLeast QAx DTP                 by and_e ec
-  mc:    MemLeast MemCons                 by and_e ec
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  fex:   Fex                              by and_e form
-  pe:    Pe                               by and_e fs0
-  tags:  Tags                             by imp_e tag_exists fs0
-  t6:    exists t. T6 t                   by and_e tags
-  es: exists y. SuccAt p q1 y             by imp_e succat_exists fs0
+  assume fg: Form g
+  assume kk: forall s l1. SuccAt p q1 s -> Pair s l l1 -> PrH l1 g
+  q: QCtx                     by and_e ec
+  list: LIST                  by and_e ec
+  dtp: PrfLeast QAx DTP       by and_e ec
+  mc: MemLeast MemCons        by and_e ec
+  fs0: FS0                    by and_e q
+  form: FORM                  by and_e q
+  logax: LOGAX                by and_e q
+  prf: PRF QAx                by and_e q
+  fex: Fex                    by and_e form
+  pe: Pe                      by and_e fs0
+  tags: Tags                  by imp_e tag_exists fs0
+  t6: exists t. T6 t          by and_e tags
+  es: exists y. SuccAt p q1 y by imp_e succat_exists fs0
   lemma w1:
     variable s
     assume xs: SuccAt p q1 s
-    fs:  Form s                           by imp_e succat_form form np nq xs
-    ec1: exists y. Node2 T6 q1 s y        by imp_e node2_exists T6 fs0 t6
+    fs: Form s                     by imp_e succat_form form np nq xs
+    ec1: exists y. Node2 T6 q1 s y by imp_e node2_exists T6 fs0 t6
     lemma w2:
       variable c1
       assume e1: Node2 T6 q1 s c1
-      f1:  Form c1                        by imp_e fex nq fs e1
-      cf:  Nat p and Nat q1 and not (Eq p q1) and ExCode q1 s c1 and SuccAt p q1 s
-                                          by and_i np nq d1 e1 xs
-      scd: SeCode c1                      by exists_i cf
-      qa:  QAx c1                         by or_i scd
-      p1:  PrH l c1                       by imp_e prh_axiom QAx fs0 prf f1 qa
-      el1: exists y. Pair s l y           by forall_e pe s l
+      f1: Form c1               by imp_e fex nq fs e1
+      cf: Nat p and Nat q1 and not (Eq p q1) and ExCode q1 s c1 and SuccAt p q1 s
+                                by and_i np nq d1 e1 xs
+      scd: SeCode c1            by exists_i cf
+      qa: QAx c1                by or_i scd
+      p1: PrH l c1              by imp_e prh_axiom QAx fs0 prf f1 qa
+      el1: exists y. Pair s l y by forall_e pe s l
       lemma w4:
         variable l1
         assume pl: Pair s l l1
-        pg1: PrH l1 g                     by imp_e kk xs pl
-        r:   PrH l g                      by imp_e prh_exe QAx fs0 form logax list prf dtp mc nq fs fg nfg nfl e1 p1 pl pg1
+        pg1: PrH l1 g by imp_e kk xs pl
+        r: PrH l g    by imp_e prh_exe QAx fs0 form logax list prf dtp mc nq fs fg nfg nfl e1 p1 pl pg1
         therefore forall l1. Pair s l l1 -> PrH l g
-      r: PrH l g                          by exists_e el1 w4
+      r: PrH l g by exists_e el1 w4
       therefore forall c1. Node2 T6 q1 s c1 -> PrH l g
-    r: PrH l g                            by exists_e ec1 w2
+    r: PrH l g by exists_e ec1 w2
     therefore forall s. SuccAt p q1 s -> PrH l g
-  r: PrH l g                              by exists_e es w1
+  r: PrH l g by exists_e es w1
   therefore forall l p q1 g. ElimCtx -> Nat p -> Nat q1 -> not (Eq p q1) -> NoFree q1 l -> not (Fr q1 g) -> Form g
-              -> (forall s l1. SuccAt p q1 s -> Pair s l l1 -> PrH l1 g) -> PrH l g
+      -> (forall s l1. SuccAt p q1 s -> Pair s l l1 -> PrH l1 g) -> PrH l g
 
 theorem pred_elim:
   variable l k j zk nz g
-  assume ec:  ElimCtx
-  assume nk:  Nat k
-  assume nj:  Nat j
-  assume d1:  not (Eq k j)
-  assume za:  ZeroAt k zk
-  assume nc:  NotCode zk nz
+  assume ec: ElimCtx
+  assume nk: Nat k
+  assume nj: Nat j
+  assume d1: not (Eq k j)
+  assume za: ZeroAt k zk
+  assume nc: NotCode zk nz
   assume pnz: PrH l nz
   assume nfl: NoFree j l
   assume nfg: not (Fr j g)
-  assume fg:  Form g
-  assume kk:  forall s l1. SuccAt j k s -> Pair s l l1 -> PrH l1 g
-  q:     QCtx                             by and_e ec
-  list:  LIST                             by and_e ec
-  dtp:   PrfLeast QAx DTP                 by and_e ec
-  mc:    MemLeast MemCons                 by and_e ec
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  fex:   Fex                              by and_e form
-  fim:   Fim                              by and_e form
-  pe:    Pe                               by and_e fs0
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
-  t6:    exists t. T6 t                   by and_e tags
-  fzk: Form zk                            by imp_e zeroat_form form nk za
+  assume fg: Form g
+  assume kk: forall s l1. SuccAt j k s -> Pair s l l1 -> PrH l1 g
+  q: QCtx               by and_e ec
+  list: LIST            by and_e ec
+  dtp: PrfLeast QAx DTP by and_e ec
+  mc: MemLeast MemCons  by and_e ec
+  fs0: FS0              by and_e q
+  form: FORM            by and_e q
+  logax: LOGAX          by and_e q
+  prf: PRF QAx          by and_e q
+  fex: Fex              by and_e form
+  fim: Fim              by and_e form
+  pe: Pe                by and_e fs0
+  tags: Tags            by imp_e tag_exists fs0
+  t2: exists t. T2 t    by and_e tags
+  t6: exists t. T6 t    by and_e tags
+  fzk: Form zk          by imp_e zeroat_form form nk za
   lemma wnz:
     variable z
     assume hz: BotCode z and ImpCode zk z nz
-    bz: BotCode z                         by and_e hz
-    iz: ImpCode zk z nz                   by and_e hz
-    fz: Form z                            by imp_e bot_form form bz
-    r:  Form nz                           by imp_e fim fzk fz iz
+    bz: BotCode z       by and_e hz
+    iz: ImpCode zk z nz by and_e hz
+    fz: Form z          by imp_e bot_form form bz
+    r: Form nz          by imp_e fim fzk fz iz
     therefore forall z. (BotCode z and ImpCode zk z nz) -> Form nz
-  fnz: Form nz                            by exists_e nc wnz
-  es:  exists y. SuccAt j k y             by imp_e succat_exists fs0
+  fnz: Form nz               by exists_e nc wnz
+  es: exists y. SuccAt j k y by imp_e succat_exists fs0
   lemma w1:
     variable s
     assume xs: SuccAt j k s
-    fs:  Form s                           by imp_e succat_form form nj nk xs
-    ec3: exists y. Node2 T6 j s y         by imp_e node2_exists T6 fs0 t6
+    fs: Form s                    by imp_e succat_form form nj nk xs
+    ec3: exists y. Node2 T6 j s y by imp_e node2_exists T6 fs0 t6
     lemma w2:
       variable c3
       assume e3: Node2 T6 j s c3
-      f3:  Form c3                        by imp_e fex nj fs e3
-      ec1: exists y. Node2 T2 nz c3 y     by imp_e node2_exists T2 fs0 t2
+      f3: Form c3                     by imp_e fex nj fs e3
+      ec1: exists y. Node2 T2 nz c3 y by imp_e node2_exists T2 fs0 t2
       lemma w3:
         variable c1
         assume i1: ImpCode nz c3 c1
-        f1:  Form c1                      by imp_e fim fnz f3 i1
-        cf:  Nat k and Nat j and not (Eq k j) and ImpCode nz c3 c1 and ExCode j s c3 and SuccAt j k s
-               and NotCode zk nz and ZeroAt k zk
-                                          by and_i nk nj d1 i1 e3 xs nc za
-        pcd: PredCode c1                  by exists_i cf
-        qa:  QAx c1                       by or_i pcd
-        p1:  PrH l c1                     by imp_e prh_axiom QAx fs0 prf f1 qa
-        p3:  PrH l c3                     by imp_e prh_mp QAx fs0 prf f3 i1 p1 pnz
-        el1: exists y. Pair s l y         by forall_e pe s l
+        f1: Form c1               by imp_e fim fnz f3 i1
+        cf: Nat k and Nat j and not (Eq k j) and ImpCode nz c3 c1 and ExCode j s c3 and SuccAt j k s
+            and NotCode zk nz and ZeroAt k zk
+                                  by and_i nk nj d1 i1 e3 xs nc za
+        pcd: PredCode c1          by exists_i cf
+        qa: QAx c1                by or_i pcd
+        p1: PrH l c1              by imp_e prh_axiom QAx fs0 prf f1 qa
+        p3: PrH l c3              by imp_e prh_mp QAx fs0 prf f3 i1 p1 pnz
+        el1: exists y. Pair s l y by forall_e pe s l
         lemma w5:
           variable l1
           assume pl: Pair s l l1
-          pg1: PrH l1 g                   by imp_e kk xs pl
-          r:   PrH l g                    by imp_e prh_exe QAx fs0 form logax list prf dtp mc nj fs fg nfg nfl e3 p3 pl pg1
+          pg1: PrH l1 g by imp_e kk xs pl
+          r: PrH l g    by imp_e prh_exe QAx fs0 form logax list prf dtp mc nj fs fg nfg nfl e3 p3 pl pg1
           therefore forall l1. Pair s l l1 -> PrH l g
-        r: PrH l g                        by exists_e el1 w5
+        r: PrH l g by exists_e el1 w5
         therefore forall c1. ImpCode nz c3 c1 -> PrH l g
-      r: PrH l g                          by exists_e ec1 w3
+      r: PrH l g by exists_e ec1 w3
       therefore forall c3. Node2 T6 j s c3 -> PrH l g
-    r: PrH l g                            by exists_e ec3 w2
+    r: PrH l g by exists_e ec3 w2
     therefore forall s. SuccAt j k s -> PrH l g
-  r: PrH l g                              by exists_e es w1
+  r: PrH l g by exists_e es w1
   therefore forall l k j zk nz g. ElimCtx -> Nat k -> Nat j -> not (Eq k j) -> ZeroAt k zk -> NotCode zk nz -> PrH l nz
-              -> NoFree j l -> not (Fr j g) -> Form g -> (forall s l1. SuccAt j k s -> Pair s l l1 -> PrH l1 g) -> PrH l g
+      -> NoFree j l -> not (Fr j g) -> Form g -> (forall s l1. SuccAt j k s -> Pair s l l1 -> PrH l1 g) -> PrH l g

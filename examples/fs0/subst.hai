@@ -29,39 +29,39 @@ define Sex1 = forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> Su
 define Qs   = forall u w a b u1 w1 a1 b1. Eq u u1 -> Eq w w1 -> Eq a a1 -> Eq b b1 -> Sub u w a b -> Sub u1 w1 a1 b1
 
 define SUB = FORM and Sl0 and Sl1 and Sl2 and Qsl and Sbot and Sat and Simp and Sand and Sor and Sfa0 and Sfa1
-             and Sex0 and Sex1 and Qs
+    and Sex0 and Sex1 and Qs
 
 define SubLLeast (P u w l m) = (forall u w n. Nil n -> P u w n n)
-                               -> (forall u w t l t1 m. Nat u -> Pair u t l -> P u w t t1 -> Pair w t1 m -> P u w l m)
-                               -> (forall u w v t l t1 m. Nat v -> not (Eq v u) -> Pair v t l -> P u w t t1 -> Pair v t1 m -> P u w l m)
-                               -> forall u w l m. SubL u w l m -> P u w l m
+    -> (forall u w t l t1 m. Nat u -> Pair u t l -> P u w t t1 -> Pair w t1 m -> P u w l m)
+    -> (forall u w v t l t1 m. Nat v -> not (Eq v u) -> Pair v t l -> P u w t t1 -> Pair v t1 m -> P u w l m)
+    -> forall u w l m. SubL u w l m -> P u w l m
 
 define SubLeast (P u w a b) = (forall u w n x. Nil n -> Node1 T0 n x -> P u w x x)
-                              -> (forall u w p l x m y. Nat p -> Node2 T1 p l x -> SubL u w l m -> Node2 T1 p m y -> P u w x y)
-                              -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T2 a b x -> Node2 T2 a1 b1 y -> P u w x y)
-                              -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T3 a b x -> Node2 T3 a1 b1 y -> P u w x y)
-                              -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T4 a b x -> Node2 T4 a1 b1 y -> P u w x y)
-                              -> (forall u w a x. Nat u -> Form a -> Node2 T5 u a x -> P u w x x)
-                              -> (forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> P u w a a1 -> Node2 T5 v a x -> Node2 T5 v a1 y -> P u w x y)
-                              -> (forall u w a x. Nat u -> Form a -> Node2 T6 u a x -> P u w x x)
-                              -> (forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> P u w a a1 -> Node2 T6 v a x -> Node2 T6 v a1 y -> P u w x y)
-                              -> forall u w a b. Sub u w a b -> P u w a b
+    -> (forall u w p l x m y. Nat p -> Node2 T1 p l x -> SubL u w l m -> Node2 T1 p m y -> P u w x y)
+    -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T2 a b x -> Node2 T2 a1 b1 y -> P u w x y)
+    -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T3 a b x -> Node2 T3 a1 b1 y -> P u w x y)
+    -> (forall u w a b x a1 b1 y. P u w a a1 -> P u w b b1 -> Node2 T4 a b x -> Node2 T4 a1 b1 y -> P u w x y)
+    -> (forall u w a x. Nat u -> Form a -> Node2 T5 u a x -> P u w x x)
+    -> (forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> P u w a a1 -> Node2 T5 v a x -> Node2 T5 v a1 y -> P u w x y)
+    -> (forall u w a x. Nat u -> Form a -> Node2 T6 u a x -> P u w x x)
+    -> (forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> P u w a a1 -> Node2 T6 v a x -> Node2 T6 v a1 y -> P u w x y)
+    -> forall u w a b. Sub u w a b -> P u w a b
 
 -- Substitution relates variable lists, when the new variable is a numeral.
 define SubLVs u w l m = Nat w -> Vs l and Vs m
 
 theorem subl_vs:
-  assume form:  FORM
+  assume form: FORM
   assume least: SubLLeast SubLVs
-  vn: Vn                                  by and_e form
-  vc: Vc                                  by and_e form
+  vn: Vn by and_e form
+  vc: Vc by and_e form
   lemma c_nil:
     variable u w n
     assume nn: Nil n
     lemma k:
       assume nw: Nat w
-      vs: Vs n                            by imp_e vn nn
-      both: Vs n and Vs n                 by and_i vs vs
+      vs: Vs n            by imp_e vn nn
+      both: Vs n and Vs n by and_i vs vs
       therefore Nat w -> Vs n and Vs n
     therefore forall u w n. Nil n -> SubLVs u w n n
   lemma c_hit:
@@ -72,12 +72,12 @@ theorem subl_vs:
     assume pm: Pair w t1 m
     lemma k:
       assume nw: Nat w
-      tt: Vs t and Vs t1                  by imp_e ih nw
-      vt: Vs t                            by and_e tt
-      vt1: Vs t1                          by and_e tt
-      vl: Vs l                            by imp_e vc nu vt pl
-      vm: Vs m                            by imp_e vc nw vt1 pm
-      both: Vs l and Vs m                 by and_i vl vm
+      tt: Vs t and Vs t1  by imp_e ih nw
+      vt: Vs t            by and_e tt
+      vt1: Vs t1          by and_e tt
+      vl: Vs l            by imp_e vc nu vt pl
+      vm: Vs m            by imp_e vc nw vt1 pm
+      both: Vs l and Vs m by and_i vl vm
       therefore Nat w -> Vs l and Vs m
     therefore forall u w t l t1 m. Nat u -> Pair u t l -> SubLVs u w t t1 -> Pair w t1 m -> SubLVs u w l m
   lemma c_miss:
@@ -89,43 +89,43 @@ theorem subl_vs:
     assume pm: Pair v t1 m
     lemma k:
       assume nw: Nat w
-      tt: Vs t and Vs t1                  by imp_e ih nw
-      vt: Vs t                            by and_e tt
-      vt1: Vs t1                          by and_e tt
-      vl: Vs l                            by imp_e vc nv vt pl
-      vm: Vs m                            by imp_e vc nv vt1 pm
-      both: Vs l and Vs m                 by and_i vl vm
+      tt: Vs t and Vs t1  by imp_e ih nw
+      vt: Vs t            by and_e tt
+      vt1: Vs t1          by and_e tt
+      vl: Vs l            by imp_e vc nv vt pl
+      vm: Vs m            by imp_e vc nv vt1 pm
+      both: Vs l and Vs m by and_i vl vm
       therefore Nat w -> Vs l and Vs m
     therefore forall u w v t l t1 m. Nat v -> not (Eq v u) -> Pair v t l -> SubLVs u w t t1 -> Pair v t1 m -> SubLVs u w l m
   r: forall u w l m. SubL u w l m -> SubLVs u w l m
-                                          by imp_e least c_nil c_hit c_miss
+      by imp_e least c_nil c_hit c_miss
   therefore FORM -> SubLLeast SubLVs -> forall u w l m. SubL u w l m -> SubLVs u w l m
 
 -- Substitution relates formulas, when the new variable is a numeral.
 define SubForm u w a b = Nat w -> Form a and Form b
 
 theorem sub_form:
-  assume sub:    SUB
+  assume sub: SUB
   assume lleast: SubLLeast SubLVs
-  assume least:  SubLeast SubForm
-  form: FORM                              by and_e sub
-  fbot: Fbot                              by and_e sub
-  fat: Fat                                by and_e sub
-  fim: Fim                                by and_e sub
-  fan: Fan                                by and_e sub
-  fo: Fo                                  by and_e sub
-  ffa: Ffa                                by and_e sub
-  fex: Fex                                by and_e sub
+  assume least: SubLeast SubForm
+  form: FORM by and_e sub
+  fbot: Fbot by and_e sub
+  fat: Fat   by and_e sub
+  fim: Fim   by and_e sub
+  fan: Fan   by and_e sub
+  fo: Fo     by and_e sub
+  ffa: Ffa   by and_e sub
+  fex: Fex   by and_e sub
   lists: forall u w l m. SubL u w l m -> SubLVs u w l m
-                                          by imp_e subl_vs form lleast
+             by imp_e subl_vs form lleast
   lemma c_bot:
     variable u w n x
     assume nn: Nil n
     assume nd: Node1 T0 n x
     lemma k:
       assume nw: Nat w
-      fx: Form x                          by imp_e fbot nn nd
-      both: Form x and Form x             by and_i fx fx
+      fx: Form x              by imp_e fbot nn nd
+      both: Form x and Form x by and_i fx fx
       therefore Nat w -> Form x and Form x
     therefore forall u w n x. Nil n -> Node1 T0 n x -> SubForm u w x x
   lemma c_at:
@@ -136,12 +136,12 @@ theorem sub_form:
     assume ny: Node2 T1 p m y
     lemma k:
       assume nw: Nat w
-      lm: Vs l and Vs m                   by imp_e lists sl nw
-      vl: Vs l                            by and_e lm
-      vm: Vs m                            by and_e lm
-      fx: Form x                          by imp_e fat np vl nx
-      fy: Form y                          by imp_e fat np vm ny
-      both: Form x and Form y             by and_i fx fy
+      lm: Vs l and Vs m       by imp_e lists sl nw
+      vl: Vs l                by and_e lm
+      vm: Vs m                by and_e lm
+      fx: Form x              by imp_e fat np vl nx
+      fy: Form y              by imp_e fat np vm ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w p l x m y. Nat p -> Node2 T1 p l x -> SubL u w l m -> Node2 T1 p m y -> SubForm u w x y
   lemma c_imp:
@@ -152,15 +152,15 @@ theorem sub_form:
     assume ny: Node2 T2 a1 b1 y
     lemma k:
       assume nw: Nat w
-      aa: Form a and Form a1              by imp_e ia nw
-      bb: Form b and Form b1              by imp_e ib nw
-      fa: Form a                          by and_e aa
-      fa1: Form a1                        by and_e aa
-      fb: Form b                          by and_e bb
-      fb1: Form b1                        by and_e bb
-      fx: Form x                          by imp_e fim fa fb nx
-      fy: Form y                          by imp_e fim fa1 fb1 ny
-      both: Form x and Form y             by and_i fx fy
+      aa: Form a and Form a1  by imp_e ia nw
+      bb: Form b and Form b1  by imp_e ib nw
+      fa: Form a              by and_e aa
+      fa1: Form a1            by and_e aa
+      fb: Form b              by and_e bb
+      fb1: Form b1            by and_e bb
+      fx: Form x              by imp_e fim fa fb nx
+      fy: Form y              by imp_e fim fa1 fb1 ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w a b x a1 b1 y. SubForm u w a a1 -> SubForm u w b b1 -> Node2 T2 a b x -> Node2 T2 a1 b1 y -> SubForm u w x y
   lemma c_and:
@@ -171,15 +171,15 @@ theorem sub_form:
     assume ny: Node2 T3 a1 b1 y
     lemma k:
       assume nw: Nat w
-      aa: Form a and Form a1              by imp_e ia nw
-      bb: Form b and Form b1              by imp_e ib nw
-      fa: Form a                          by and_e aa
-      fa1: Form a1                        by and_e aa
-      fb: Form b                          by and_e bb
-      fb1: Form b1                        by and_e bb
-      fx: Form x                          by imp_e fan fa fb nx
-      fy: Form y                          by imp_e fan fa1 fb1 ny
-      both: Form x and Form y             by and_i fx fy
+      aa: Form a and Form a1  by imp_e ia nw
+      bb: Form b and Form b1  by imp_e ib nw
+      fa: Form a              by and_e aa
+      fa1: Form a1            by and_e aa
+      fb: Form b              by and_e bb
+      fb1: Form b1            by and_e bb
+      fx: Form x              by imp_e fan fa fb nx
+      fy: Form y              by imp_e fan fa1 fb1 ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w a b x a1 b1 y. SubForm u w a a1 -> SubForm u w b b1 -> Node2 T3 a b x -> Node2 T3 a1 b1 y -> SubForm u w x y
   lemma c_or:
@@ -190,15 +190,15 @@ theorem sub_form:
     assume ny: Node2 T4 a1 b1 y
     lemma k:
       assume nw: Nat w
-      aa: Form a and Form a1              by imp_e ia nw
-      bb: Form b and Form b1              by imp_e ib nw
-      fa: Form a                          by and_e aa
-      fa1: Form a1                        by and_e aa
-      fb: Form b                          by and_e bb
-      fb1: Form b1                        by and_e bb
-      fx: Form x                          by imp_e fo fa fb nx
-      fy: Form y                          by imp_e fo fa1 fb1 ny
-      both: Form x and Form y             by and_i fx fy
+      aa: Form a and Form a1  by imp_e ia nw
+      bb: Form b and Form b1  by imp_e ib nw
+      fa: Form a              by and_e aa
+      fa1: Form a1            by and_e aa
+      fb: Form b              by and_e bb
+      fb1: Form b1            by and_e bb
+      fx: Form x              by imp_e fo fa fb nx
+      fy: Form y              by imp_e fo fa1 fb1 ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w a b x a1 b1 y. SubForm u w a a1 -> SubForm u w b b1 -> Node2 T4 a b x -> Node2 T4 a1 b1 y -> SubForm u w x y
   lemma c_fa0:
@@ -208,8 +208,8 @@ theorem sub_form:
     assume nd: Node2 T5 u a x
     lemma k:
       assume nw: Nat w
-      fx: Form x                          by imp_e ffa nu fa nd
-      both: Form x and Form x             by and_i fx fx
+      fx: Form x              by imp_e ffa nu fa nd
+      both: Form x and Form x by and_i fx fx
       therefore Nat w -> Form x and Form x
     therefore forall u w a x. Nat u -> Form a -> Node2 T5 u a x -> SubForm u w x x
   lemma c_fa1:
@@ -222,12 +222,12 @@ theorem sub_form:
     assume ny: Node2 T5 v a1 y
     lemma k:
       assume nw: Nat w
-      aa: Form a and Form a1              by imp_e ia nw
-      fa: Form a                          by and_e aa
-      fa1: Form a1                        by and_e aa
-      fx: Form x                          by imp_e ffa nv fa nx
-      fy: Form y                          by imp_e ffa nv fa1 ny
-      both: Form x and Form y             by and_i fx fy
+      aa: Form a and Form a1  by imp_e ia nw
+      fa: Form a              by and_e aa
+      fa1: Form a1            by and_e aa
+      fx: Form x              by imp_e ffa nv fa nx
+      fy: Form y              by imp_e ffa nv fa1 ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> SubForm u w a a1 -> Node2 T5 v a x -> Node2 T5 v a1 y -> SubForm u w x y
   lemma c_ex0:
@@ -237,8 +237,8 @@ theorem sub_form:
     assume nd: Node2 T6 u a x
     lemma k:
       assume nw: Nat w
-      fx: Form x                          by imp_e fex nu fa nd
-      both: Form x and Form x             by and_i fx fx
+      fx: Form x              by imp_e fex nu fa nd
+      both: Form x and Form x by and_i fx fx
       therefore Nat w -> Form x and Form x
     therefore forall u w a x. Nat u -> Form a -> Node2 T6 u a x -> SubForm u w x x
   lemma c_ex1:
@@ -251,39 +251,39 @@ theorem sub_form:
     assume ny: Node2 T6 v a1 y
     lemma k:
       assume nw: Nat w
-      aa: Form a and Form a1              by imp_e ia nw
-      fa: Form a                          by and_e aa
-      fa1: Form a1                        by and_e aa
-      fx: Form x                          by imp_e fex nv fa nx
-      fy: Form y                          by imp_e fex nv fa1 ny
-      both: Form x and Form y             by and_i fx fy
+      aa: Form a and Form a1  by imp_e ia nw
+      fa: Form a              by and_e aa
+      fa1: Form a1            by and_e aa
+      fx: Form x              by imp_e fex nv fa nx
+      fy: Form y              by imp_e fex nv fa1 ny
+      both: Form x and Form y by and_i fx fy
       therefore Nat w -> Form x and Form y
     therefore forall u w v a x a1 y. Nat v -> not (Eq v u) -> not (Eq v w) -> SubForm u w a a1 -> Node2 T6 v a x -> Node2 T6 v a1 y -> SubForm u w x y
   r: forall u w a b. Sub u w a b -> SubForm u w a b
-                                          by imp_e least c_bot c_at c_imp c_and c_or c_fa0 c_fa1 c_ex0 c_ex1
+      by imp_e least c_bot c_at c_imp c_and c_or c_fa0 c_fa1 c_ex0 c_ex1
   therefore SUB -> SubLLeast SubLVs -> SubLeast SubForm -> forall u w a b. Sub u w a b -> SubForm u w a b
 
 -- Every substitution on a variable list comes from one of its three rules.
 define SubLShape u w l m = (Nil l and Eq l m)
-                           or (exists t t1. Nat u and Pair u t l and SubL u w t t1 and Pair w t1 m)
-                           or (exists v t t1. Nat v and not (Eq v u) and Pair v t l and SubL u w t t1 and Pair v t1 m)
-define SubLInv u w l m = SubL u w l m and SubLShape u w l m
+    or (exists t t1. Nat u and Pair u t l and SubL u w t t1 and Pair w t1 m)
+    or (exists v t t1. Nat v and not (Eq v u) and Pair v t l and SubL u w t t1 and Pair v t1 m)
+define SubLInv u w l m   = SubL u w l m and SubLShape u w l m
 
 theorem subl_inv:
-  assume sub:   SUB
+  assume sub: SUB
   assume least: SubLLeast SubLInv
-  sl0:  Sl0                               by and_e sub
-  sl1:  Sl1                               by and_e sub
-  sl2:  Sl2                               by and_e sub
-  refl: Refl                              by and_e sub
+  sl0: Sl0   by and_e sub
+  sl1: Sl1   by and_e sub
+  sl2: Sl2   by and_e sub
+  refl: Refl by and_e sub
   lemma c_nil:
     variable u w n
     assume nn: Nil n
-    s:  SubL u w n n                      by imp_e sl0 nn
-    rn: Eq n n                            by forall_e refl n
-    c:  Nil n and Eq n n                  by and_i nn rn
-    sh: SubLShape u w n n                 by or_i c
-    k:  SubLInv u w n n                   by and_i s sh
+    s: SubL u w n n       by imp_e sl0 nn
+    rn: Eq n n            by forall_e refl n
+    c: Nil n and Eq n n   by and_i nn rn
+    sh: SubLShape u w n n by or_i c
+    k: SubLInv u w n n    by and_i s sh
     therefore forall u w n. Nil n -> SubLInv u w n n
   lemma c_hit:
     variable u w t l t1 m
@@ -291,34 +291,34 @@ theorem subl_inv:
     assume pl: Pair u t l
     assume ih: SubLInv u w t t1
     assume pm: Pair w t1 m
-    st: SubL u w t t1                     by and_e ih
-    s:  SubL u w l m                      by imp_e sl1 nu pl st pm
-    c:  Nat u and Pair u t l and SubL u w t t1 and Pair w t1 m
-                                          by and_i nu pl st pm
-    e:  exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m
-                                          by exists_i c
-    sh: SubLShape u w l m                 by or_i e
-    k:  SubLInv u w l m                   by and_i s sh
+    st: SubL u w t t1     by and_e ih
+    s: SubL u w l m       by imp_e sl1 nu pl st pm
+    c: Nat u and Pair u t l and SubL u w t t1 and Pair w t1 m
+                          by and_i nu pl st pm
+    e: exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m
+                          by exists_i c
+    sh: SubLShape u w l m by or_i e
+    k: SubLInv u w l m    by and_i s sh
     therefore forall u w t l t1 m. Nat u -> Pair u t l -> SubLInv u w t t1 -> Pair w t1 m -> SubLInv u w l m
   lemma c_miss:
     variable u w v t l t1 m
-    assume nv:  Nat v
+    assume nv: Nat v
     assume nvu: not (Eq v u)
-    assume pl:  Pair v t l
-    assume ih:  SubLInv u w t t1
-    assume pm:  Pair v t1 m
-    st: SubL u w t t1                     by and_e ih
-    s:  SubL u w l m                      by imp_e sl2 nv nvu pl st pm
-    c:  Nat v and not (Eq v u) and Pair v t l and SubL u w t t1 and Pair v t1 m
-                                          by and_i nv nvu pl st pm
-    e:  exists v1 t2 t3. Nat v1 and not (Eq v1 u) and Pair v1 t2 l and SubL u w t2 t3 and Pair v1 t3 m
-                                          by exists_i c
-    sh: SubLShape u w l m                 by or_i e
-    k:  SubLInv u w l m                   by and_i s sh
+    assume pl: Pair v t l
+    assume ih: SubLInv u w t t1
+    assume pm: Pair v t1 m
+    st: SubL u w t t1     by and_e ih
+    s: SubL u w l m       by imp_e sl2 nv nvu pl st pm
+    c: Nat v and not (Eq v u) and Pair v t l and SubL u w t t1 and Pair v t1 m
+                          by and_i nv nvu pl st pm
+    e: exists v1 t2 t3. Nat v1 and not (Eq v1 u) and Pair v1 t2 l and SubL u w t2 t3 and Pair v1 t3 m
+                          by exists_i c
+    sh: SubLShape u w l m by or_i e
+    k: SubLInv u w l m    by and_i s sh
     therefore forall u w v t l t1 m. Nat v -> not (Eq v u) -> Pair v t l -> SubLInv u w t t1 -> Pair v t1 m
-                -> SubLInv u w l m
+        -> SubLInv u w l m
   r: forall u w l m. SubL u w l m -> SubLInv u w l m
-                                          by imp_e least c_nil c_hit c_miss
+      by imp_e least c_nil c_hit c_miss
   therefore SUB -> SubLLeast SubLInv -> forall u w l m. SubL u w l m -> SubLInv u w l m
 
 -- Substitution on a variable list is a function, up to Eq.
@@ -326,53 +326,53 @@ define SubLFun u w l m = forall m1. SubL u w l m1 -> Eq m m1
 
 theorem subl_fun:
   assume sub: SUB
-  assume li:  SubLLeast SubLInv
-  assume lf:  SubLLeast SubLFun
-  fs0:  FS0                               by and_e sub
-  pj:   Pj                                by and_e sub
-  pn:   Pn                                by and_e sub
-  pu:   Pu                                by and_e sub
-  ep:   Ep                                by and_e sub
-  refl: Refl                              by and_e sub
-  qsl:  Qsl                               by and_e sub
-  inv:  forall u w l m. SubL u w l m -> SubLInv u w l m
-                                          by imp_e subl_inv sub li
+  assume li: SubLLeast SubLInv
+  assume lf: SubLLeast SubLFun
+  fs0: FS0   by and_e sub
+  pj: Pj     by and_e sub
+  pn: Pn     by and_e sub
+  pu: Pu     by and_e sub
+  ep: Ep     by and_e sub
+  refl: Refl by and_e sub
+  qsl: Qsl   by and_e sub
+  inv: forall u w l m. SubL u w l m -> SubLInv u w l m
+             by imp_e subl_inv sub li
   lemma c_nil:
     variable u w n
     assume nn: Nil n
     lemma k:
       variable m1
       assume s1: SubL u w n m1
-      i1: SubLInv u w n m1                by imp_e inv s1
-      sh: SubLShape u w n m1              by and_e i1
-      rn: Eq n n                          by forall_e refl n
+      i1: SubLInv u w n m1   by imp_e inv s1
+      sh: SubLShape u w n m1 by and_e i1
+      rn: Eq n n             by forall_e refl n
       lemma ca:
         assume h: Nil n and Eq n m1
-        e: Eq n m1                        by and_e h
+        e: Eq n m1 by and_e h
         therefore (Nil n and Eq n m1) -> Eq n m1
       lemma cb:
         assume ex: exists t t1. Nat u and Pair u t n and SubL u w t t1 and Pair w t1 m1
         lemma wit:
           variable t t1
           assume h: Nat u and Pair u t n and SubL u w t t1 and Pair w t1 m1
-          p: Pair u t n                   by and_e h
-          f: absurd                       by imp_e pn p nn rn
-          r: Eq n m1                      by absurd_e f
+          p: Pair u t n by and_e h
+          f: absurd     by imp_e pn p nn rn
+          r: Eq n m1    by absurd_e f
           therefore forall t t1. (Nat u and Pair u t n and SubL u w t t1 and Pair w t1 m1) -> Eq n m1
-        r: Eq n m1                        by exists_e ex wit
+        r: Eq n m1 by exists_e ex wit
         therefore (exists t t1. Nat u and Pair u t n and SubL u w t t1 and Pair w t1 m1) -> Eq n m1
       lemma cc:
         assume ex: exists v t t1. Nat v and not (Eq v u) and Pair v t n and SubL u w t t1 and Pair v t1 m1
         lemma wit:
           variable v t t1
           assume h: Nat v and not (Eq v u) and Pair v t n and SubL u w t t1 and Pair v t1 m1
-          p: Pair v t n                   by and_e h
-          f: absurd                       by imp_e pn p nn rn
-          r: Eq n m1                      by absurd_e f
+          p: Pair v t n by and_e h
+          f: absurd     by imp_e pn p nn rn
+          r: Eq n m1    by absurd_e f
           therefore forall v t t1. (Nat v and not (Eq v u) and Pair v t n and SubL u w t t1 and Pair v t1 m1) -> Eq n m1
-        r: Eq n m1                        by exists_e ex wit
+        r: Eq n m1 by exists_e ex wit
         therefore (exists v t t1. Nat v and not (Eq v u) and Pair v t n and SubL u w t t1 and Pair v t1 m1) -> Eq n m1
-      r: Eq n m1                          by or_e sh ca cb cc
+      r: Eq n m1 by or_e sh ca cb cc
       therefore forall m1. SubL u w n m1 -> Eq n m1
     therefore forall u w n. Nil n -> SubLFun u w n n
   lemma c_hit:
@@ -384,143 +384,143 @@ theorem subl_fun:
     lemma k:
       variable m1
       assume s1: SubL u w l m1
-      i1:  SubLInv u w l m1               by imp_e inv s1
-      sh:  SubLShape u w l m1             by and_e i1
-      rl:  Eq l l                         by forall_e refl l
-      ru:  Eq u u                         by forall_e refl u
-      rw:  Eq w w                         by forall_e refl w
-      rm1: Eq m1 m1                       by forall_e refl m1
+      i1: SubLInv u w l m1   by imp_e inv s1
+      sh: SubLShape u w l m1 by and_e i1
+      rl: Eq l l             by forall_e refl l
+      ru: Eq u u             by forall_e refl u
+      rw: Eq w w             by forall_e refl w
+      rm1: Eq m1 m1          by forall_e refl m1
       lemma ca:
         assume h: Nil l and Eq l m1
-        nl: Nil l                         by and_e h
-        f:  absurd                        by imp_e pn pl nl rl
-        r:  Eq m m1                       by absurd_e f
+        nl: Nil l  by and_e h
+        f: absurd  by imp_e pn pl nl rl
+        r: Eq m m1 by absurd_e f
         therefore (Nil l and Eq l m1) -> Eq m m1
       lemma cb:
         assume ex: exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1
         lemma wit:
           variable t2 t3
           assume h: Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1
-          p2:  Pair u t2 l                by and_e h
-          e:   Eq u u and Eq t t2         by imp_e pj pl p2 rl
-          et:  Eq t t2                    by and_e e
-          e2:  Eq t2 t                    by imp_e eq_sym fs0 et
-          s2:  SubL u w t2 t3             by and_e h
-          r3:  Eq t3 t3                   by forall_e refl t3
-          s3:  SubL u w t t3              by imp_e qsl ru rw e2 r3 s2
-          e13: Eq t1 t3                   by imp_e ih s3
-          e31: Eq t3 t1                   by imp_e eq_sym fs0 e13
-          p3:  Pair w t3 m1               by and_e h
-          p4:  Pair w t1 m1               by imp_e ep rw e31 rm1 p3
-          r:   Eq m m1                    by imp_e pu pm p4
+          p2: Pair u t2 l       by and_e h
+          e: Eq u u and Eq t t2 by imp_e pj pl p2 rl
+          et: Eq t t2           by and_e e
+          e2: Eq t2 t           by imp_e eq_sym fs0 et
+          s2: SubL u w t2 t3    by and_e h
+          r3: Eq t3 t3          by forall_e refl t3
+          s3: SubL u w t t3     by imp_e qsl ru rw e2 r3 s2
+          e13: Eq t1 t3         by imp_e ih s3
+          e31: Eq t3 t1         by imp_e eq_sym fs0 e13
+          p3: Pair w t3 m1      by and_e h
+          p4: Pair w t1 m1      by imp_e ep rw e31 rm1 p3
+          r: Eq m m1            by imp_e pu pm p4
           therefore forall t2 t3. (Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1) -> Eq m m1
-        r: Eq m m1                        by exists_e ex wit
+        r: Eq m m1 by exists_e ex wit
         therefore (exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1) -> Eq m m1
       lemma cc:
         assume ex: exists v t2 t3. Nat v and not (Eq v u) and Pair v t2 l and SubL u w t2 t3 and Pair v t3 m1
         lemma wit:
           variable v t2 t3
           assume h: Nat v and not (Eq v u) and Pair v t2 l and SubL u w t2 t3 and Pair v t3 m1
-          p2:  Pair v t2 l                by and_e h
-          e:   Eq u v and Eq t t2         by imp_e pj pl p2 rl
-          euv: Eq u v                     by and_e e
-          evu: Eq v u                     by imp_e eq_sym fs0 euv
-          nvu: not (Eq v u)               by and_e h
-          f:   absurd                     by imp_e nvu evu
-          r:   Eq m m1                    by absurd_e f
+          p2: Pair v t2 l       by and_e h
+          e: Eq u v and Eq t t2 by imp_e pj pl p2 rl
+          euv: Eq u v           by and_e e
+          evu: Eq v u           by imp_e eq_sym fs0 euv
+          nvu: not (Eq v u)     by and_e h
+          f: absurd             by imp_e nvu evu
+          r: Eq m m1            by absurd_e f
           therefore forall v t2 t3. (Nat v and not (Eq v u) and Pair v t2 l and SubL u w t2 t3 and Pair v t3 m1) -> Eq m m1
-        r: Eq m m1                        by exists_e ex wit
+        r: Eq m m1 by exists_e ex wit
         therefore (exists v t2 t3. Nat v and not (Eq v u) and Pair v t2 l and SubL u w t2 t3 and Pair v t3 m1) -> Eq m m1
-      r: Eq m m1                          by or_e sh ca cb cc
+      r: Eq m m1 by or_e sh ca cb cc
       therefore forall m1. SubL u w l m1 -> Eq m m1
     therefore forall u w t l t1 m. Nat u -> Pair u t l -> SubLFun u w t t1 -> Pair w t1 m -> SubLFun u w l m
   lemma c_miss:
     variable u w v t l t1 m
-    assume nv:  Nat v
+    assume nv: Nat v
     assume nvu: not (Eq v u)
-    assume pl:  Pair v t l
-    assume ih:  SubLFun u w t t1
-    assume pm:  Pair v t1 m
+    assume pl: Pair v t l
+    assume ih: SubLFun u w t t1
+    assume pm: Pair v t1 m
     lemma k:
       variable m1
       assume s1: SubL u w l m1
-      i1:  SubLInv u w l m1               by imp_e inv s1
-      sh:  SubLShape u w l m1             by and_e i1
-      rl:  Eq l l                         by forall_e refl l
-      ru:  Eq u u                         by forall_e refl u
-      rw:  Eq w w                         by forall_e refl w
-      rm1: Eq m1 m1                       by forall_e refl m1
+      i1: SubLInv u w l m1   by imp_e inv s1
+      sh: SubLShape u w l m1 by and_e i1
+      rl: Eq l l             by forall_e refl l
+      ru: Eq u u             by forall_e refl u
+      rw: Eq w w             by forall_e refl w
+      rm1: Eq m1 m1          by forall_e refl m1
       lemma ca:
         assume h: Nil l and Eq l m1
-        nl: Nil l                         by and_e h
-        f:  absurd                        by imp_e pn pl nl rl
-        r:  Eq m m1                       by absurd_e f
+        nl: Nil l  by and_e h
+        f: absurd  by imp_e pn pl nl rl
+        r: Eq m m1 by absurd_e f
         therefore (Nil l and Eq l m1) -> Eq m m1
       lemma cb:
         assume ex: exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1
         lemma wit:
           variable t2 t3
           assume h: Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1
-          p2:  Pair u t2 l                by and_e h
-          e:   Eq v u and Eq t t2         by imp_e pj pl p2 rl
-          evu: Eq v u                     by and_e e
-          f:   absurd                     by imp_e nvu evu
-          r:   Eq m m1                    by absurd_e f
+          p2: Pair u t2 l       by and_e h
+          e: Eq v u and Eq t t2 by imp_e pj pl p2 rl
+          evu: Eq v u           by and_e e
+          f: absurd             by imp_e nvu evu
+          r: Eq m m1            by absurd_e f
           therefore forall t2 t3. (Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1) -> Eq m m1
-        r: Eq m m1                        by exists_e ex wit
+        r: Eq m m1 by exists_e ex wit
         therefore (exists t2 t3. Nat u and Pair u t2 l and SubL u w t2 t3 and Pair w t3 m1) -> Eq m m1
       lemma cc:
         assume ex: exists v1 t2 t3. Nat v1 and not (Eq v1 u) and Pair v1 t2 l and SubL u w t2 t3 and Pair v1 t3 m1
         lemma wit:
           variable v2 t2 t3
           assume h: Nat v2 and not (Eq v2 u) and Pair v2 t2 l and SubL u w t2 t3 and Pair v2 t3 m1
-          p2:  Pair v2 t2 l               by and_e h
-          e:   Eq v v2 and Eq t t2        by imp_e pj pl p2 rl
-          evv: Eq v v2                    by and_e e
-          ev2: Eq v2 v                    by imp_e eq_sym fs0 evv
-          et:  Eq t t2                    by and_e e
-          e2:  Eq t2 t                    by imp_e eq_sym fs0 et
-          s2:  SubL u w t2 t3             by and_e h
-          r3:  Eq t3 t3                   by forall_e refl t3
-          s3:  SubL u w t t3              by imp_e qsl ru rw e2 r3 s2
-          e13: Eq t1 t3                   by imp_e ih s3
-          e31: Eq t3 t1                   by imp_e eq_sym fs0 e13
-          p3:  Pair v2 t3 m1              by and_e h
-          p4:  Pair v t1 m1               by imp_e ep ev2 e31 rm1 p3
-          r:   Eq m m1                    by imp_e pu pm p4
+          p2: Pair v2 t2 l       by and_e h
+          e: Eq v v2 and Eq t t2 by imp_e pj pl p2 rl
+          evv: Eq v v2           by and_e e
+          ev2: Eq v2 v           by imp_e eq_sym fs0 evv
+          et: Eq t t2            by and_e e
+          e2: Eq t2 t            by imp_e eq_sym fs0 et
+          s2: SubL u w t2 t3     by and_e h
+          r3: Eq t3 t3           by forall_e refl t3
+          s3: SubL u w t t3      by imp_e qsl ru rw e2 r3 s2
+          e13: Eq t1 t3          by imp_e ih s3
+          e31: Eq t3 t1          by imp_e eq_sym fs0 e13
+          p3: Pair v2 t3 m1      by and_e h
+          p4: Pair v t1 m1       by imp_e ep ev2 e31 rm1 p3
+          r: Eq m m1             by imp_e pu pm p4
           therefore forall v2 t2 t3. (Nat v2 and not (Eq v2 u) and Pair v2 t2 l and SubL u w t2 t3 and Pair v2 t3 m1) -> Eq m m1
-        r: Eq m m1                        by exists_e ex wit
+        r: Eq m m1 by exists_e ex wit
         therefore (exists v1 t2 t3. Nat v1 and not (Eq v1 u) and Pair v1 t2 l and SubL u w t2 t3 and Pair v1 t3 m1) -> Eq m m1
-      r: Eq m m1                          by or_e sh ca cb cc
+      r: Eq m m1 by or_e sh ca cb cc
       therefore forall m1. SubL u w l m1 -> Eq m m1
     therefore forall u w v t l t1 m. Nat v -> not (Eq v u) -> Pair v t l -> SubLFun u w t t1 -> Pair v t1 m
-                -> SubLFun u w l m
+        -> SubLFun u w l m
   r: forall u w l m. SubL u w l m -> SubLFun u w l m
-                                          by imp_e lf c_nil c_hit c_miss
+      by imp_e lf c_nil c_hit c_miss
   therefore SUB -> SubLLeast SubLInv -> SubLLeast SubLFun -> forall u w l m. SubL u w l m -> SubLFun u w l m
 
 -- Substituting a variable for itself changes nothing: on variable lists, then on formulas.
 define SubLId l = forall v. Nat v -> SubL v v l l
 
 theorem subl_id:
-  assume sub:   SUB
+  assume sub: SUB
   assume least: VsLeast SubLId
-  assume inv:   NatLeast NatInv
-  assume dec:   NatLeast EqDec
-  nat:  NAT                               by and_e sub
-  sl0:  Sl0                               by and_e sub
-  sl1:  Sl1                               by and_e sub
-  sl2:  Sl2                               by and_e sub
-  ep:   Ep                                by and_e sub
-  refl: Refl                              by and_e sub
-  eqd:  forall x. Nat x -> EqDec x        by imp_e nat_eq_dec nat inv dec
+  assume inv: NatLeast NatInv
+  assume dec: NatLeast EqDec
+  nat: NAT                        by and_e sub
+  sl0: Sl0                        by and_e sub
+  sl1: Sl1                        by and_e sub
+  sl2: Sl2                        by and_e sub
+  ep: Ep                          by and_e sub
+  refl: Refl                      by and_e sub
+  eqd: forall x. Nat x -> EqDec x by imp_e nat_eq_dec nat inv dec
   lemma c_nil:
     variable n
     assume nn: Nil n
     lemma k:
       variable v
       assume nv: Nat v
-      r: SubL v v n n                     by imp_e sl0 nn
+      r: SubL v v n n by imp_e sl0 nn
       therefore forall v. Nat v -> SubL v v n n
     therefore forall n. Nil n -> SubLId n
   lemma c_cons:
@@ -531,191 +531,191 @@ theorem subl_id:
     lemma k:
       variable v
       assume nv: Nat v
-      st: SubL v v t t                    by imp_e ih nv
-      du: EqDec u                         by imp_e eqd nu
-      d:  Eq u v or not (Eq u v)          by imp_e du nv
+      st: SubL v v t t          by imp_e ih nv
+      du: EqDec u               by imp_e eqd nu
+      d: Eq u v or not (Eq u v) by imp_e du nv
       lemma same:
         assume e: Eq u v
-        rt: Eq t t                        by forall_e refl t
-        rl: Eq l l                        by forall_e refl l
-        pv: Pair v t l                    by imp_e ep e rt rl pl
-        r:  SubL v v l l                  by imp_e sl1 nv pv st pv
+        rt: Eq t t      by forall_e refl t
+        rl: Eq l l      by forall_e refl l
+        pv: Pair v t l  by imp_e ep e rt rl pl
+        r: SubL v v l l by imp_e sl1 nv pv st pv
         therefore Eq u v -> SubL v v l l
       lemma other:
         assume ne: not (Eq u v)
-        r: SubL v v l l                   by imp_e sl2 nu ne pl st pl
+        r: SubL v v l l by imp_e sl2 nu ne pl st pl
         therefore not (Eq u v) -> SubL v v l l
-      r: SubL v v l l                     by or_e d same other
+      r: SubL v v l l by or_e d same other
       therefore forall v. Nat v -> SubL v v l l
     therefore forall u t l. Nat u -> SubLId t -> Pair u t l -> SubLId l
-  r: forall x. Vs x -> SubLId x           by imp_e least c_nil c_cons
+  r: forall x. Vs x -> SubLId x by imp_e least c_nil c_cons
   therefore SUB -> VsLeast SubLId -> NatLeast NatInv -> NatLeast EqDec -> forall x. Vs x -> SubLId x
 
 define SubId x = Form x and forall v. Nat v -> Sub v v x x
 
 theorem sub_id:
-  assume sub:   SUB
+  assume sub: SUB
   assume least: FormLeast SubId
-  assume lid:   VsLeast SubLId
-  assume inv:   NatLeast NatInv
-  assume dec:   NatLeast EqDec
-  nat:  NAT                               by and_e sub
-  fs0:  FS0                               by and_e sub
-  fbot: Fbot                              by and_e sub
-  fat:  Fat                               by and_e sub
-  fim:  Fim                               by and_e sub
-  fan:  Fan                               by and_e sub
-  fo:   Fo                                by and_e sub
-  ffa:  Ffa                               by and_e sub
-  fex:  Fex                               by and_e sub
-  sbot: Sbot                              by and_e sub
-  sat:  Sat                               by and_e sub
-  simp: Simp                              by and_e sub
-  sand: Sand                              by and_e sub
-  sor:  Sor                               by and_e sub
-  sfa0: Sfa0                              by and_e sub
-  sfa1: Sfa1                              by and_e sub
-  sex0: Sex0                              by and_e sub
-  sex1: Sex1                              by and_e sub
-  eqd:  forall x. Nat x -> EqDec x        by imp_e nat_eq_dec nat inv dec
-  lists: forall x. Vs x -> SubLId x       by imp_e subl_id sub lid inv dec
+  assume lid: VsLeast SubLId
+  assume inv: NatLeast NatInv
+  assume dec: NatLeast EqDec
+  nat: NAT                          by and_e sub
+  fs0: FS0                          by and_e sub
+  fbot: Fbot                        by and_e sub
+  fat: Fat                          by and_e sub
+  fim: Fim                          by and_e sub
+  fan: Fan                          by and_e sub
+  fo: Fo                            by and_e sub
+  ffa: Ffa                          by and_e sub
+  fex: Fex                          by and_e sub
+  sbot: Sbot                        by and_e sub
+  sat: Sat                          by and_e sub
+  simp: Simp                        by and_e sub
+  sand: Sand                        by and_e sub
+  sor: Sor                          by and_e sub
+  sfa0: Sfa0                        by and_e sub
+  sfa1: Sfa1                        by and_e sub
+  sex0: Sex0                        by and_e sub
+  sex1: Sex1                        by and_e sub
+  eqd: forall x. Nat x -> EqDec x   by imp_e nat_eq_dec nat inv dec
+  lists: forall x. Vs x -> SubLId x by imp_e subl_id sub lid inv dec
   lemma c_bot:
     variable n x
     assume nn: Nil n
     assume nd: Node1 T0 n x
-    fx: Form x                            by imp_e fbot nn nd
+    fx: Form x by imp_e fbot nn nd
     lemma k:
       variable v
       assume nv: Nat v
-      r: Sub v v x x                      by imp_e sbot nn nd
+      r: Sub v v x x by imp_e sbot nn nd
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall n x. Nil n -> Node1 T0 n x -> SubId x
   lemma c_at:
     variable p l x
     assume np: Nat p
     assume vl: Vs l
     assume nd: Node2 T1 p l x
-    fx: Form x                            by imp_e fat np vl nd
-    li: SubLId l                          by imp_e lists vl
+    fx: Form x   by imp_e fat np vl nd
+    li: SubLId l by imp_e lists vl
     lemma k:
       variable v
       assume nv: Nat v
-      sl: SubL v v l l                    by imp_e li nv
-      r:  Sub v v x x                     by imp_e sat np nd sl nd
+      sl: SubL v v l l by imp_e li nv
+      r: Sub v v x x   by imp_e sat np nd sl nd
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall p l x. Nat p -> Vs l -> Node2 T1 p l x -> SubId x
   lemma c_imp:
     variable a b x
     assume ia: SubId a
     assume ib: SubId b
     assume nd: Node2 T2 a b x
-    fa: Form a                            by and_e ia
-    fb: Form b                            by and_e ib
-    fx: Form x                            by imp_e fim fa fb nd
-    ka: forall v. Nat v -> Sub v v a a    by and_e ia
-    kb: forall v. Nat v -> Sub v v b b    by and_e ib
+    fa: Form a                         by and_e ia
+    fb: Form b                         by and_e ib
+    fx: Form x                         by imp_e fim fa fb nd
+    ka: forall v. Nat v -> Sub v v a a by and_e ia
+    kb: forall v. Nat v -> Sub v v b b by and_e ib
     lemma k:
       variable v
       assume nv: Nat v
-      sa: Sub v v a a                     by imp_e ka nv
-      sb: Sub v v b b                     by imp_e kb nv
-      r:  Sub v v x x                     by imp_e simp sa sb nd nd
+      sa: Sub v v a a by imp_e ka nv
+      sb: Sub v v b b by imp_e kb nv
+      r: Sub v v x x  by imp_e simp sa sb nd nd
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall a b x. SubId a -> SubId b -> Node2 T2 a b x -> SubId x
   lemma c_and:
     variable a b x
     assume ia: SubId a
     assume ib: SubId b
     assume nd: Node2 T3 a b x
-    fa: Form a                            by and_e ia
-    fb: Form b                            by and_e ib
-    fx: Form x                            by imp_e fan fa fb nd
-    ka: forall v. Nat v -> Sub v v a a    by and_e ia
-    kb: forall v. Nat v -> Sub v v b b    by and_e ib
+    fa: Form a                         by and_e ia
+    fb: Form b                         by and_e ib
+    fx: Form x                         by imp_e fan fa fb nd
+    ka: forall v. Nat v -> Sub v v a a by and_e ia
+    kb: forall v. Nat v -> Sub v v b b by and_e ib
     lemma k:
       variable v
       assume nv: Nat v
-      sa: Sub v v a a                     by imp_e ka nv
-      sb: Sub v v b b                     by imp_e kb nv
-      r:  Sub v v x x                     by imp_e sand sa sb nd nd
+      sa: Sub v v a a by imp_e ka nv
+      sb: Sub v v b b by imp_e kb nv
+      r: Sub v v x x  by imp_e sand sa sb nd nd
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall a b x. SubId a -> SubId b -> Node2 T3 a b x -> SubId x
   lemma c_or:
     variable a b x
     assume ia: SubId a
     assume ib: SubId b
     assume nd: Node2 T4 a b x
-    fa: Form a                            by and_e ia
-    fb: Form b                            by and_e ib
-    fx: Form x                            by imp_e fo fa fb nd
-    ka: forall v. Nat v -> Sub v v a a    by and_e ia
-    kb: forall v. Nat v -> Sub v v b b    by and_e ib
+    fa: Form a                         by and_e ia
+    fb: Form b                         by and_e ib
+    fx: Form x                         by imp_e fo fa fb nd
+    ka: forall v. Nat v -> Sub v v a a by and_e ia
+    kb: forall v. Nat v -> Sub v v b b by and_e ib
     lemma k:
       variable v
       assume nv: Nat v
-      sa: Sub v v a a                     by imp_e ka nv
-      sb: Sub v v b b                     by imp_e kb nv
-      r:  Sub v v x x                     by imp_e sor sa sb nd nd
+      sa: Sub v v a a by imp_e ka nv
+      sb: Sub v v b b by imp_e kb nv
+      r: Sub v v x x  by imp_e sor sa sb nd nd
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall a b x. SubId a -> SubId b -> Node2 T4 a b x -> SubId x
   lemma c_fa:
     variable u a x
     assume nu: Nat u
     assume ia: SubId a
     assume nd: Node2 T5 u a x
-    fa: Form a                            by and_e ia
-    fx: Form x                            by imp_e ffa nu fa nd
-    ka: forall v. Nat v -> Sub v v a a    by and_e ia
+    fa: Form a                         by and_e ia
+    fx: Form x                         by imp_e ffa nu fa nd
+    ka: forall v. Nat v -> Sub v v a a by and_e ia
     lemma k:
       variable v
       assume nv: Nat v
-      sa: Sub v v a a                     by imp_e ka nv
-      du: EqDec u                         by imp_e eqd nu
-      d:  Eq u v or not (Eq u v)          by imp_e du nv
+      sa: Sub v v a a           by imp_e ka nv
+      du: EqDec u               by imp_e eqd nu
+      d: Eq u v or not (Eq u v) by imp_e du nv
       lemma same:
         assume e: Eq u v
-        nv1: Node2 T5 v a x               by imp_e node2_eq_left T5 fs0 nd e
-        r:   Sub v v x x                  by imp_e sfa0 nv fa nv1
+        nv1: Node2 T5 v a x by imp_e node2_eq_left T5 fs0 nd e
+        r: Sub v v x x      by imp_e sfa0 nv fa nv1
         therefore Eq u v -> Sub v v x x
       lemma other:
         assume ne: not (Eq u v)
-        r: Sub v v x x                    by imp_e sfa1 nu ne ne sa nd nd
+        r: Sub v v x x by imp_e sfa1 nu ne ne sa nd nd
         therefore not (Eq u v) -> Sub v v x x
-      r: Sub v v x x                      by or_e d same other
+      r: Sub v v x x by or_e d same other
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall u a x. Nat u -> SubId a -> Node2 T5 u a x -> SubId x
   lemma c_ex:
     variable u a x
     assume nu: Nat u
     assume ia: SubId a
     assume nd: Node2 T6 u a x
-    fa: Form a                            by and_e ia
-    fx: Form x                            by imp_e fex nu fa nd
-    ka: forall v. Nat v -> Sub v v a a    by and_e ia
+    fa: Form a                         by and_e ia
+    fx: Form x                         by imp_e fex nu fa nd
+    ka: forall v. Nat v -> Sub v v a a by and_e ia
     lemma k:
       variable v
       assume nv: Nat v
-      sa: Sub v v a a                     by imp_e ka nv
-      du: EqDec u                         by imp_e eqd nu
-      d:  Eq u v or not (Eq u v)          by imp_e du nv
+      sa: Sub v v a a           by imp_e ka nv
+      du: EqDec u               by imp_e eqd nu
+      d: Eq u v or not (Eq u v) by imp_e du nv
       lemma same:
         assume e: Eq u v
-        nv1: Node2 T6 v a x               by imp_e node2_eq_left T6 fs0 nd e
-        r:   Sub v v x x                  by imp_e sex0 nv fa nv1
+        nv1: Node2 T6 v a x by imp_e node2_eq_left T6 fs0 nd e
+        r: Sub v v x x      by imp_e sex0 nv fa nv1
         therefore Eq u v -> Sub v v x x
       lemma other:
         assume ne: not (Eq u v)
-        r: Sub v v x x                    by imp_e sex1 nu ne ne sa nd nd
+        r: Sub v v x x by imp_e sex1 nu ne ne sa nd nd
         therefore not (Eq u v) -> Sub v v x x
-      r: Sub v v x x                      by or_e d same other
+      r: Sub v v x x by or_e d same other
       therefore forall v. Nat v -> Sub v v x x
-    s: SubId x                            by and_i fx k
+    s: SubId x by and_i fx k
     therefore forall u a x. Nat u -> SubId a -> Node2 T6 u a x -> SubId x
-  r: forall x. Form x -> SubId x          by imp_e least c_bot c_at c_imp c_and c_or c_fa c_ex
+  r: forall x. Form x -> SubId x by imp_e least c_bot c_at c_imp c_and c_or c_fa c_ex
   therefore SUB -> FormLeast SubId -> VsLeast SubLId -> NatLeast NatInv -> NatLeast EqDec -> forall x. Form x -> SubId x

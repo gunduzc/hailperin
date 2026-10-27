@@ -12,106 +12,106 @@ define Avoids h f = forall v. Bound v f -> NoFree v h
 theorem avoids_bin:
   variable h a b x
   assume bound: BOUND
-  assume av:    Avoids h x
-  assume bn:    BinNode a b x
-  bl: Bl                                  by and_e bound
-  br: Br                                  by and_e bound
+  assume av: Avoids h x
+  assume bn: BinNode a b x
+  bl: Bl by and_e bound
+  br: Br by and_e bound
   lemma left:
     variable v
     assume bv: Bound v a
-    bx: Bound v x                         by imp_e bl bn bv
-    r:  NoFree v h                        by imp_e av bx
+    bx: Bound v x by imp_e bl bn bv
+    r: NoFree v h by imp_e av bx
     therefore forall v. Bound v a -> NoFree v h
   lemma right:
     variable v
     assume bv: Bound v b
-    bx: Bound v x                         by imp_e br bn bv
-    r:  NoFree v h                        by imp_e av bx
+    bx: Bound v x by imp_e br bn bv
+    r: NoFree v h by imp_e av bx
     therefore forall v. Bound v b -> NoFree v h
-  both: Avoids h a and Avoids h b         by and_i left right
+  both: Avoids h a and Avoids h b by and_i left right
   therefore forall h a b x. BOUND -> Avoids h x -> BinNode a b x -> Avoids h a and Avoids h b
 
 -- Avoiding a quantifier avoids its body, and keeps its variable out of the hypotheses.
 theorem avoids_q:
   variable h v a x
   assume bound: BOUND
-  assume av:    Avoids h x
-  assume qn:    QNode v a x
-  bq:   Bq                                by and_e bound
-  binq: Binq                              by and_e bound
-  bvx:  Bound v x                         by imp_e bq qn
-  nfv:  NoFree v h                        by imp_e av bvx
+  assume av: Avoids h x
+  assume qn: QNode v a x
+  bq: Bq          by and_e bound
+  binq: Binq      by and_e bound
+  bvx: Bound v x  by imp_e bq qn
+  nfv: NoFree v h by imp_e av bvx
   lemma body:
     variable u
     assume bu: Bound u a
-    bx: Bound u x                         by imp_e binq qn bu
-    r:  NoFree u h                        by imp_e av bx
+    bx: Bound u x by imp_e binq qn bu
+    r: NoFree u h by imp_e av bx
     therefore forall u. Bound u a -> NoFree u h
-  both: NoFree v h and Avoids h a         by and_i nfv body
+  both: NoFree v h and Avoids h a by and_i nfv body
   therefore forall h v a x. BOUND -> Avoids h x -> QNode v a x -> NoFree v h and Avoids h a
 
 -- The variables free in a one- or two-variable list are its entries.
 theorem frl_list1:
   variable u v l
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  assume ll:   FrLLeast FrLInv
-  assume fl:   FrL u l
-  assume li:   List1 v l
+  assume ll: FrLLeast FrLInv
+  assume fl: FrL u l
+  assume li: List1 v l
   lemma wit:
     variable n
     assume h: Nil n and Pair v n l
-    nn: Nil n                             by and_e h
-    pl: Pair v n l                        by and_e h
-    o:  Eq u v or FrL u n                 by imp_e frl_cons fs0 free ll fl pl
+    nn: Nil n            by and_e h
+    pl: Pair v n l       by and_e h
+    o: Eq u v or FrL u n by imp_e frl_cons fs0 free ll fl pl
     lemma here:
       assume e: Eq u v
       therefore Eq u v -> Eq u v
     lemma there:
       assume fn: FrL u n
-      f: absurd                           by imp_e frl_nil fs0 free ll fn nn
-      r: Eq u v                           by absurd_e f
+      f: absurd by imp_e frl_nil fs0 free ll fn nn
+      r: Eq u v by absurd_e f
       therefore FrL u n -> Eq u v
-    r: Eq u v                             by or_e o here there
+    r: Eq u v by or_e o here there
     therefore forall n. (Nil n and Pair v n l) -> Eq u v
-  r: Eq u v                               by exists_e li wit
+  r: Eq u v by exists_e li wit
   therefore forall u v l. FS0 -> FREE -> FrLLeast FrLInv -> FrL u l -> List1 v l -> Eq u v
 
 theorem frl_list2:
   variable u v w l
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  assume ll:   FrLLeast FrLInv
-  assume fl:   FrL u l
-  assume li:   List2 v w l
+  assume ll: FrLLeast FrLInv
+  assume fl: FrL u l
+  assume li: List2 v w l
   lemma wit:
     variable t
     assume h: List1 w t and Pair v t l
-    lt: List1 w t                         by and_e h
-    pl: Pair v t l                        by and_e h
-    o:  Eq u v or FrL u t                 by imp_e frl_cons fs0 free ll fl pl
+    lt: List1 w t        by and_e h
+    pl: Pair v t l       by and_e h
+    o: Eq u v or FrL u t by imp_e frl_cons fs0 free ll fl pl
     lemma here:
       assume e: Eq u v
-      r: Eq u v or Eq u w                 by or_i e
+      r: Eq u v or Eq u w by or_i e
       therefore Eq u v -> Eq u v or Eq u w
     lemma there:
       assume ft: FrL u t
-      e: Eq u w                           by imp_e frl_list1 fs0 free ll ft lt
-      r: Eq u v or Eq u w                 by or_i e
+      e: Eq u w           by imp_e frl_list1 fs0 free ll ft lt
+      r: Eq u v or Eq u w by or_i e
       therefore FrL u t -> Eq u v or Eq u w
-    r: Eq u v or Eq u w                   by or_e o here there
+    r: Eq u v or Eq u w by or_e o here there
     therefore forall t. (List1 w t and Pair v t l) -> Eq u v or Eq u w
-  r: Eq u v or Eq u w                     by exists_e li wit
+  r: Eq u v or Eq u w by exists_e li wit
   therefore forall u v w l. FS0 -> FREE -> FrLLeast FrLInv -> FrL u l -> List2 v w l -> Eq u v or Eq u w
 
 -- The only variable free in Num_n v is v: the variable inside is bound.
 define NumFree n v f = forall u. Fr u f -> Eq u v
 
 theorem numf_free:
-  assume fs0:   FS0
-  assume free:  FREE
-  assume ll:    FrLLeast FrLInv
-  assume lf:    FrLeast FrInv
+  assume fs0: FS0
+  assume free: FREE
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
   assume least: NumFLeast NumFree
   lemma c0:
     variable n v f
@@ -124,12 +124,12 @@ theorem numf_free:
       lemma wit:
         variable p l
         assume h: T0 p and List1 v l and Node2 T1 p l f
-        nd:  Node2 T1 p l f               by and_e h
-        li:  List1 v l                    by and_e h
-        fl1: FrL u l                      by imp_e fr_at fs0 free lf fr nd
-        r:   Eq u v                       by imp_e frl_list1 fs0 free ll fl1 li
+        nd: Node2 T1 p l f by and_e h
+        li: List1 v l      by and_e h
+        fl1: FrL u l       by imp_e fr_at fs0 free lf fr nd
+        r: Eq u v          by imp_e frl_list1 fs0 free ll fl1 li
         therefore forall p l. (T0 p and List1 v l and Node2 T1 p l f) -> Eq u v
-      r: Eq u v                           by exists_e za wit
+      r: Eq u v by exists_e za wit
       therefore forall u. Fr u f -> Eq u v
     therefore forall n v f. Nil n -> Nat v -> ZeroAt v f -> NumFree n v f
   lemma c1:
@@ -144,47 +144,47 @@ theorem numf_free:
     lemma k:
       variable u
       assume fr: Fr u f
-      qn:  QNode w c f                    by or_i ex
-      q:   not (Eq w u) and Fr u c        by imp_e fr_q fs0 free lf fr qn
-      nwu: not (Eq w u)                   by and_e q
-      fc:  Fr u c                         by and_e q
-      bn:  BinNode g s c                  by or_i ac
-      o:   Fr u g or Fr u s               by imp_e fr_bin fs0 free lf fc bn
+      qn: QNode w c f            by or_i ex
+      q: not (Eq w u) and Fr u c by imp_e fr_q fs0 free lf fr qn
+      nwu: not (Eq w u)          by and_e q
+      fc: Fr u c                 by and_e q
+      bn: BinNode g s c          by or_i ac
+      o: Fr u g or Fr u s        by imp_e fr_bin fs0 free lf fc bn
       lemma left:
         assume fg: Fr u g
-        euw: Eq u w                       by imp_e ih fg
-        ewu: Eq w u                       by imp_e eq_sym fs0 euw
-        f0:  absurd                       by imp_e nwu ewu
-        r:   Eq u v                       by absurd_e f0
+        euw: Eq u w by imp_e ih fg
+        ewu: Eq w u by imp_e eq_sym fs0 euw
+        f0: absurd  by imp_e nwu ewu
+        r: Eq u v   by absurd_e f0
         therefore Fr u g -> Eq u v
       lemma right:
         assume fs: Fr u s
         lemma wit:
           variable p l
           assume h: T1 p and List2 w v l and Node2 T1 p l s
-          nd:  Node2 T1 p l s             by and_e h
-          li:  List2 w v l                by and_e h
-          fl1: FrL u l                    by imp_e fr_at fs0 free lf fs nd
-          o2:  Eq u w or Eq u v           by imp_e frl_list2 fs0 free ll fl1 li
+          nd: Node2 T1 p l s   by and_e h
+          li: List2 w v l      by and_e h
+          fl1: FrL u l         by imp_e fr_at fs0 free lf fs nd
+          o2: Eq u w or Eq u v by imp_e frl_list2 fs0 free ll fl1 li
           lemma bound:
             assume euw: Eq u w
-            ewu: Eq w u                   by imp_e eq_sym fs0 euw
-            f0:  absurd                   by imp_e nwu ewu
-            r:   Eq u v                   by absurd_e f0
+            ewu: Eq w u by imp_e eq_sym fs0 euw
+            f0: absurd  by imp_e nwu ewu
+            r: Eq u v   by absurd_e f0
             therefore Eq u w -> Eq u v
           lemma here:
             assume e: Eq u v
             therefore Eq u v -> Eq u v
-          r: Eq u v                       by or_e o2 bound here
+          r: Eq u v by or_e o2 bound here
           therefore forall p l. (T1 p and List2 w v l and Node2 T1 p l s) -> Eq u v
-        r: Eq u v                         by exists_e sa wit
+        r: Eq u v by exists_e sa wit
         therefore Fr u s -> Eq u v
-      r: Eq u v                           by or_e o left right
+      r: Eq u v by or_e o left right
       therefore forall u. Fr u f -> Eq u v
     therefore forall m n v w g s c f. Suc m n -> Nat v -> Suc v w -> NumFree m w g -> SuccAt w v s -> AndCode g s c
-                -> ExCode w c f -> NumFree n v f
+        -> ExCode w c f -> NumFree n v f
   r: forall n v f. NumF n v f -> NumFree n v f
-                                          by imp_e least c0 c1
+      by imp_e least c0 c1
   therefore FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv -> NumFLeast NumFree -> forall n v f. NumF n v f -> NumFree n v f
 
 -- Q proves that every numeral exists: exists v. Num_n v, from no hypotheses. The step, with the
@@ -192,181 +192,181 @@ theorem numf_free:
 -- Q's axiom Se, two eliminations give exists v. exists w. Num_m w and Succ w v.
 theorem numq_step:
   variable z v w g s c f e eg h1 c1 h2
-  assume fs0:   FS0
-  assume form:  FORM
+  assume fs0: FS0
+  assume form: FORM
   assume logax: LOGAX
-  assume list:  LIST
-  assume free:  FREE
-  assume prf:   PRF QAx
-  assume dtp:   PrfLeast QAx DTP
-  assume mc:    MemLeast MemCons
-  assume mp:    MemLeast MemPair
-  assume lf:    FrLeast FrInv
-  assume sid:   forall x. Form x -> SubId x
-  assume nz:    Nil z
-  assume nv:    Nat v
-  assume nw:    Nat w
-  assume nev:   not (Eq v w)
-  assume fg:    Form g
-  assume gf:    forall u. Fr u g -> Eq u w
-  assume sa:    SuccAt w v s
-  assume ac:    AndCode g s c
-  assume ef:    ExCode w c f
-  assume ex:    ExCode v f e
-  assume ewg:   ExCode w g eg
-  assume ph1:   Pair g z h1
-  assume evs:   ExCode v s c1
-  assume ph2:   Pair s h1 h2
-  assume ih:    PrH z eg
-  fan:   Fan                              by and_e form
-  fex:   Fex                              by and_e form
-  mh:    Mh                               by and_e list
-  mt:    Mt                               by and_e list
-  refl:  Refl                             by and_e fs0
-  qfr:   Qfr                              by and_e free
-  leaf:  (forall h a. Form a -> LogAx a -> PrH h a) and (forall h a. Form a -> QAx a -> PrH h a)
-         and (forall h a. Form a -> Mem a h -> PrH h a)
-                                          by imp_e prh_leaf QAx fs0 prf
-  axh:   forall h a. Form a -> QAx a -> PrH h a
-                                          by and_e leaf
-  hyp:   forall h a. Form a -> Mem a h -> PrH h a
-                                          by and_e leaf
-  fs:  Form s                             by imp_e succat_form form nw nv sa
-  fc:  Form c                             by imp_e fan fg fs ac
-  ff:  Form f                             by imp_e fex nw fc ef
-  fe:  Form e                             by imp_e fex nv ff ex
-  fc1: Form c1                            by imp_e fex nv fs evs
+  assume list: LIST
+  assume free: FREE
+  assume prf: PRF QAx
+  assume dtp: PrfLeast QAx DTP
+  assume mc: MemLeast MemCons
+  assume mp: MemLeast MemPair
+  assume lf: FrLeast FrInv
+  assume sid: forall x. Form x -> SubId x
+  assume nz: Nil z
+  assume nv: Nat v
+  assume nw: Nat w
+  assume nev: not (Eq v w)
+  assume fg: Form g
+  assume gf: forall u. Fr u g -> Eq u w
+  assume sa: SuccAt w v s
+  assume ac: AndCode g s c
+  assume ef: ExCode w c f
+  assume ex: ExCode v f e
+  assume ewg: ExCode w g eg
+  assume ph1: Pair g z h1
+  assume evs: ExCode v s c1
+  assume ph2: Pair s h1 h2
+  assume ih: PrH z eg
+  fan: Fan     by and_e form
+  fex: Fex     by and_e form
+  mh: Mh       by and_e list
+  mt: Mt       by and_e list
+  refl: Refl   by and_e fs0
+  qfr: Qfr     by and_e free
+  leaf: (forall h a. Form a -> LogAx a -> PrH h a) and (forall h a. Form a -> QAx a -> PrH h a)
+      and (forall h a. Form a -> Mem a h -> PrH h a)
+               by imp_e prh_leaf QAx fs0 prf
+  axh: forall h a. Form a -> QAx a -> PrH h a
+               by and_e leaf
+  hyp: forall h a. Form a -> Mem a h -> PrH h a
+               by and_e leaf
+  fs: Form s   by imp_e succat_form form nw nv sa
+  fc: Form c   by imp_e fan fg fs ac
+  ff: Form f   by imp_e fex nw fc ef
+  fe: Form e   by imp_e fex nv ff ex
+  fc1: Form c1 by imp_e fex nv fs evs
   lemma nwv:
     assume e1: Eq w v
-    e2: Eq v w                            by imp_e eq_sym fs0 e1
-    g0: absurd                            by imp_e nev e2
+    e2: Eq v w by imp_e eq_sym fs0 e1
+    g0: absurd by imp_e nev e2
     therefore not (Eq w v)
   -- the axiom, at w
   sec: Nat w and Nat v and not (Eq w v) and ExCode v s c1 and SuccAt w v s
-                                          by and_i nw nv nwv evs sa
-  se:  SeCode c1                          by exists_i sec
-  qa:  QAx c1                             by or_i se
-  p1:  PrH h1 c1                          by imp_e axh fc1 qa
+                                         by and_i nw nv nwv evs sa
+  se: SeCode c1                          by exists_i sec
+  qa: QAx c1                             by or_i se
+  p1: PrH h1 c1                          by imp_e axh fc1 qa
   -- under Succ w v and Num_m w: exists v. exists w. Num_m w and Succ w v
-  ms:   Mem s h2                          by imp_e mh ph2
-  mg1:  Mem g h1                          by imp_e mh ph1
-  mg:   Mem g h2                          by imp_e mt ph2 mg1
-  ps:   PrH h2 s                          by imp_e hyp fs ms
-  pg:   PrH h2 g                          by imp_e hyp fg mg
-  pc:   PrH h2 c                          by imp_e prh_and_i QAx fs0 form logax prf fg fs ac pg ps
-  ic:   SubId c                           by imp_e sid fc
-  kc:   forall v1. Nat v1 -> Sub v1 v1 c c    by and_e ic
-  swcc: Sub w w c c                       by imp_e kc nw
-  pf:   PrH h2 f                          by imp_e prh_exi QAx fs0 form logax prf nw nw fc fc swcc ef pc
-  iff:  SubId f                           by imp_e sid ff
-  kf:   forall v1. Nat v1 -> Sub v1 v1 f f    by and_e iff
-  svf:  Sub v v f f                       by imp_e kf nv
-  pe2:  PrH h2 e                          by imp_e prh_exi QAx fs0 form logax prf nv nv ff ff svf ex pf
+  ms: Mem s h2                           by imp_e mh ph2
+  mg1: Mem g h1                          by imp_e mh ph1
+  mg: Mem g h2                           by imp_e mt ph2 mg1
+  ps: PrH h2 s                           by imp_e hyp fs ms
+  pg: PrH h2 g                           by imp_e hyp fg mg
+  pc: PrH h2 c                           by imp_e prh_and_i QAx fs0 form logax prf fg fs ac pg ps
+  ic: SubId c                            by imp_e sid fc
+  kc: forall v1. Nat v1 -> Sub v1 v1 c c by and_e ic
+  swcc: Sub w w c c                      by imp_e kc nw
+  pf: PrH h2 f                           by imp_e prh_exi QAx fs0 form logax prf nw nw fc fc swcc ef pc
+  iff: SubId f                           by imp_e sid ff
+  kf: forall v1. Nat v1 -> Sub v1 v1 f f by and_e iff
+  svf: Sub v v f f                       by imp_e kf nv
+  pe2: PrH h2 e                          by imp_e prh_exi QAx fs0 form logax prf nv nv ff ff svf ex pf
   -- eliminate v, which is free neither in e nor in Num_m w
   lemma nfev:
     assume fr: Fr v e
-    qn: QNode v f e                       by or_i ex
-    g0: absurd                            by imp_e fr_bound fs0 free lf fr qn
+    qn: QNode v f e by or_i ex
+    g0: absurd      by imp_e fr_bound fs0 free lf fr qn
     therefore not (Fr v e)
-  nfzv: NoFree v z                        by imp_e nil_nofree list mp nz
-  nfzw: NoFree w z                        by imp_e nil_nofree list mp nz
+  nfzv: NoFree v z by imp_e nil_nofree list mp nz
+  nfzw: NoFree w z by imp_e nil_nofree list mp nz
   lemma nfh1:
     variable b
     assume mb: Mem b h1
-    mcb: MemCons b h1                     by imp_e mem_cons list mc mb
-    o:   Eq b g or Mem b z                by imp_e mcb ph1
+    mcb: MemCons b h1    by imp_e mem_cons list mc mb
+    o: Eq b g or Mem b z by imp_e mcb ph1
     lemma isg:
       assume ebg: Eq b g
       lemma nf:
         assume fr: Fr v b
-        rv:  Eq v v                       by forall_e refl v
-        frg: Fr v g                       by imp_e qfr rv ebg fr
-        evw: Eq v w                       by imp_e gf frg
-        g0:  absurd                       by imp_e nev evw
+        rv: Eq v v  by forall_e refl v
+        frg: Fr v g by imp_e qfr rv ebg fr
+        evw: Eq v w by imp_e gf frg
+        g0: absurd  by imp_e nev evw
         therefore not (Fr v b)
       therefore Eq b g -> not (Fr v b)
     lemma inz:
       assume mz: Mem b z
-      r: not (Fr v b)                     by imp_e nfzv mz
+      r: not (Fr v b) by imp_e nfzv mz
       therefore Mem b z -> not (Fr v b)
-    r: not (Fr v b)                       by or_e o isg inz
+    r: not (Fr v b) by or_e o isg inz
     therefore forall b. Mem b h1 -> not (Fr v b)
-  ph1e: PrH h1 e                          by imp_e prh_exe QAx fs0 form logax list prf dtp mc nv fs fe nfev nfh1 evs p1 ph2 pe2
+  ph1e: PrH h1 e by imp_e prh_exe QAx fs0 form logax list prf dtp mc nv fs fe nfev nfh1 evs p1 ph2 pe2
   -- eliminate w, bound inside e and free in no hypothesis
   lemma nfew:
     assume fr: Fr w e
-    qe:  QNode v f e                      by or_i ex
-    k:   not (Eq v w) and Fr w f          by imp_e fr_q fs0 free lf fr qe
-    fwf: Fr w f                           by and_e k
-    qf:  QNode w c f                      by or_i ef
-    g0:  absurd                           by imp_e fr_bound fs0 free lf fwf qf
+    qe: QNode v f e            by or_i ex
+    k: not (Eq v w) and Fr w f by imp_e fr_q fs0 free lf fr qe
+    fwf: Fr w f                by and_e k
+    qf: QNode w c f            by or_i ef
+    g0: absurd                 by imp_e fr_bound fs0 free lf fwf qf
     therefore not (Fr w e)
-  r: PrH z e                              by imp_e prh_exe QAx fs0 form logax list prf dtp mc nw fg fe nfew nfzw ewg ih ph1 ph1e
+  r: PrH z e by imp_e prh_exe QAx fs0 form logax list prf dtp mc nw fg fe nfew nfzw ewg ih ph1 ph1e
   therefore forall z v w g s c f e eg h1 c1 h2. FS0 -> FORM -> LOGAX -> LIST -> FREE -> PRF QAx
-              -> PrfLeast QAx DTP -> MemLeast MemCons -> MemLeast MemPair -> FrLeast FrInv
-              -> (forall x. Form x -> SubId x) -> Nil z -> Nat v -> Nat w -> not (Eq v w) -> Form g
-              -> (forall u. Fr u g -> Eq u w) -> SuccAt w v s -> AndCode g s c -> ExCode w c f -> ExCode v f e
-              -> ExCode w g eg -> Pair g z h1 -> ExCode v s c1 -> Pair s h1 h2 -> PrH z eg
-              -> PrH z e
+      -> PrfLeast QAx DTP -> MemLeast MemCons -> MemLeast MemPair -> FrLeast FrInv
+      -> (forall x. Form x -> SubId x) -> Nil z -> Nat v -> Nat w -> not (Eq v w) -> Form g
+      -> (forall u. Fr u g -> Eq u w) -> SuccAt w v s -> AndCode g s c -> ExCode w c f -> ExCode v f e
+      -> ExCode w g eg -> Pair g z h1 -> ExCode v s c1 -> Pair s h1 h2 -> PrH z eg
+      -> PrH z e
 
 -- Every numeral formula is one Q proves exists, by induction on the numeral formulas.
 define NumQ n v f = NumF n v f and forall e z. ExCode v f e -> Nil z -> PrH z e
 
 theorem numq_exists:
-  assume fs0:   FS0
-  assume form:  FORM
+  assume fs0: FS0
+  assume form: FORM
   assume logax: LOGAX
-  assume list:  LIST
-  assume free:  FREE
-  assume numf:  NUMF
-  assume prf:   PRF QAx
-  assume dtp:   PrfLeast QAx DTP
-  assume mc:    MemLeast MemCons
-  assume mp:    MemLeast MemPair
-  assume ll:    FrLLeast FrLInv
-  assume lf:    FrLeast FrInv
-  assume nfl:   NumFLeast NumFree
+  assume list: LIST
+  assume free: FREE
+  assume numf: NUMF
+  assume prf: PRF QAx
+  assume dtp: PrfLeast QAx DTP
+  assume mc: MemLeast MemCons
+  assume mp: MemLeast MemPair
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
+  assume nfl: NumFLeast NumFree
   assume nform: NumFLeast NumForm
-  assume sne:   NatLeast SucNe
-  assume sid:   forall x. Form x -> SubId x
+  assume sne: NatLeast SucNe
+  assume sid: forall x. Form x -> SubId x
   assume least: NumFLeast NumQ
-  nf0: Nf0                                by and_e numf
-  nf1: Nf1                                by and_e numf
-  fex: Fex                                by and_e form
-  pe:  Pe                                 by and_e fs0
+  nf0: Nf0                          by and_e numf
+  nf1: Nf1                          by and_e numf
+  fex: Fex                          by and_e form
+  pe: Pe                            by and_e fs0
   leaf: (forall h a. Form a -> LogAx a -> PrH h a) and (forall h a. Form a -> QAx a -> PrH h a)
-        and (forall h a. Form a -> Mem a h -> PrH h a)
-                                          by imp_e prh_leaf QAx fs0 prf
-  axh:  forall h a. Form a -> QAx a -> PrH h a
-                                          by and_e leaf
+      and (forall h a. Form a -> Mem a h -> PrH h a)
+                                    by imp_e prh_leaf QAx fs0 prf
+  axh: forall h a. Form a -> QAx a -> PrH h a
+                                    by and_e leaf
   tags: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
-        and (exists t. T5 t) and (exists t. T6 t)
-                                          by imp_e tag_exists fs0
-  t6: exists t. T6 t                      by and_e tags
+      and (exists t. T5 t) and (exists t. T6 t)
+                                    by imp_e tag_exists fs0
+  t6: exists t. T6 t                by and_e tags
   numfree: forall n v f. NumF n v f -> NumFree n v f
-                                          by imp_e numf_free fs0 free ll lf nfl
+                                    by imp_e numf_free fs0 free ll lf nfl
   numform: forall n v f. NumF n v f -> NumForm n v f
-                                          by imp_e numf_form form nform
-  sucne: forall x. Nat x -> SucNe x       by imp_e suc_ne fs0 sne
+                                    by imp_e numf_form form nform
+  sucne: forall x. Nat x -> SucNe x by imp_e suc_ne fs0 sne
   lemma c0:
     variable n v f
     assume nn: Nil n
     assume nv: Nat v
     assume za: ZeroAt v f
-    nf: NumF n v f                        by imp_e nf0 nn nv za
-    ff: Form f                            by imp_e numform nf
+    nf: NumF n v f by imp_e nf0 nn nv za
+    ff: Form f     by imp_e numform nf
     lemma k:
       variable e z
       assume ex: ExCode v f e
       assume nz: Nil z
-      fe: Form e                          by imp_e fex nv ff ex
-      c:  Nat v and ExCode v f e and ZeroAt v f
-                                          by and_i nv ex za
-      ze: ZeCode e                        by exists_i c
-      qa: QAx e                           by or_i ze
-      r:  PrH z e                         by imp_e axh fe qa
+      fe: Form e   by imp_e fex nv ff ex
+      c: Nat v and ExCode v f e and ZeroAt v f
+                   by and_i nv ex za
+      ze: ZeCode e by exists_i c
+      qa: QAx e    by or_i ze
+      r: PrH z e   by imp_e axh fe qa
       therefore forall e z. ExCode v f e -> Nil z -> PrH z e
-    r: NumQ n v f                         by and_i nf k
+    r: NumQ n v f by and_i nf k
     therefore forall n v f. Nil n -> Nat v -> ZeroAt v f -> NumQ n v f
   lemma c1:
     variable m n v w g s c f
@@ -377,81 +377,81 @@ theorem numq_exists:
     assume sa: SuccAt w v s
     assume ac: AndCode g s c
     assume ef: ExCode w c f
-    ng: NumF m w g                        by and_e ih
-    pq:  forall e z. ExCode w g e -> Nil z -> PrH z e
-                                          by and_e ih
-    nf:  NumF n v f                       by imp_e nf1 sm nv sv ng sa ac ef
-    nw:  Nat w                            by imp_e suc_nat form nv sv
-    fg:  Form g                           by imp_e numform ng
-    gf:  forall u. Fr u g -> Eq u w       by imp_e numfree ng
-    sn:  SucNe v                          by imp_e sucne nv
-    nev: not (Eq v w)                     by imp_e sn sv
+    ng: NumF m w g                 by and_e ih
+    pq: forall e z. ExCode w g e -> Nil z -> PrH z e
+                                   by and_e ih
+    nf: NumF n v f                 by imp_e nf1 sm nv sv ng sa ac ef
+    nw: Nat w                      by imp_e suc_nat form nv sv
+    fg: Form g                     by imp_e numform ng
+    gf: forall u. Fr u g -> Eq u w by imp_e numfree ng
+    sn: SucNe v                    by imp_e sucne nv
+    nev: not (Eq v w)              by imp_e sn sv
     lemma k:
       variable e z
       assume ex: ExCode v f e
       assume nz: Nil z
-      eeg: exists x. Node2 T6 w g x       by imp_e node2_exists T6 fs0 t6
+      eeg: exists x. Node2 T6 w g x by imp_e node2_exists T6 fs0 t6
       lemma w1:
         variable eg
         assume ewg: Node2 T6 w g eg
-        ih1: PrH z eg                     by imp_e pq ewg nz
-        eh1: exists p. Pair g z p         by forall_e pe g z
+        ih1: PrH z eg             by imp_e pq ewg nz
+        eh1: exists p. Pair g z p by forall_e pe g z
         lemma w2:
           variable h1
           assume ph1: Pair g z h1
-          ec1: exists x. Node2 T6 v s x   by imp_e node2_exists T6 fs0 t6
+          ec1: exists x. Node2 T6 v s x by imp_e node2_exists T6 fs0 t6
           lemma w3:
             variable c1
             assume evs: Node2 T6 v s c1
-            eh2: exists p. Pair s h1 p    by forall_e pe s h1
+            eh2: exists p. Pair s h1 p by forall_e pe s h1
             lemma w5:
               variable h2
               assume ph2: Pair s h1 h2
-              r: PrH z e                  by imp_e numq_step fs0 form logax list free prf dtp mc mp lf sid nz nv nw nev fg
-                                             gf sa ac ef ex ewg ph1 evs ph2 ih1
+              r: PrH z e by imp_e numq_step fs0 form logax list free prf dtp mc mp lf sid nz nv nw nev fg
+                  gf sa ac ef ex ewg ph1 evs ph2 ih1
               therefore forall h2. Pair s h1 h2 -> PrH z e
-            r: PrH z e                    by exists_e eh2 w5
+            r: PrH z e by exists_e eh2 w5
             therefore forall c1. Node2 T6 v s c1 -> PrH z e
-          r: PrH z e                      by exists_e ec1 w3
+          r: PrH z e by exists_e ec1 w3
           therefore forall h1. Pair g z h1 -> PrH z e
-        r: PrH z e                        by exists_e eh1 w2
+        r: PrH z e by exists_e eh1 w2
         therefore forall eg. Node2 T6 w g eg -> PrH z e
-      r: PrH z e                          by exists_e eeg w1
+      r: PrH z e by exists_e eeg w1
       therefore forall e z. ExCode v f e -> Nil z -> PrH z e
-    r: NumQ n v f                         by and_i nf k
+    r: NumQ n v f by and_i nf k
     therefore forall m n v w g s c f. Suc m n -> Nat v -> Suc v w -> NumQ m w g -> SuccAt w v s -> AndCode g s c
-                -> ExCode w c f -> NumQ n v f
+        -> ExCode w c f -> NumQ n v f
   r: forall n v f. NumF n v f -> NumQ n v f
-                                          by imp_e least c0 c1
+      by imp_e least c0 c1
   therefore FS0 -> FORM -> LOGAX -> LIST -> FREE -> NUMF -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
-              -> MemLeast MemPair -> FrLLeast FrLInv -> FrLeast FrInv -> NumFLeast NumFree -> NumFLeast NumForm
-              -> NatLeast SucNe -> (forall x. Form x -> SubId x) -> NumFLeast NumQ -> forall n v f. NumF n v f -> NumQ n v f
+      -> MemLeast MemPair -> FrLLeast FrLInv -> FrLeast FrInv -> NumFLeast NumFree -> NumFLeast NumForm
+      -> NatLeast SucNe -> (forall x. Form x -> SubId x) -> NumFLeast NumQ -> forall n v f. NumF n v f -> NumQ n v f
 
 -- A variable bound in a is not one that is not.
 theorem bound_ne:
-  assume fs0:   FS0
+  assume fs0: FS0
   assume bound: BOUND
-  refl: Refl                              by and_e fs0
-  qb:   Qb                                by and_e bound
+  refl: Refl by and_e fs0
+  qb: Qb     by and_e bound
   lemma all:
     variable k y a
     assume nb: not (Bound k a)
     assume yb: Bound y a
     lemma ne:
       assume e: Eq y k
-      ra:  Eq a a                         by forall_e refl a
-      bk:  Bound k a                      by imp_e qb e ra yb
-      bad: absurd                         by imp_e nb bk
+      ra: Eq a a    by forall_e refl a
+      bk: Bound k a by imp_e qb e ra yb
+      bad: absurd   by imp_e nb bk
       therefore not (Eq y k)
     therefore forall k y a. not (Bound k a) -> Bound y a -> not (Eq y k)
   therefore FS0 -> BOUND -> forall k y a. not (Bound k a) -> Bound y a -> not (Eq y k)
 
 -- A variable free in no member of h is not one free in a member.
 theorem nofree_ne:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  refl: Refl                              by and_e fs0
-  qfr:  Qfr                               by and_e free
+  refl: Refl by and_e fs0
+  qfr: Qfr   by and_e free
   lemma all:
     variable y w c h
     assume nf: NoFree y h
@@ -459,21 +459,21 @@ theorem nofree_ne:
     assume fw: Fr w c
     lemma ne:
       assume e: Eq y w
-      e2:  Eq w y                         by imp_e eq_sym fs0 e
-      rc:  Eq c c                         by forall_e refl c
-      fy:  Fr y c                         by imp_e qfr e2 rc fw
-      nfc: not (Fr y c)                   by imp_e nf mc
-      bad: absurd                         by imp_e nfc fy
+      e2: Eq w y        by imp_e eq_sym fs0 e
+      rc: Eq c c        by forall_e refl c
+      fy: Fr y c        by imp_e qfr e2 rc fw
+      nfc: not (Fr y c) by imp_e nf mc
+      bad: absurd       by imp_e nfc fy
       therefore not (Eq y w)
     therefore forall y w c h. NoFree y h -> Mem c h -> Fr w c -> not (Eq y w)
   therefore FS0 -> FREE -> forall y w c h. NoFree y h -> Mem c h -> Fr w c -> not (Eq y w)
 
 -- The variable of a zero atom is the only one free in it.
 theorem fr_zeroat:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  assume ll:   FrLLeast FrLInv
-  assume lf:   FrLeast FrInv
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
   lemma all:
     variable u v x
     assume za: ZeroAt v x
@@ -481,21 +481,21 @@ theorem fr_zeroat:
     lemma wit:
       variable p l
       assume hs: T0 p and List1 v l and Node2 T1 p l x
-      nd: Node2 T1 p l x                  by and_e hs
-      li: List1 v l                       by and_e hs
-      fl: FrL u l                         by imp_e fr_at fs0 free lf fr nd
-      r:  Eq u v                          by imp_e frl_list1 fs0 free ll fl li
+      nd: Node2 T1 p l x by and_e hs
+      li: List1 v l      by and_e hs
+      fl: FrL u l        by imp_e fr_at fs0 free lf fr nd
+      r: Eq u v          by imp_e frl_list1 fs0 free ll fl li
       therefore forall p l. (T0 p and List1 v l and Node2 T1 p l x) -> Eq u v
-    r: Eq u v                             by exists_e za wit
+    r: Eq u v by exists_e za wit
     therefore forall u v x. ZeroAt v x -> Fr u x -> Eq u v
   therefore FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv -> forall u v x. ZeroAt v x -> Fr u x -> Eq u v
 
 -- A variable other than an atom's variables is not free in it.
 theorem succat_nofree:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  assume ll:   FrLLeast FrLInv
-  assume lf:   FrLeast FrInv
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
   lemma all:
     variable u a b x
     assume sa: SuccAt a b x
@@ -506,23 +506,23 @@ theorem succat_nofree:
       lemma wit:
         variable p l
         assume hs: T1 p and List2 a b l and Node2 T1 p l x
-        nd:  Node2 T1 p l x               by and_e hs
-        li:  List2 a b l                  by and_e hs
-        fl:  FrL u l                      by imp_e fr_at fs0 free lf fr nd
-        o:   Eq u a or Eq u b             by imp_e frl_list2 fs0 free ll fl li
-        bad: absurd                       by or_e o na nb
+        nd: Node2 T1 p l x  by and_e hs
+        li: List2 a b l     by and_e hs
+        fl: FrL u l         by imp_e fr_at fs0 free lf fr nd
+        o: Eq u a or Eq u b by imp_e frl_list2 fs0 free ll fl li
+        bad: absurd         by or_e o na nb
         therefore forall p l. (T1 p and List2 a b l and Node2 T1 p l x) -> absurd
-      bad: absurd                         by exists_e sa wit
+      bad: absurd by exists_e sa wit
       therefore not (Fr u x)
     therefore forall u a b x. SuccAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
   therefore FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv
-              -> forall u a b x. SuccAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
+      -> forall u a b x. SuccAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
 
 theorem eqat_nofree:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume free: FREE
-  assume ll:   FrLLeast FrLInv
-  assume lf:   FrLeast FrInv
+  assume ll: FrLLeast FrLInv
+  assume lf: FrLeast FrInv
   lemma all:
     variable u a b x
     assume ea: EqAt a b x
@@ -533,49 +533,49 @@ theorem eqat_nofree:
       lemma wit:
         variable p l
         assume hs: T4 p and List2 a b l and Node2 T1 p l x
-        nd:  Node2 T1 p l x               by and_e hs
-        li:  List2 a b l                  by and_e hs
-        fl:  FrL u l                      by imp_e fr_at fs0 free lf fr nd
-        o:   Eq u a or Eq u b             by imp_e frl_list2 fs0 free ll fl li
-        bad: absurd                       by or_e o na nb
+        nd: Node2 T1 p l x  by and_e hs
+        li: List2 a b l     by and_e hs
+        fl: FrL u l         by imp_e fr_at fs0 free lf fr nd
+        o: Eq u a or Eq u b by imp_e frl_list2 fs0 free ll fl li
+        bad: absurd         by or_e o na nb
         therefore forall p l. (T4 p and List2 a b l and Node2 T1 p l x) -> absurd
-      bad: absurd                         by exists_e ea wit
+      bad: absurd by exists_e ea wit
       therefore not (Fr u x)
     therefore forall u a b x. EqAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
   therefore FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv
-              -> forall u a b x. EqAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
+      -> forall u a b x. EqAt a b x -> not (Eq u a) -> not (Eq u b) -> not (Fr u x)
 
 -- Not free in any hypothesis survives a hypothesis it is not free in.
 theorem nofree_cons:
   variable y l b l1
   assume free: FREE
   assume list: LIST
-  assume mc:   MemLeast MemCons
-  assume nfl:  NoFree y l
-  assume nfb:  not (Fr y b)
-  assume pl:   Pair b l l1
-  fs0:  FS0                               by and_e list
-  refl: Refl                              by and_e fs0
-  qfr:  Qfr                               by and_e free
+  assume mc: MemLeast MemCons
+  assume nfl: NoFree y l
+  assume nfb: not (Fr y b)
+  assume pl: Pair b l l1
+  fs0: FS0   by and_e list
+  refl: Refl by and_e fs0
+  qfr: Qfr   by and_e free
   lemma each:
     variable c
     assume mcl: Mem c l1
     lemma no:
       assume fr: Fr y c
-      mcb: MemCons c l1                   by imp_e mem_cons list mc mcl
-      o:   Eq c b or Mem c l              by imp_e mcb pl
+      mcb: MemCons c l1    by imp_e mem_cons list mc mcl
+      o: Eq c b or Mem c l by imp_e mcb pl
       lemma head:
         assume ecb: Eq c b
-        ry:  Eq y y                       by forall_e refl y
-        fyb: Fr y b                       by imp_e qfr ry ecb fr
-        bad: absurd                       by imp_e nfb fyb
+        ry: Eq y y  by forall_e refl y
+        fyb: Fr y b by imp_e qfr ry ecb fr
+        bad: absurd by imp_e nfb fyb
         therefore Eq c b -> absurd
       lemma tail:
         assume ml: Mem c l
-        nc:  not (Fr y c)                 by imp_e nfl ml
-        bad: absurd                       by imp_e nc fr
+        nc: not (Fr y c) by imp_e nfl ml
+        bad: absurd      by imp_e nc fr
         therefore Mem c l -> absurd
-      bad: absurd                         by or_e o head tail
+      bad: absurd by or_e o head tail
       therefore not (Fr y c)
     therefore forall c. Mem c l1 -> not (Fr y c)
   therefore forall y l b l1. FREE -> LIST -> MemLeast MemCons -> NoFree y l -> not (Fr y b) -> Pair b l l1 -> NoFree y l1

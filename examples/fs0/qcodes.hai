@@ -92,23 +92,23 @@ define EtCode x = exists v0 v1 v2 v3 v4 v5 c7 c8 c9 c10 c11 c12 c13 c14.
     and TimesAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
 
 define QAx a = SzCode a
-           or SiCode a
-           or PredCode a
-           or PzCode a
-           or PsCode a
-           or TzCode a
-           or TsCode a
-           or ZeCode a
-           or ZuCode a
-           or SeCode a
-           or SuCode a
-           or PeCode a
-           or PuCode a
-           or TeCode a
-           or TuCode a
-           or ReflCode a
-           or EeCode a
-           or EzCode a
-           or EsCode a
-           or EpCode a
-           or EtCode a
+    or SiCode a
+    or PredCode a
+    or PzCode a
+    or PsCode a
+    or TzCode a
+    or TsCode a
+    or ZeCode a
+    or ZuCode a
+    or SeCode a
+    or SuCode a
+    or PeCode a
+    or PuCode a
+    or TeCode a
+    or TuCode a
+    or ReflCode a
+    or EeCode a
+    or EzCode a
+    or EsCode a
+    or EpCode a
+    or EtCode a

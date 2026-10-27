@@ -5,27 +5,27 @@ import pa
 -- Plus respects equality in its result.
 theorem plus_rw:
   assume ax: Q
-  refl: Refl                              by and_e ax
-  ep:   Ep                                by and_e ax
+  refl: Refl by and_e ax
+  ep: Ep     by and_e ax
   lemma all:
     variable x y a b
     assume e: Eq a b
-    rx: Eq x x                            by forall_e refl x
-    ry: Eq y y                            by forall_e refl y
-    r:  Plus x y a -> Plus x y b          by imp_e ep rx ry e
+    rx: Eq x x                  by forall_e refl x
+    ry: Eq y y                  by forall_e refl y
+    r: Plus x y a -> Plus x y b by imp_e ep rx ry e
     therefore forall x y a b. Eq a b -> Plus x y a -> Plus x y b
   therefore Q -> forall x y a b. Eq a b -> Plus x y a -> Plus x y b
 
 -- Succ respects equality in its argument.
 theorem succ_rw:
   assume ax: Q
-  refl: Refl                              by and_e ax
-  es:   Es                                by and_e ax
+  refl: Refl by and_e ax
+  es: Es     by and_e ax
   lemma all:
     variable a b s
     assume e: Eq a b
-    rs: Eq s s                            by forall_e refl s
-    r:  Succ a s -> Succ b s              by imp_e es e rs
+    rs: Eq s s              by forall_e refl s
+    r: Succ a s -> Succ b s by imp_e es e rs
     therefore forall a b s. Eq a b -> Succ a s -> Succ b s
   therefore Q -> forall a b s. Eq a b -> Succ a s -> Succ b s
 
@@ -33,146 +33,146 @@ theorem succ_rw:
 define ZeroLeft x = forall w. Zero w -> Plus w x x
 
 theorem zero_left:
-  assume ax:  Q
+  assume ax: Q
   assume ind: Induction ZeroLeft
-  zu: Zu                                  by and_e ax
-  pz: Pz                                  by and_e ax
-  ps: Ps                                  by and_e ax
+  zu: Zu by and_e ax
+  pz: Pz by and_e ax
+  ps: Ps by and_e ax
   lemma base:
     variable x
     assume zx: Zero x
     lemma zl:
       variable w
       assume zw: Zero w
-      ewx:  Eq w x                        by imp_e zu zw zx
-      pwxw: Plus w x w                    by imp_e pz zx
-      pwxx: Plus w x x                    by imp_e plus_rw ax ewx pwxw
+      ewx: Eq w x      by imp_e zu zw zx
+      pwxw: Plus w x w by imp_e pz zx
+      pwxx: Plus w x x by imp_e plus_rw ax ewx pwxw
       therefore ZeroLeft x
     therefore forall x. Zero x -> ZeroLeft x
   lemma step:
     variable y x
-    assume ih:  ZeroLeft x
+    assume ih: ZeroLeft x
     assume sxy: Succ x y
     lemma zl:
       variable w
       assume zw: Zero w
-      pwxx: Plus w x x                    by imp_e ih zw
-      pwyy: Plus w y y                    by imp_e ps sxy pwxx sxy
+      pwxx: Plus w x x by imp_e ih zw
+      pwyy: Plus w y y by imp_e ps sxy pwxx sxy
       therefore ZeroLeft y
     therefore forall y x. ZeroLeft x -> Succ x y -> ZeroLeft y
-  r: forall x. ZeroLeft x                 by imp_e ind base step
+  r: forall x. ZeroLeft x by imp_e ind base step
   therefore Q -> Induction ZeroLeft -> forall x. ZeroLeft x
 
 -- (x + 1) + y = (x + y) + 1
 define SuccLeft y = forall x s p q. Succ x s -> Plus x y p -> Succ p q -> Plus s y q
 
 theorem succ_left:
-  assume ax:  Q
+  assume ax: Q
   assume ind: Induction SuccLeft
-  pz: Pz                                  by and_e ax
-  pu: Pu                                  by and_e ax
-  su: Su                                  by and_e ax
-  pe: Pe                                  by and_e ax
-  se: Se                                  by and_e ax
-  ps: Ps                                  by and_e ax
+  pz: Pz by and_e ax
+  pu: Pu by and_e ax
+  su: Su by and_e ax
+  pe: Pe by and_e ax
+  se: Se by and_e ax
+  ps: Ps by and_e ax
   lemma base:
     variable y
     assume zy: Zero y
     lemma sl:
       variable x s p q
-      assume sxs:  Succ x s
+      assume sxs: Succ x s
       assume pxyp: Plus x y p
-      assume spq:  Succ p q
-      pxyx: Plus x y x                    by imp_e pz zy
-      exp:  Eq x p                        by imp_e pu pxyx pxyp
-      sps:  Succ p s                      by imp_e succ_rw ax exp sxs
-      esq:  Eq s q                        by imp_e su sps spq
-      psys: Plus s y s                    by imp_e pz zy
-      psyq: Plus s y q                    by imp_e plus_rw ax esq psys
+      assume spq: Succ p q
+      pxyx: Plus x y x by imp_e pz zy
+      exp: Eq x p      by imp_e pu pxyx pxyp
+      sps: Succ p s    by imp_e succ_rw ax exp sxs
+      esq: Eq s q      by imp_e su sps spq
+      psys: Plus s y s by imp_e pz zy
+      psyq: Plus s y q by imp_e plus_rw ax esq psys
       therefore SuccLeft y
     therefore forall y. Zero y -> SuccLeft y
   lemma step:
     variable t y
-    assume ih:  SuccLeft y
+    assume ih: SuccLeft y
     assume syt: Succ y t
     lemma sl:
       variable x s p1 q1
-      assume sxs:  Succ x s
+      assume sxs: Succ x s
       assume pxtp: Plus x t p1
-      assume spq:  Succ p1 q1
-      e_p: exists p. Plus x y p           by forall_e pe x y
+      assume spq: Succ p1 q1
+      e_p: exists p. Plus x y p by forall_e pe x y
       lemma wp:
         variable p
         assume pxyp: Plus x y p
-        e_r: exists r. Succ p r           by forall_e se p
+        e_r: exists r. Succ p r by forall_e se p
         lemma wr:
           variable r
           assume spr: Succ p r
-          pxtr: Plus x t r                by imp_e ps syt pxyp spr
-          epr:  Eq p1 r                   by imp_e pu pxtp pxtr
-          psyr: Plus s y r                by imp_e ih sxs pxyp spr
-          srq:  Succ r q1                 by imp_e succ_rw ax epr spq
-          pstq: Plus s t q1               by imp_e ps syt psyr srq
+          pxtr: Plus x t r  by imp_e ps syt pxyp spr
+          epr: Eq p1 r      by imp_e pu pxtp pxtr
+          psyr: Plus s y r  by imp_e ih sxs pxyp spr
+          srq: Succ r q1    by imp_e succ_rw ax epr spq
+          pstq: Plus s t q1 by imp_e ps syt psyr srq
           therefore forall r. Succ p r -> Plus s t q1
-        c1: Plus s t q1                   by exists_e e_r wr
+        c1: Plus s t q1 by exists_e e_r wr
         therefore forall p. Plus x y p -> Plus s t q1
-      c2: Plus s t q1                     by exists_e e_p wp
+      c2: Plus s t q1 by exists_e e_p wp
       therefore SuccLeft t
     therefore forall t y. SuccLeft y -> Succ y t -> SuccLeft t
-  r: forall y. SuccLeft y                 by imp_e ind base step
+  r: forall y. SuccLeft y by imp_e ind base step
   therefore Q -> Induction SuccLeft -> forall y. SuccLeft y
 
 -- x + y = y + x
 define Comm x = forall y z. Plus x y z -> Plus y x z
 
 theorem plus_comm:
-  assume ax:   Q
+  assume ax: Q
   assume i_zl: Induction ZeroLeft
   assume i_sl: Induction SuccLeft
-  assume ind:  Induction Comm
-  pz: Pz                                  by and_e ax
-  pu: Pu                                  by and_e ax
-  pe: Pe                                  by and_e ax
-  se: Se                                  by and_e ax
-  ps: Ps                                  by and_e ax
+  assume ind: Induction Comm
+  pz: Pz by and_e ax
+  pu: Pu by and_e ax
+  pe: Pe by and_e ax
+  se: Se by and_e ax
+  ps: Ps by and_e ax
   lemma base:
     variable x
     assume zx: Zero x
     lemma c:
       variable y z
       assume pxyz: Plus x y z
-      pxyy: Plus x y y                    by imp_e zero_left ax i_zl zx
-      eyz:  Eq y z                        by imp_e pu pxyy pxyz
-      pyxy: Plus y x y                    by imp_e pz zx
-      pyxz: Plus y x z                    by imp_e plus_rw ax eyz pyxy
+      pxyy: Plus x y y by imp_e zero_left ax i_zl zx
+      eyz: Eq y z      by imp_e pu pxyy pxyz
+      pyxy: Plus y x y by imp_e pz zx
+      pyxz: Plus y x z by imp_e plus_rw ax eyz pyxy
       therefore Comm x
     therefore forall x. Zero x -> Comm x
   lemma step:
     variable t x
-    assume ih:  Comm x
+    assume ih: Comm x
     assume sxt: Succ x t
     lemma c:
       variable y z
       assume ptyz: Plus t y z
-      e_p: exists p. Plus x y p           by forall_e pe x y
+      e_p: exists p. Plus x y p by forall_e pe x y
       lemma wp:
         variable p
         assume pxyp: Plus x y p
-        e_q: exists q. Succ p q           by forall_e se p
+        e_q: exists q. Succ p q by forall_e se p
         lemma wq:
           variable q
           assume spq: Succ p q
-          ptyq: Plus t y q                by imp_e succ_left ax i_sl sxt pxyp spq
-          eqz:  Eq q z                    by imp_e pu ptyq ptyz
-          pyxp: Plus y x p                by imp_e ih pxyp
-          pytq: Plus y t q                by imp_e ps sxt pyxp spq
-          pytz: Plus y t z                by imp_e plus_rw ax eqz pytq
+          ptyq: Plus t y q by imp_e succ_left ax i_sl sxt pxyp spq
+          eqz: Eq q z      by imp_e pu ptyq ptyz
+          pyxp: Plus y x p by imp_e ih pxyp
+          pytq: Plus y t q by imp_e ps sxt pyxp spq
+          pytz: Plus y t z by imp_e plus_rw ax eqz pytq
           therefore forall q. Succ p q -> Plus y t z
-        c1: Plus y t z                    by exists_e e_q wq
+        c1: Plus y t z by exists_e e_q wq
         therefore forall p. Plus x y p -> Plus y t z
-      c2: Plus y t z                      by exists_e e_p wp
+      c2: Plus y t z by exists_e e_p wp
       therefore Comm t
     therefore forall t x. Comm x -> Succ x t -> Comm t
-  all: forall x. Comm x                   by imp_e ind base step
+  all: forall x. Comm x by imp_e ind base step
   therefore Q -> Induction ZeroLeft -> Induction SuccLeft -> Induction Comm
-              -> forall x y z. Plus x y z -> Plus y x z
+      -> forall x y z. Plus x y z -> Plus y x z

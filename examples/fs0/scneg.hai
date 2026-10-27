@@ -11,270 +11,270 @@ define SCCtx = QCtx and NamesCtx and GrowCtx and ChainLeast ChainNM and NatLeast
 theorem bot_fun:
   variable z z1
   assume fs0: FS0
-  assume b0:  BotCode z
-  assume b1:  BotCode z1
-  nu:   Nu                                by and_e fs0
-  pu:   Pu                                by and_e fs0
-  ep:   Ep                                by and_e fs0
-  refl: Refl                              by and_e fs0
-  u0:   forall s s1. T0 s -> T0 s1 -> Eq s s1
-                                          by imp_e t0_unique fs0
-  rz: Eq z z                              by forall_e refl z
+  assume b0: BotCode z
+  assume b1: BotCode z1
+  nu: Nu     by and_e fs0
+  pu: Pu     by and_e fs0
+  ep: Ep     by and_e fs0
+  refl: Refl by and_e fs0
+  u0: forall s s1. T0 s -> T0 s1 -> Eq s s1
+             by imp_e t0_unique fs0
+  rz: Eq z z by forall_e refl z
   lemma w1:
     variable n
     assume h1: Nil n and Node1 T0 n z
-    nn: Nil n                             by and_e h1
-    d0: Node1 T0 n z                      by and_e h1
+    nn: Nil n        by and_e h1
+    d0: Node1 T0 n z by and_e h1
     lemma w2:
       variable n1
       assume h2: Nil n1 and Node1 T0 n1 z1
-      nn1: Nil n1                         by and_e h2
-      d1:  Node1 T0 n1 z1                 by and_e h2
-      en:  Eq n n1                        by imp_e nu nn nn1
+      nn1: Nil n1        by and_e h2
+      d1: Node1 T0 n1 z1 by and_e h2
+      en: Eq n n1        by imp_e nu nn nn1
       lemma w3:
         variable t
         assume k0: T0 t and Pair t n z
-        t0: T0 t                          by and_e k0
-        p0: Pair t n z                    by and_e k0
+        t0: T0 t       by and_e k0
+        p0: Pair t n z by and_e k0
         lemma w4:
           variable t1
           assume k1: T0 t1 and Pair t1 n1 z1
-          tt: T0 t1                       by and_e k1
-          p1: Pair t1 n1 z1               by and_e k1
-          et: Eq t t1                     by imp_e u0 t0 tt
-          p2: Pair t1 n1 z                by imp_e ep et en rz p0
-          r:  Eq z z1                     by imp_e pu p2 p1
+          tt: T0 t1         by and_e k1
+          p1: Pair t1 n1 z1 by and_e k1
+          et: Eq t t1       by imp_e u0 t0 tt
+          p2: Pair t1 n1 z  by imp_e ep et en rz p0
+          r: Eq z z1        by imp_e pu p2 p1
           therefore forall t1. (T0 t1 and Pair t1 n1 z1) -> Eq z z1
-        r: Eq z z1                        by exists_e d1 w4
+        r: Eq z z1 by exists_e d1 w4
         therefore forall t. (T0 t and Pair t n z) -> Eq z z1
-      r: Eq z z1                          by exists_e d0 w3
+      r: Eq z z1 by exists_e d0 w3
       therefore forall n1. (Nil n1 and Node1 T0 n1 z1) -> Eq z z1
-    r: Eq z z1                            by exists_e b1 w2
+    r: Eq z z1 by exists_e b1 w2
     therefore forall n. (Nil n and Node1 T0 n z) -> Eq z z1
-  r: Eq z z1                              by exists_e b0 w1
+  r: Eq z z1 by exists_e b0 w1
   therefore forall z z1. FS0 -> BotCode z -> BotCode z1 -> Eq z z1
 
 theorem qnot_code:
   variable h c a x
   assume fs0: FS0
   assume prf: PRF QAx
-  assume qn:  QNot h c
+  assume qn: QNot h c
   assume eca: Eq c a
-  assume nx:  NotCode a x
+  assume nx: NotCode a x
   lemma w1:
     variable z
     assume h1: BotCode z and QI h c z
-    bz: BotCode z                         by and_e h1
-    qi: QI h c z                          by and_e h1
+    bz: BotCode z by and_e h1
+    qi: QI h c z  by and_e h1
     lemma w2:
       variable i
       assume h2: ImpCode c z i and PrH h i
-      ii: ImpCode c z i                   by and_e h2
-      pi: PrH h i                         by and_e h2
+      ii: ImpCode c z i by and_e h2
+      pi: PrH h i       by and_e h2
       lemma w3:
         variable z1
         assume h3: BotCode z1 and ImpCode a z1 x
-        b1:  BotCode z1                   by and_e h3
-        ix:  ImpCode a z1 x               by and_e h3
-        ezz: Eq z z1                      by imp_e bot_fun fs0 bz b1
-        eix: Eq i x                       by imp_e imp_fun fs0 ii ix eca ezz
-        r:   PrH h x                      by imp_e prh_eq QAx fs0 prf pi eix
+        b1: BotCode z1     by and_e h3
+        ix: ImpCode a z1 x by and_e h3
+        ezz: Eq z z1       by imp_e bot_fun fs0 bz b1
+        eix: Eq i x        by imp_e imp_fun fs0 ii ix eca ezz
+        r: PrH h x         by imp_e prh_eq QAx fs0 prf pi eix
         therefore forall z1. (BotCode z1 and ImpCode a z1 x) -> PrH h x
-      r: PrH h x                          by exists_e nx w3
+      r: PrH h x by exists_e nx w3
       therefore forall i. (ImpCode c z i and PrH h i) -> PrH h x
-    r: PrH h x                            by exists_e qi w2
+    r: PrH h x by exists_e qi w2
     therefore forall z. (BotCode z and QI h c z) -> PrH h x
-  r: PrH h x                              by exists_e qn w1
+  r: PrH h x by exists_e qn w1
   therefore forall h c a x. FS0 -> PRF QAx -> QNot h c -> Eq c a -> NotCode a x -> PrH h x
 
 -- Coverage survives more hypotheses.
 theorem covers_mono:
   variable e h h1
-  assume nc:  NamesCtx
-  assume cv:  Covers e h
+  assume nc: NamesCtx
+  assume cv: Covers e h
   assume inc: Incl h h1
-  nm:  NAMESM                             by and_e nc
-  lmm: NamesMLeast NamesMMono             by and_e nc
+  nm: NAMESM                  by and_e nc
+  lmm: NamesMLeast NamesMMono by and_e nc
   mono: forall h2 z j. NamesM h2 z j -> NamesMMono h2 z j
-                                          by imp_e namesm_mono nm lmm
+                              by imp_e namesm_mono nm lmm
   lemma each:
     variable v n
     assume vl: Val e v n
     ex: exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
-                                          by imp_e cv vl
+        by imp_e cv vl
     lemma wit:
       variable z c
       assume hw: Nat v and NamesM h z n and EqAt z v c and Mem c h
-      nv:  Nat v                          by and_e hw
-      nzm: NamesM h z n                   by and_e hw
-      ec:  EqAt z v c                     by and_e hw
-      mc:  Mem c h                        by and_e hw
-      mo:  NamesMMono h z n               by imp_e mono nzm
-      n1:  NamesM h1 z n                  by imp_e mo inc
-      m1:  Mem c h1                       by imp_e inc mc
-      k:   Nat v and NamesM h1 z n and EqAt z v c and Mem c h1
-                                          by and_i nv n1 ec m1
-      r:   exists z1 c1. Nat v and NamesM h1 z1 n and EqAt z1 v c1 and Mem c1 h1
-                                          by exists_i k
+      nv: Nat v            by and_e hw
+      nzm: NamesM h z n    by and_e hw
+      ec: EqAt z v c       by and_e hw
+      mc: Mem c h          by and_e hw
+      mo: NamesMMono h z n by imp_e mono nzm
+      n1: NamesM h1 z n    by imp_e mo inc
+      m1: Mem c h1         by imp_e inc mc
+      k: Nat v and NamesM h1 z n and EqAt z v c and Mem c h1
+                           by and_i nv n1 ec m1
+      r: exists z1 c1. Nat v and NamesM h1 z1 n and EqAt z1 v c1 and Mem c1 h1
+                           by exists_i k
       therefore forall z c. (Nat v and NamesM h z n and EqAt z v c and Mem c h)
-                  -> exists z1 c1. Nat v and NamesM h1 z1 n and EqAt z1 v c1 and Mem c1 h1
+          -> exists z1 c1. Nat v and NamesM h1 z1 n and EqAt z1 v c1 and Mem c1 h1
     r: exists z c. Nat v and NamesM h1 z n and EqAt z v c and Mem c h1
-                                          by exists_e ex wit
+        by exists_e ex wit
     therefore forall v n. Val e v n -> exists z c. Nat v and NamesM h1 z n and EqAt z v c and Mem c h1
   therefore forall e h h1. NamesCtx -> Covers e h -> Incl h h1 -> Covers e h1
 
 -- A false Zero: the variable names a successor, and Sz refutes it.
 theorem false_zero:
   variable e h v n a x
-  assume q:   QCtx
-  assume nc:  NamesCtx
-  assume cv:  Covers e h
-  assume vl:  Val e v n
-  assume nn:  not (Nil n)
-  assume za:  ZeroAt v a
-  assume nx:  NotCode a x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  inv:   forall h1 z j. Names h1 z j -> NamesInv h1 z j
-                                          by imp_e names_inv names linv
-  vn:  Nat v and Names h v n              by imp_e var_name q nc cv vl
-  nv:  Nat v                              by and_e vn
-  nvn: Names h v n                        by and_e vn
-  iv:  NamesInv h v n                     by imp_e inv nvn
-  sh:  NamesShape h v n                   by and_e iv
-  o:     (Nil n and QZero h v) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v)
-                                          by and_e sh
+  assume q: QCtx
+  assume nc: NamesCtx
+  assume cv: Covers e h
+  assume vl: Val e v n
+  assume nn: not (Nil n)
+  assume za: ZeroAt v a
+  assume nx: NotCode a x
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  inv: forall h1 z j. Names h1 z j -> NamesInv h1 z j
+                            by imp_e names_inv names linv
+  vn: Nat v and Names h v n by imp_e var_name q nc cv vl
+  nv: Nat v                 by and_e vn
+  nvn: Names h v n          by and_e vn
+  iv: NamesInv h v n        by imp_e inv nvn
+  sh: NamesShape h v n      by and_e iv
+  o: (Nil n and QZero h v) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v)
+                            by and_e sh
   lemma zero:
     assume b: Nil n and QZero h v
-    n0: Nil n                             by and_e b
-    f:  absurd                            by imp_e nn n0
-    r:  PrH h x                           by absurd_e f
+    n0: Nil n  by and_e b
+    f: absurd  by imp_e nn n0
+    r: PrH h x by absurd_e f
     therefore (Nil n and QZero h v) -> PrH h x
   lemma succ:
     assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v
     lemma wit:
       variable v0 j0
       assume hw: Names h v0 j0 and Nat v0 and Suc j0 n and QSucc h v0 v
-      nv0: Nat v0                         by and_e hw
-      qs:  QSucc h v0 v                   by and_e hw
-      qz:  QNZero h v                     by imp_e neg_zero q nv0 nv qs
+      nv0: Nat v0      by and_e hw
+      qs: QSucc h v0 v by and_e hw
+      qz: QNZero h v   by imp_e neg_zero q nv0 nv qs
       lemma code:
         variable c
         assume hc: ZeroAt v c and QNot h c
-        xc: ZeroAt v c                    by and_e hc
-        qn: QNot h c                      by and_e hc
-        ec: Eq c a                        by imp_e zeroat_fun fs0 xc za
-        r:  PrH h x                       by imp_e qnot_code fs0 prf qn ec nx
+        xc: ZeroAt v c by and_e hc
+        qn: QNot h c   by and_e hc
+        ec: Eq c a     by imp_e zeroat_fun fs0 xc za
+        r: PrH h x     by imp_e qnot_code fs0 prf qn ec nx
         therefore forall c. (ZeroAt v c and QNot h c) -> PrH h x
-      r: PrH h x                          by exists_e qz code
+      r: PrH h x by exists_e qz code
       therefore forall v0 j0. (Names h v0 j0 and Nat v0 and Suc j0 n and QSucc h v0 v) -> PrH h x
-    r: PrH h x                            by exists_e ex wit
+    r: PrH h x by exists_e ex wit
     therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v) -> PrH h x
-  r: PrH h x                              by or_e o zero succ
+  r: PrH h x by or_e o zero succ
   therefore forall e h v n a x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x
-              -> PrH h x
+      -> PrH h x
 
 -- A false Eq: names_neq.
 theorem false_eq:
   variable e h v w n m a x
-  assume q:   QCtx
-  assume nc:  NamesCtx
-  assume cv:  Covers e h
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume ne:  not (Eq n m)
-  assume ea:  EqAt v w a
-  assume nx:  NotCode a x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  lneq:  NamesLeast NamesNeq              by and_e nc
-  neqs:  forall h1 z j. Names h1 z j -> NamesNeq h1 z j
-                                          by imp_e names_neq q names linv lneq
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  nv:  NamesNeq h v n                     by imp_e neqs nvn
-  nve:   forall c k. Names h c k -> not (Eq n k) -> QNeq h v c
-                                          by and_e nv
-  qne: QNeq h v w                         by imp_e nve nwm ne
+  assume q: QCtx
+  assume nc: NamesCtx
+  assume cv: Covers e h
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume ne: not (Eq n m)
+  assume ea: EqAt v w a
+  assume nx: NotCode a x
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  lneq: NamesLeast NamesNeq by and_e nc
+  neqs: forall h1 z j. Names h1 z j -> NamesNeq h1 z j
+                            by imp_e names_neq q names linv lneq
+  a1: Nat v and Names h v n by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m by imp_e var_name q nc cv vw
+  nvn: Names h v n          by and_e a1
+  nwm: Names h w m          by and_e a2
+  nv: NamesNeq h v n        by imp_e neqs nvn
+  nve: forall c k. Names h c k -> not (Eq n k) -> QNeq h v c
+                            by and_e nv
+  qne: QNeq h v w           by imp_e nve nwm ne
   lemma code:
     variable c
     assume hc: EqAt v w c and QNot h c
-    xc: EqAt v w c                        by and_e hc
-    qn: QNot h c                          by and_e hc
-    ec: Eq c a                            by imp_e eqat_fun fs0 xc ea
-    r:  PrH h x                           by imp_e qnot_code fs0 prf qn ec nx
+    xc: EqAt v w c by and_e hc
+    qn: QNot h c   by and_e hc
+    ec: Eq c a     by imp_e eqat_fun fs0 xc ea
+    r: PrH h x     by imp_e qnot_code fs0 prf qn ec nx
     therefore forall c. (EqAt v w c and QNot h c) -> PrH h x
-  r: PrH h x                              by exists_e qne code
+  r: PrH h x by exists_e qne code
   therefore forall e h v w n m a x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a
-              -> NotCode a x -> PrH h x
+      -> NotCode a x -> PrH h x
 
 -- A false Succ: grow the chain to n + 1, name it, and refute Succ v w by Su.
 theorem false_succ:
   variable e h v w n m a x n0 z0
-  assume sc:  SCCtx
-  assume cv:  Covers e h
+  assume sc: SCCtx
+  assume cv: Covers e h
   assume ctx: Ctx n0 z0 h
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume ns:  not (Suc n m)
-  assume sa:  SuccAt v w a
-  assume nx:  NotCode a x
-  assume fx:  Form x
-  assume ex:  NoPool x
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  g:     GrowCtx                          by and_e sc
-  lcn:   ChainLeast ChainNM               by and_e sc
-  ldm:   NatLeast Demand                  by and_e sc
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  nat:   NAT                              by and_e form
-  refl:  Refl                             by and_e fs0
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  lneq:  NamesLeast NamesNeq              by and_e nc
-  lnat:  NamesLeast NamesNat              by and_e nc
-  nm:    NAMESM                           by and_e nc
-  lmn:   NamesMLeast NamesMN              by and_e nc
-  list:  LIST                             by and_e g
-  pc:    PoolCtx                          by and_e g
-  lt:    LT                               by and_e pc
-  dnat:  DblLeast DblNat                  by and_e pc
-  ltinv: LtLeast LtInv                    by and_e pc
-  lteq:  LtLeast LtEq                     by and_e pc
-  inv:   forall h1 z j. Names h1 z j -> NamesInv h1 z j
-                                          by imp_e names_inv names linv
-  eqs:   forall h1 z j. Names h1 z j -> NamesEq h1 z j
-                                          by imp_e names_eq q names linv leq
-  neqs:  forall h1 z j. Names h1 z j -> NamesNeq h1 z j
-                                          by imp_e names_neq q names linv lneq
-  mns:   forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
-                                          by imp_e namesm_names q names lmn
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume ns: not (Suc n m)
+  assume sa: SuccAt v w a
+  assume nx: NotCode a x
+  assume fx: Form x
+  assume ex: NoPool x
+  q: QCtx                             by and_e sc
+  nc: NamesCtx                        by and_e sc
+  g: GrowCtx                          by and_e sc
+  lcn: ChainLeast ChainNM             by and_e sc
+  ldm: NatLeast Demand                by and_e sc
+  fs0: FS0                            by and_e q
+  form: FORM                          by and_e q
+  prf: PRF QAx                        by and_e q
+  nat: NAT                            by and_e form
+  refl: Refl                          by and_e fs0
+  names: NAMES                        by and_e nc
+  linv: NamesLeast NamesInv           by and_e nc
+  leq: NamesLeast NamesEq             by and_e nc
+  lneq: NamesLeast NamesNeq           by and_e nc
+  lnat: NamesLeast NamesNat           by and_e nc
+  nm: NAMESM                          by and_e nc
+  lmn: NamesMLeast NamesMN            by and_e nc
+  list: LIST                          by and_e g
+  pc: PoolCtx                         by and_e g
+  lt: LT                              by and_e pc
+  dnat: DblLeast DblNat               by and_e pc
+  ltinv: LtLeast LtInv                by and_e pc
+  lteq: LtLeast LtEq                  by and_e pc
+  inv: forall h1 z j. Names h1 z j -> NamesInv h1 z j
+                                      by imp_e names_inv names linv
+  eqs: forall h1 z j. Names h1 z j -> NamesEq h1 z j
+                                      by imp_e names_eq q names linv leq
+  neqs: forall h1 z j. Names h1 z j -> NamesNeq h1 z j
+                                      by imp_e names_neq q names linv lneq
+  mns: forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
+                                      by imp_e namesm_names q names lmn
   nnats: forall h1 z j. Names h1 z j -> NamesNat h1 z j
-                                          by imp_e names_nat nat lnat
-  dem: forall x1. Nat x1 -> Demand x1        by imp_e on_demand g ldm
-  cnm:   forall n1 z c. Chain n1 z c -> ChainNM n1 z c
-                                          by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
-  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
-  a1:   Nat v and Names h v n             by imp_e var_name q nc cv vv
-  nv:   Nat v                             by and_e a1
-  nvn:  Names h v n                       by and_e a1
-  nn:   Nat n                             by imp_e nnats nvn
-  en1:  exists t. Suc n t                 by forall_e sucs n
+                                      by imp_e names_nat nat lnat
+  dem: forall x1. Nat x1 -> Demand x1 by imp_e on_demand g ldm
+  cnm: forall n1 z c. Chain n1 z c -> ChainNM n1 z c
+                                      by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
+  sucs: forall s. exists t. Suc s t   by imp_e suc_exists fs0
+  a1: Nat v and Names h v n           by imp_e var_name q nc cv vv
+  nv: Nat v                           by and_e a1
+  nvn: Names h v n                    by and_e a1
+  nn: Nat n                           by imp_e nnats nvn
+  en1: exists t. Suc n t              by forall_e sucs n
   lemma w1:
     variable n1
     assume sn1: Suc n n1
-    nn1: Nat n1                           by imp_e nat_suc nat nn sn1
-    rn1: Eq n1 n1                         by forall_e refl n1
-    dd:  Demand n1                        by imp_e dem nn1
+    nn1: Nat n1   by imp_e nat_suc nat nn sn1
+    rn1: Eq n1 n1 by forall_e refl n1
+    dd: Demand n1 by imp_e dem nn1
     lemma k:
       variable n2 z2 h1 m1
       assume cx: Ctx n2 z2 h1
@@ -282,94 +282,94 @@ theorem false_succ:
       assume nf1: forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1
       assume s1: Suc n2 m1
       assume l1: Lt n1 m1
-      cv1: Covers e h1                    by imp_e covers_mono nc cv i1
-      b1:  Nat v and Names h1 v n         by imp_e var_name q nc cv1 vv
-      b2:  Nat w and Names h1 w m         by imp_e var_name q nc cv1 vw
-      nv1: Names h1 v n                   by and_e b1
-      nw:  Nat w                          by and_e b2
-      nw1: Names h1 w m                   by and_e b2
-      ech:  exists c. Chain n2 z2 c and Incl c h1
-                                          by and_e cx
+      cv1: Covers e h1           by imp_e covers_mono nc cv i1
+      b1: Nat v and Names h1 v n by imp_e var_name q nc cv1 vv
+      b2: Nat w and Names h1 w m by imp_e var_name q nc cv1 vw
+      nv1: Names h1 v n          by and_e b1
+      nw: Nat w                  by and_e b2
+      nw1: Names h1 w m          by and_e b2
+      ech: exists c. Chain n2 z2 c and Incl c h1
+                                 by and_e cx
       lemma wc:
         variable c
         assume hc: Chain n2 z2 c and Incl c h1
-        ch: Chain n2 z2 c                 by and_e hc
-        ic: Incl c h1                     by and_e hc
-        cn: ChainNM n2 z2 c               by imp_e cnm ch
+        ch: Chain n2 z2 c   by and_e hc
+        ic: Incl c h1       by and_e hc
+        cn: ChainNM n2 z2 c by imp_e cnm ch
         cnh: NamesM h1 z2 n2 and (forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u i. Pool i u and Lt i m2 and NamesM h1 u j)
-                                          by imp_e cn ic
+                            by imp_e cn ic
         bel: forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u i. Pool i u and Lt i m2 and NamesM h1 u j
-                                          by and_e cnh
+                            by and_e cnh
         eu: exists u i. Pool i u and Lt i m1 and NamesM h1 u n1
-                                          by imp_e bel s1 l1
+                            by imp_e bel s1 l1
         lemma wu:
           variable u i
           assume hum: Pool i u and Lt i m1 and NamesM h1 u n1
-          um:  NamesM h1 u n1             by and_e hum
-          un:  NamesMN h1 u n1            by imp_e mns um
-          nu:  Nat u                      by and_e un
-          nun: Names h1 u n1              by and_e un
-          iu:  NamesInv h1 u n1           by imp_e inv nun
-          sh:  NamesShape h1 u n1         by and_e iu
-          o:   (Nil n1 and QZero h1 u) or (exists z1 j0. Names h1 z1 j0 and Nat z1 and Suc j0 n1 and QSucc h1 z1 u)
-                                          by and_e sh
+          um: NamesM h1 u n1     by and_e hum
+          un: NamesMN h1 u n1    by imp_e mns um
+          nu: Nat u              by and_e un
+          nun: Names h1 u n1     by and_e un
+          iu: NamesInv h1 u n1   by imp_e inv nun
+          sh: NamesShape h1 u n1 by and_e iu
+          o: (Nil n1 and QZero h1 u) or (exists z1 j0. Names h1 z1 j0 and Nat z1 and Suc j0 n1 and QSucc h1 z1 u)
+                                 by and_e sh
           lemma zero:
             assume bz: Nil n1 and QZero h1 u
-            nl: Nil n1                    by and_e bz
-            f:  absurd                    by imp_e suc_nil fs0 sn1 nl
-            r:  PrH h1 x                  by absurd_e f
+            nl: Nil n1  by and_e bz
+            f: absurd   by imp_e suc_nil fs0 sn1 nl
+            r: PrH h1 x by absurd_e f
             therefore (Nil n1 and QZero h1 u) -> PrH h1 x
           lemma succ:
             assume eu0: exists z1 j0. Names h1 z1 j0 and Nat z1 and Suc j0 n1 and QSucc h1 z1 u
             lemma wit:
               variable u0 j0
               assume hw: Names h1 u0 j0 and Nat u0 and Suc j0 n1 and QSucc h1 u0 u
-              nu0n: Names h1 u0 j0        by and_e hw
-              nu0:  Nat u0                by and_e hw
-              sj0:  Suc j0 n1             by and_e hw
-              qu:   QSucc h1 u0 u         by and_e hw
-              ej:   Eq j0 n               by imp_e suc_inj fs0 sj0 sn1 rn1
-              e0:   NamesEq h1 u0 j0      by imp_e eqs nu0n
-              e0e:  forall c1 k. Names h1 c1 k -> Eq j0 k -> QEq h1 u0 c1
-                                          by and_e e0
-              qe:  QEq h1 u0 v            by imp_e e0e nv1 ej
-              quu: QEq h1 u u             by imp_e qe_refl q nu
-              qs:  QSucc h1 v u           by imp_e qs_tr q nu0 nu nv nu qe quu qu
+              nu0n: Names h1 u0 j0 by and_e hw
+              nu0: Nat u0          by and_e hw
+              sj0: Suc j0 n1       by and_e hw
+              qu: QSucc h1 u0 u    by and_e hw
+              ej: Eq j0 n          by imp_e suc_inj fs0 sj0 sn1 rn1
+              e0: NamesEq h1 u0 j0 by imp_e eqs nu0n
+              e0e: forall c1 k. Names h1 c1 k -> Eq j0 k -> QEq h1 u0 c1
+                                   by and_e e0
+              qe: QEq h1 u0 v      by imp_e e0e nv1 ej
+              quu: QEq h1 u u      by imp_e qe_refl q nu
+              qs: QSucc h1 v u     by imp_e qs_tr q nu0 nu nv nu qe quu qu
               lemma nem:
                 assume e1: Eq n1 m
-                rn: Eq n n                by forall_e refl n
-                sm: Suc n m               by imp_e suc_eq fs0 rn e1 sn1
-                f:  absurd                by imp_e ns sm
+                rn: Eq n n  by forall_e refl n
+                sm: Suc n m by imp_e suc_eq fs0 rn e1 sn1
+                f: absurd   by imp_e ns sm
                 therefore not (Eq n1 m)
-              nq: NamesNeq h1 u n1        by imp_e neqs nun
-              nqe:  forall c1 k. Names h1 c1 k -> not (Eq n1 k) -> QNeq h1 u c1
-                                          by and_e nq
-              qne: QNeq h1 u w            by imp_e nqe nw1 nem
-              qns: QNSucc h1 v w          by imp_e neg_succ q nv nw nu qs qne
+              nq: NamesNeq h1 u n1 by imp_e neqs nun
+              nqe: forall c1 k. Names h1 c1 k -> not (Eq n1 k) -> QNeq h1 u c1
+                                   by and_e nq
+              qne: QNeq h1 u w     by imp_e nqe nw1 nem
+              qns: QNSucc h1 v w   by imp_e neg_succ q nv nw nu qs qne
               lemma code:
                 variable d
                 assume hd: SuccAt v w d and QNot h1 d
-                xd: SuccAt v w d          by and_e hd
-                qn: QNot h1 d             by and_e hd
-                ed: Eq d a                by imp_e succat_fun fs0 xd sa
-                r:  PrH h1 x              by imp_e qnot_code fs0 prf qn ed nx
+                xd: SuccAt v w d by and_e hd
+                qn: QNot h1 d    by and_e hd
+                ed: Eq d a       by imp_e succat_fun fs0 xd sa
+                r: PrH h1 x      by imp_e qnot_code fs0 prf qn ed nx
                 therefore forall d. (SuccAt v w d and QNot h1 d) -> PrH h1 x
-              r: PrH h1 x                 by exists_e qns code
+              r: PrH h1 x by exists_e qns code
               therefore forall u0 j0. (Names h1 u0 j0 and Nat u0 and Suc j0 n1 and QSucc h1 u0 u) -> PrH h1 x
-            r: PrH h1 x                   by exists_e eu0 wit
+            r: PrH h1 x by exists_e eu0 wit
             therefore (exists z1 j0. Names h1 z1 j0 and Nat z1 and Suc j0 n1 and QSucc h1 z1 u) -> PrH h1 x
-          r: PrH h1 x                     by or_e o zero succ
+          r: PrH h1 x by or_e o zero succ
           therefore forall u i. (Pool i u and Lt i m1 and NamesM h1 u n1) -> PrH h1 x
-        r: PrH h1 x                       by exists_e eu wu
+        r: PrH h1 x by exists_e eu wu
         therefore forall c. (Chain n2 z2 c and Incl c h1) -> PrH h1 x
-      r: PrH h1 x                         by exists_e ech wc
+      r: PrH h1 x by exists_e ech wc
       therefore forall n2 z2 h1 m1. Ctx n2 z2 h1 -> Incl h h1 -> (forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1)
-                  -> Suc n2 m1 -> Lt n1 m1 -> PrH h1 x
-    r: PrH h x                            by imp_e dd ctx fx ex k
+          -> Suc n2 m1 -> Lt n1 m1 -> PrH h1 x
+    r: PrH h x by imp_e dd ctx fx ex k
     therefore forall n1. Suc n n1 -> PrH h x
-  r: PrH h x                              by exists_e en1 w1
+  r: PrH h x by exists_e en1 w1
   therefore forall e h v w n m a x n0 z0. SCCtx -> Covers e h -> Ctx n0 z0 h -> Val e v n -> Val e w m -> not (Suc n m)
-              -> SuccAt v w a -> NotCode a x -> Form x -> NoPool x -> PrH h x
+      -> SuccAt v w a -> NotCode a x -> Form x -> NoPool x -> PrH h x
 
 -- Totality of addition and multiplication, for the true value.
 define ArithCtx = (forall x. NatLeast (AddEx x)) and AddLeast AddNat and (forall x. NatLeast (MulEx x))
@@ -377,82 +377,82 @@ define ArithCtx = (forall x. NatLeast (AddEx x)) and AddLeast AddNat and (forall
 -- A false Plus: grow the chain to the true value, name it, and refute by functionality.
 theorem false_plus:
   variable e h v w u n m k a x n0 z0
-  assume sc:  SCCtx
-  assume ac:  ArithCtx
-  assume cv:  Covers e h
+  assume sc: SCCtx
+  assume ac: ArithCtx
+  assume cv: Covers e h
   assume ctx: Ctx n0 z0 h
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume np:  not (Add n m k)
-  assume pa:  PlusAt v w u a
-  assume nx:  NotCode a x
-  assume fx:  Form x
-  assume ex:  NoPool x
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  g:     GrowCtx                          by and_e sc
-  lcn:   ChainLeast ChainNM               by and_e sc
-  ldm:   NatLeast Demand                  by and_e sc
-  addl:  forall x1. NatLeast (AddEx x1)     by and_e ac
-  anat:  AddLeast AddNat                  by and_e ac
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  nat:   NAT                              by and_e form
-  refl:  Refl                             by and_e fs0
-  times: TIMES                            by and_e nc
-  plus:  PLUS                             by and_e times
-  qa:    Qa                               by and_e plus
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  lneq:  NamesLeast NamesNeq              by and_e nc
-  lnat:  NamesLeast NamesNat              by and_e nc
-  lpl:   NamesLeast NamesPlus             by and_e nc
-  ainv:  AddLeast AddShape                by and_e nc
-  nm:    NAMESM                           by and_e nc
-  lmn:   NamesMLeast NamesMN              by and_e nc
-  list:  LIST                             by and_e g
-  pc:    PoolCtx                          by and_e g
-  lt:    LT                               by and_e pc
-  dnat:  DblLeast DblNat                  by and_e pc
-  ltinv: LtLeast LtInv                    by and_e pc
-  lteq:  LtLeast LtEq                     by and_e pc
-  neqs:  forall h1 z j. Names h1 z j -> NamesNeq h1 z j
-                                          by imp_e names_neq q names linv lneq
-  mns:   forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
-                                          by imp_e namesm_names q names lmn
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume np: not (Add n m k)
+  assume pa: PlusAt v w u a
+  assume nx: NotCode a x
+  assume fx: Form x
+  assume ex: NoPool x
+  q: QCtx                              by and_e sc
+  nc: NamesCtx                         by and_e sc
+  g: GrowCtx                           by and_e sc
+  lcn: ChainLeast ChainNM              by and_e sc
+  ldm: NatLeast Demand                 by and_e sc
+  addl: forall x1. NatLeast (AddEx x1) by and_e ac
+  anat: AddLeast AddNat                by and_e ac
+  fs0: FS0                             by and_e q
+  form: FORM                           by and_e q
+  prf: PRF QAx                         by and_e q
+  nat: NAT                             by and_e form
+  refl: Refl                           by and_e fs0
+  times: TIMES                         by and_e nc
+  plus: PLUS                           by and_e times
+  qa: Qa                               by and_e plus
+  names: NAMES                         by and_e nc
+  linv: NamesLeast NamesInv            by and_e nc
+  leq: NamesLeast NamesEq              by and_e nc
+  lneq: NamesLeast NamesNeq            by and_e nc
+  lnat: NamesLeast NamesNat            by and_e nc
+  lpl: NamesLeast NamesPlus            by and_e nc
+  ainv: AddLeast AddShape              by and_e nc
+  nm: NAMESM                           by and_e nc
+  lmn: NamesMLeast NamesMN             by and_e nc
+  list: LIST                           by and_e g
+  pc: PoolCtx                          by and_e g
+  lt: LT                               by and_e pc
+  dnat: DblLeast DblNat                by and_e pc
+  ltinv: LtLeast LtInv                 by and_e pc
+  lteq: LtLeast LtEq                   by and_e pc
+  neqs: forall h1 z j. Names h1 z j -> NamesNeq h1 z j
+                                       by imp_e names_neq q names linv lneq
+  mns: forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
+                                       by imp_e namesm_names q names lmn
   nnats: forall h1 z j. Names h1 z j -> NamesNat h1 z j
-                                          by imp_e names_nat nat lnat
-  alls:  forall h1 z j. Names h1 z j -> NamesPlus h1 z j
-                                          by imp_e names_plus q plus names linv leq ainv lpl
-  dem: forall x1. Nat x1 -> Demand x1        by imp_e on_demand g ldm
-  cnm:   forall n1 z c. Chain n1 z c -> ChainNM n1 z c
-                                          by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  nn:  Nat n                              by imp_e nnats nvn
-  nm1: Nat m                              by imp_e nnats nwm
-  tot:   forall x1 y. Nat x1 -> Nat y -> AddEx x1 y
-                                          by imp_e add_total plus addl
-  ek: AddEx n m                           by imp_e tot nn nm1
+                                       by imp_e names_nat nat lnat
+  alls: forall h1 z j. Names h1 z j -> NamesPlus h1 z j
+                                       by imp_e names_plus q plus names linv leq ainv lpl
+  dem: forall x1. Nat x1 -> Demand x1  by imp_e on_demand g ldm
+  cnm: forall n1 z c. Chain n1 z c -> ChainNM n1 z c
+                                       by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
+  a1: Nat v and Names h v n            by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m            by imp_e var_name q nc cv vw
+  nvn: Names h v n                     by and_e a1
+  nwm: Names h w m                     by and_e a2
+  nn: Nat n                            by imp_e nnats nvn
+  nm1: Nat m                           by imp_e nnats nwm
+  tot: forall x1 y. Nat x1 -> Nat y -> AddEx x1 y
+                                       by imp_e add_total plus addl
+  ek: AddEx n m                        by imp_e tot nn nm1
   lemma w1:
     variable k1
     assume hk: Add n m k1
-    ak:  Add n m k1                       by reit hk
-    an:  AddNat n m k1                    by imp_e add_nat plus anat ak
-    nk1: Nat k1                           by imp_e an nn
+    ak: Add n m k1    by reit hk
+    an: AddNat n m k1 by imp_e add_nat plus anat ak
+    nk1: Nat k1       by imp_e an nn
     lemma nek:
       assume e1: Eq k1 k
-      rn: Eq n n                          by forall_e refl n
-      rm: Eq m m                          by forall_e refl m
-      ad: Add n m k                       by imp_e qa rn rm e1 ak
-      f:  absurd                          by imp_e np ad
+      rn: Eq n n    by forall_e refl n
+      rm: Eq m m    by forall_e refl m
+      ad: Add n m k by imp_e qa rn rm e1 ak
+      f: absurd     by imp_e np ad
       therefore not (Eq k1 k)
-    dd: Demand k1                         by imp_e dem nk1
+    dd: Demand k1 by imp_e dem nk1
     lemma kk:
       variable n2 z2 h1 m1
       assume cx: Ctx n2 z2 h1
@@ -460,149 +460,149 @@ theorem false_plus:
       assume nf1: forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1
       assume s1: Suc n2 m1
       assume l1: Lt k1 m1
-      cv1: Covers e h1                    by imp_e covers_mono nc cv i1
-      b1:  Nat v and Names h1 v n         by imp_e var_name q nc cv1 vv
-      b2:  Nat w and Names h1 w m         by imp_e var_name q nc cv1 vw
-      b3:  Nat u and Names h1 u k         by imp_e var_name q nc cv1 vu
-      nv:  Nat v                          by and_e b1
-      nv1: Names h1 v n                   by and_e b1
-      nw:  Nat w                          by and_e b2
-      nw1: Names h1 w m                   by and_e b2
-      nu:  Nat u                          by and_e b3
-      nu1: Names h1 u k                   by and_e b3
-      ech:  exists c. Chain n2 z2 c and Incl c h1
-                                          by and_e cx
+      cv1: Covers e h1           by imp_e covers_mono nc cv i1
+      b1: Nat v and Names h1 v n by imp_e var_name q nc cv1 vv
+      b2: Nat w and Names h1 w m by imp_e var_name q nc cv1 vw
+      b3: Nat u and Names h1 u k by imp_e var_name q nc cv1 vu
+      nv: Nat v                  by and_e b1
+      nv1: Names h1 v n          by and_e b1
+      nw: Nat w                  by and_e b2
+      nw1: Names h1 w m          by and_e b2
+      nu: Nat u                  by and_e b3
+      nu1: Names h1 u k          by and_e b3
+      ech: exists c. Chain n2 z2 c and Incl c h1
+                                 by and_e cx
       lemma wc:
         variable c
         assume hc: Chain n2 z2 c and Incl c h1
-        ch: Chain n2 z2 c                 by and_e hc
-        ic: Incl c h1                     by and_e hc
-        cn: ChainNM n2 z2 c               by imp_e cnm ch
+        ch: Chain n2 z2 c   by and_e hc
+        ic: Incl c h1       by and_e hc
+        cn: ChainNM n2 z2 c by imp_e cnm ch
         cnh: NamesM h1 z2 n2 and (forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u1 i. Pool i u1 and Lt i m2 and NamesM h1 u1 j)
-                                          by imp_e cn ic
+                            by imp_e cn ic
         bel: forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u1 i. Pool i u1 and Lt i m2 and NamesM h1 u1 j
-                                          by and_e cnh
+                            by and_e cnh
         ed: exists u1 i. Pool i u1 and Lt i m1 and NamesM h1 u1 k1
-                                          by imp_e bel s1 l1
+                            by imp_e bel s1 l1
         lemma wd:
           variable d i
           assume hdm: Pool i d and Lt i m1 and NamesM h1 d k1
-          dm:  NamesM h1 d k1             by and_e hdm
-          dn:  NamesMN h1 d k1            by imp_e mns dm
-          nd:  Nat d                      by and_e dn
-          nd1: Names h1 d k1              by and_e dn
-          pw:  NamesPlus h1 w m           by imp_e alls nw1
+          dm: NamesM h1 d k1   by and_e hdm
+          dn: NamesMN h1 d k1  by imp_e mns dm
+          nd: Nat d            by and_e dn
+          nd1: Names h1 d k1   by and_e dn
+          pw: NamesPlus h1 w m by imp_e alls nw1
           pwe: forall a3 n1 c1 k2. Names h1 a3 n1 -> Names h1 c1 k2 -> Add n1 m k2 -> QPlus h1 a3 w c1
-                                          by and_e pw
-          qp: QPlus h1 v w d              by imp_e pwe nv1 nd1 ak
-          nq: NamesNeq h1 d k1            by imp_e neqs nd1
+                               by and_e pw
+          qp: QPlus h1 v w d   by imp_e pwe nv1 nd1 ak
+          nq: NamesNeq h1 d k1 by imp_e neqs nd1
           nqe: forall c1 k2. Names h1 c1 k2 -> not (Eq k1 k2) -> QNeq h1 d c1
-                                          by and_e nq
-          qne: QNeq h1 d u                by imp_e nqe nu1 nek
-          qn:  QNPlus h1 v w u            by imp_e neg_plus q nv nw nu nd qp qne
+                               by and_e nq
+          qne: QNeq h1 d u     by imp_e nqe nu1 nek
+          qn: QNPlus h1 v w u  by imp_e neg_plus q nv nw nu nd qp qne
           lemma code:
             variable y
             assume hy: PlusAt v w u y and QNot h1 y
-            xy: PlusAt v w u y            by and_e hy
-            qy: QNot h1 y                 by and_e hy
-            ey: Eq y a                    by imp_e plusat_fun fs0 xy pa
-            r:  PrH h1 x                  by imp_e qnot_code fs0 prf qy ey nx
+            xy: PlusAt v w u y by and_e hy
+            qy: QNot h1 y      by and_e hy
+            ey: Eq y a         by imp_e plusat_fun fs0 xy pa
+            r: PrH h1 x        by imp_e qnot_code fs0 prf qy ey nx
             therefore forall y. (PlusAt v w u y and QNot h1 y) -> PrH h1 x
-          r: PrH h1 x                     by exists_e qn code
+          r: PrH h1 x by exists_e qn code
           therefore forall d i. (Pool i d and Lt i m1 and NamesM h1 d k1) -> PrH h1 x
-        r: PrH h1 x                       by exists_e ed wd
+        r: PrH h1 x by exists_e ed wd
         therefore forall c. (Chain n2 z2 c and Incl c h1) -> PrH h1 x
-      r: PrH h1 x                         by exists_e ech wc
+      r: PrH h1 x by exists_e ech wc
       therefore forall n2 z2 h1 m1. Ctx n2 z2 h1 -> Incl h h1 -> (forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1)
-                  -> Suc n2 m1 -> Lt k1 m1 -> PrH h1 x
-    r: PrH h x                            by imp_e dd ctx fx ex kk
+          -> Suc n2 m1 -> Lt k1 m1 -> PrH h1 x
+    r: PrH h x by imp_e dd ctx fx ex kk
     therefore forall k1. Add n m k1 -> PrH h x
-  r: PrH h x                              by exists_e ek w1
+  r: PrH h x by exists_e ek w1
   therefore forall e h v w u n m k a x n0 z0. SCCtx -> ArithCtx -> Covers e h -> Ctx n0 z0 h -> Val e v n -> Val e w m
-              -> Val e u k -> not (Add n m k) -> PlusAt v w u a -> NotCode a x -> Form x -> NoPool x -> PrH h x
+      -> Val e u k -> not (Add n m k) -> PlusAt v w u a -> NotCode a x -> Form x -> NoPool x -> PrH h x
 
 -- A false Times: grow the chain to the true value, name it, and refute by functionality.
 theorem false_times:
   variable e h v w u n m k a x n0 z0
-  assume sc:  SCCtx
-  assume ac:  ArithCtx
-  assume cv:  Covers e h
+  assume sc: SCCtx
+  assume ac: ArithCtx
+  assume cv: Covers e h
   assume ctx: Ctx n0 z0 h
-  assume vv:  Val e v n
-  assume vw:  Val e w m
-  assume vu:  Val e u k
-  assume np:  not (Mul n m k)
-  assume pa:  TimesAt v w u a
-  assume nx:  NotCode a x
-  assume fx:  Form x
-  assume ex:  NoPool x
-  q:     QCtx                             by and_e sc
-  nc:    NamesCtx                         by and_e sc
-  g:     GrowCtx                          by and_e sc
-  lcn:   ChainLeast ChainNM               by and_e sc
-  ldm:   NatLeast Demand                  by and_e sc
-  addl:  forall x1. NatLeast (AddEx x1)     by and_e ac
-  anat:  AddLeast AddNat                  by and_e ac
-  mull:  forall x1. NatLeast (MulEx x1)     by and_e ac
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  nat:   NAT                              by and_e form
-  refl:  Refl                             by and_e fs0
-  times: TIMES                            by and_e nc
-  qm:    Qm                               by and_e times
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  lneq:  NamesLeast NamesNeq              by and_e nc
-  lnum:  NamesLeast NamesNum              by and_e nc
-  lnat:  NamesLeast NamesNat              by and_e nc
-  lpl:   NamesLeast NamesPlus             by and_e nc
-  ltm:   NamesLeast NamesTimes            by and_e nc
-  ainv:  AddLeast AddShape                by and_e nc
-  minv:  MulLeast MulShape                by and_e nc
-  ldown: NatLeast NamesDown               by and_e nc
-  nm:    NAMESM                           by and_e nc
-  lmn:   NamesMLeast NamesMN              by and_e nc
-  list:  LIST                             by and_e g
-  pc:    PoolCtx                          by and_e g
-  lt:    LT                               by and_e pc
-  dnat:  DblLeast DblNat                  by and_e pc
-  ltinv: LtLeast LtInv                    by and_e pc
-  lteq:  LtLeast LtEq                     by and_e pc
-  neqs:  forall h1 z j. Names h1 z j -> NamesNeq h1 z j
-                                          by imp_e names_neq q names linv lneq
-  mns:   forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
-                                          by imp_e namesm_names q names lmn
+  assume vv: Val e v n
+  assume vw: Val e w m
+  assume vu: Val e u k
+  assume np: not (Mul n m k)
+  assume pa: TimesAt v w u a
+  assume nx: NotCode a x
+  assume fx: Form x
+  assume ex: NoPool x
+  q: QCtx                              by and_e sc
+  nc: NamesCtx                         by and_e sc
+  g: GrowCtx                           by and_e sc
+  lcn: ChainLeast ChainNM              by and_e sc
+  ldm: NatLeast Demand                 by and_e sc
+  addl: forall x1. NatLeast (AddEx x1) by and_e ac
+  anat: AddLeast AddNat                by and_e ac
+  mull: forall x1. NatLeast (MulEx x1) by and_e ac
+  fs0: FS0                             by and_e q
+  form: FORM                           by and_e q
+  prf: PRF QAx                         by and_e q
+  nat: NAT                             by and_e form
+  refl: Refl                           by and_e fs0
+  times: TIMES                         by and_e nc
+  qm: Qm                               by and_e times
+  names: NAMES                         by and_e nc
+  linv: NamesLeast NamesInv            by and_e nc
+  leq: NamesLeast NamesEq              by and_e nc
+  lneq: NamesLeast NamesNeq            by and_e nc
+  lnum: NamesLeast NamesNum            by and_e nc
+  lnat: NamesLeast NamesNat            by and_e nc
+  lpl: NamesLeast NamesPlus            by and_e nc
+  ltm: NamesLeast NamesTimes           by and_e nc
+  ainv: AddLeast AddShape              by and_e nc
+  minv: MulLeast MulShape              by and_e nc
+  ldown: NatLeast NamesDown            by and_e nc
+  nm: NAMESM                           by and_e nc
+  lmn: NamesMLeast NamesMN             by and_e nc
+  list: LIST                           by and_e g
+  pc: PoolCtx                          by and_e g
+  lt: LT                               by and_e pc
+  dnat: DblLeast DblNat                by and_e pc
+  ltinv: LtLeast LtInv                 by and_e pc
+  lteq: LtLeast LtEq                   by and_e pc
+  neqs: forall h1 z j. Names h1 z j -> NamesNeq h1 z j
+                                       by imp_e names_neq q names linv lneq
+  mns: forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
+                                       by imp_e namesm_names q names lmn
   nnats: forall h1 z j. Names h1 z j -> NamesNat h1 z j
-                                          by imp_e names_nat nat lnat
-  alls:  forall h1 z j. Names h1 z j -> NamesTimes h1 z j
-                                          by imp_e names_times q times names linv leq lnum lnat lpl ainv minv ldown ltm
-  dem: forall x1. Nat x1 -> Demand x1        by imp_e on_demand g ldm
-  cnm:   forall n1 z c. Chain n1 z c -> ChainNM n1 z c
-                                          by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  nn:  Nat n                              by imp_e nnats nvn
-  nm1: Nat m                              by imp_e nnats nwm
-  tot:   forall x1. Nat x1 -> forall y. Nat y -> MulEx x1 y
-                                          by imp_e mul_total times addl anat mull
-  ek: MulEx n m                           by imp_e tot nn nm1
+                                       by imp_e names_nat nat lnat
+  alls: forall h1 z j. Names h1 z j -> NamesTimes h1 z j
+                                       by imp_e names_times q times names linv leq lnum lnat lpl ainv minv ldown ltm
+  dem: forall x1. Nat x1 -> Demand x1  by imp_e on_demand g ldm
+  cnm: forall n1 z c. Chain n1 z c -> ChainNM n1 z c
+                                       by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
+  a1: Nat v and Names h v n            by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m            by imp_e var_name q nc cv vw
+  nvn: Names h v n                     by and_e a1
+  nwm: Names h w m                     by and_e a2
+  nn: Nat n                            by imp_e nnats nvn
+  nm1: Nat m                           by imp_e nnats nwm
+  tot: forall x1. Nat x1 -> forall y. Nat y -> MulEx x1 y
+                                       by imp_e mul_total times addl anat mull
+  ek: MulEx n m                        by imp_e tot nn nm1
   lemma w1:
     variable k1
     assume hk: Mul n m k1 and Nat k1
-    ak:  Mul n m k1                       by and_e hk
-    nk1: Nat k1                           by and_e hk
+    ak: Mul n m k1 by and_e hk
+    nk1: Nat k1    by and_e hk
     lemma nek:
       assume e1: Eq k1 k
-      rn: Eq n n                          by forall_e refl n
-      rm: Eq m m                          by forall_e refl m
-      ad: Mul n m k                       by imp_e qm rn rm e1 ak
-      f:  absurd                          by imp_e np ad
+      rn: Eq n n    by forall_e refl n
+      rm: Eq m m    by forall_e refl m
+      ad: Mul n m k by imp_e qm rn rm e1 ak
+      f: absurd     by imp_e np ad
       therefore not (Eq k1 k)
-    dd: Demand k1                         by imp_e dem nk1
+    dd: Demand k1 by imp_e dem nk1
     lemma kk:
       variable n2 z2 h1 m1
       assume cx: Ctx n2 z2 h1
@@ -610,63 +610,63 @@ theorem false_times:
       assume nf1: forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1
       assume s1: Suc n2 m1
       assume l1: Lt k1 m1
-      cv1: Covers e h1                    by imp_e covers_mono nc cv i1
-      b1:  Nat v and Names h1 v n         by imp_e var_name q nc cv1 vv
-      b2:  Nat w and Names h1 w m         by imp_e var_name q nc cv1 vw
-      b3:  Nat u and Names h1 u k         by imp_e var_name q nc cv1 vu
-      nv:  Nat v                          by and_e b1
-      nv1: Names h1 v n                   by and_e b1
-      nw:  Nat w                          by and_e b2
-      nw1: Names h1 w m                   by and_e b2
-      nu:  Nat u                          by and_e b3
-      nu1: Names h1 u k                   by and_e b3
-      ech:  exists c. Chain n2 z2 c and Incl c h1
-                                          by and_e cx
+      cv1: Covers e h1           by imp_e covers_mono nc cv i1
+      b1: Nat v and Names h1 v n by imp_e var_name q nc cv1 vv
+      b2: Nat w and Names h1 w m by imp_e var_name q nc cv1 vw
+      b3: Nat u and Names h1 u k by imp_e var_name q nc cv1 vu
+      nv: Nat v                  by and_e b1
+      nv1: Names h1 v n          by and_e b1
+      nw: Nat w                  by and_e b2
+      nw1: Names h1 w m          by and_e b2
+      nu: Nat u                  by and_e b3
+      nu1: Names h1 u k          by and_e b3
+      ech: exists c. Chain n2 z2 c and Incl c h1
+                                 by and_e cx
       lemma wc:
         variable c
         assume hc: Chain n2 z2 c and Incl c h1
-        ch: Chain n2 z2 c                 by and_e hc
-        ic: Incl c h1                     by and_e hc
-        cn: ChainNM n2 z2 c               by imp_e cnm ch
+        ch: Chain n2 z2 c   by and_e hc
+        ic: Incl c h1       by and_e hc
+        cn: ChainNM n2 z2 c by imp_e cnm ch
         cnh: NamesM h1 z2 n2 and (forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u1 i. Pool i u1 and Lt i m2 and NamesM h1 u1 j)
-                                          by imp_e cn ic
+                            by imp_e cn ic
         bel: forall m2 j. Suc n2 m2 -> Lt j m2 -> exists u1 i. Pool i u1 and Lt i m2 and NamesM h1 u1 j
-                                          by and_e cnh
+                            by and_e cnh
         ed: exists u1 i. Pool i u1 and Lt i m1 and NamesM h1 u1 k1
-                                          by imp_e bel s1 l1
+                            by imp_e bel s1 l1
         lemma wd:
           variable d i
           assume hdm: Pool i d and Lt i m1 and NamesM h1 d k1
-          dm:  NamesM h1 d k1             by and_e hdm
-          dn:  NamesMN h1 d k1            by imp_e mns dm
-          nd:  Nat d                      by and_e dn
-          nd1: Names h1 d k1              by and_e dn
-          pw:  NamesTimes h1 w m          by imp_e alls nw1
+          dm: NamesM h1 d k1    by and_e hdm
+          dn: NamesMN h1 d k1   by imp_e mns dm
+          nd: Nat d             by and_e dn
+          nd1: Names h1 d k1    by and_e dn
+          pw: NamesTimes h1 w m by imp_e alls nw1
           pwe: forall a3 n1 c1 k2. Names h1 a3 n1 -> Names h1 c1 k2 -> Mul n1 m k2 -> QTimes h1 a3 w c1
-                                          by and_e pw
-          qp: QTimes h1 v w d             by imp_e pwe nv1 nd1 ak
-          nq: NamesNeq h1 d k1            by imp_e neqs nd1
+                                by and_e pw
+          qp: QTimes h1 v w d   by imp_e pwe nv1 nd1 ak
+          nq: NamesNeq h1 d k1  by imp_e neqs nd1
           nqe: forall c1 k2. Names h1 c1 k2 -> not (Eq k1 k2) -> QNeq h1 d c1
-                                          by and_e nq
-          qne: QNeq h1 d u                by imp_e nqe nu1 nek
-          qn:  QNTimes h1 v w u           by imp_e neg_times q nv nw nu nd qp qne
+                                by and_e nq
+          qne: QNeq h1 d u      by imp_e nqe nu1 nek
+          qn: QNTimes h1 v w u  by imp_e neg_times q nv nw nu nd qp qne
           lemma code:
             variable y
             assume hy: TimesAt v w u y and QNot h1 y
-            xy: TimesAt v w u y           by and_e hy
-            qy: QNot h1 y                 by and_e hy
-            ey: Eq y a                    by imp_e timesat_fun fs0 xy pa
-            r:  PrH h1 x                  by imp_e qnot_code fs0 prf qy ey nx
+            xy: TimesAt v w u y by and_e hy
+            qy: QNot h1 y       by and_e hy
+            ey: Eq y a          by imp_e timesat_fun fs0 xy pa
+            r: PrH h1 x         by imp_e qnot_code fs0 prf qy ey nx
             therefore forall y. (TimesAt v w u y and QNot h1 y) -> PrH h1 x
-          r: PrH h1 x                     by exists_e qn code
+          r: PrH h1 x by exists_e qn code
           therefore forall d i. (Pool i d and Lt i m1 and NamesM h1 d k1) -> PrH h1 x
-        r: PrH h1 x                       by exists_e ed wd
+        r: PrH h1 x by exists_e ed wd
         therefore forall c. (Chain n2 z2 c and Incl c h1) -> PrH h1 x
-      r: PrH h1 x                         by exists_e ech wc
+      r: PrH h1 x by exists_e ech wc
       therefore forall n2 z2 h1 m1. Ctx n2 z2 h1 -> Incl h h1 -> (forall w1. Even w1 -> NoFree w1 h -> NoFree w1 h1)
-                  -> Suc n2 m1 -> Lt k1 m1 -> PrH h1 x
-    r: PrH h x                            by imp_e dd ctx fx ex kk
+          -> Suc n2 m1 -> Lt k1 m1 -> PrH h1 x
+    r: PrH h x by imp_e dd ctx fx ex kk
     therefore forall k1. (Mul n m k1 and Nat k1) -> PrH h x
-  r: PrH h x                              by exists_e ek w1
+  r: PrH h x by exists_e ek w1
   therefore forall e h v w u n m k a x n0 z0. SCCtx -> ArithCtx -> Covers e h -> Ctx n0 z0 h -> Val e v n -> Val e w m
-              -> Val e u k -> not (Mul n m k) -> TimesAt v w u a -> NotCode a x -> Form x -> NoPool x -> PrH h x
+      -> Val e u k -> not (Mul n m k) -> TimesAt v w u a -> NotCode a x -> Form x -> NoPool x -> PrH h x

@@ -6,30 +6,30 @@ import sball2
 
 -- Everything the cases need, once.
 define SC1Ctx = SBCtx and BCtx and BelowOrLeast BLemP and BelowOrLeast BorElim and NamesMLeast BorEx and SUB
-                and ArithCtx
+    and ArithCtx
 
 theorem sigma1_complete:
-  assume c:     SC1Ctx
+  assume c: SC1Ctx
   assume least: HoldsLeast SC
-  sb:  SBCtx                              by and_e c
-  bc:  BCtx                               by and_e c
-  lbp: BelowOrLeast BLemP                 by and_e c
-  lbe: BelowOrLeast BorElim               by and_e c
-  lbx: NamesMLeast BorEx                  by and_e c
-  sub: SUB                                by and_e c
-  ac:  ArithCtx                           by and_e c
-  sc:  SCCtx                              by and_e sb
-  syn: SynCtx                             by and_e sb
-  tr:  TRUTH                              by and_e sb
-  lv:  ValLeast ValInv                    by and_e sb
-  lmn: NamesMLeast NamesMNum              by and_e sb
-  q:   QCtx                               by and_e sc
+  sb: SBCtx                  by and_e c
+  bc: BCtx                   by and_e c
+  lbp: BelowOrLeast BLemP    by and_e c
+  lbe: BelowOrLeast BorElim  by and_e c
+  lbx: NamesMLeast BorEx     by and_e c
+  sub: SUB                   by and_e c
+  ac: ArithCtx               by and_e c
+  sc: SCCtx                  by and_e sb
+  syn: SynCtx                by and_e sb
+  tr: TRUTH                  by and_e sb
+  lv: ValLeast ValInv        by and_e sb
+  lmn: NamesMLeast NamesMNum by and_e sb
+  q: QCtx                    by and_e sc
   lemma c_zero:
     variable e v n x
     assume h0: Val e v n
     assume h1: Nil n
     assume h2: ZeroAt v x
-    r: SC e x                             by imp_e sc_zero sc h0 h1 h2
+    r: SC e x by imp_e sc_zero sc h0 h1 h2
     therefore forall e v n x. Val e v n -> Nil n -> ZeroAt v x -> SC e x
   lemma c_succ:
     variable e v w n m x
@@ -37,7 +37,7 @@ theorem sigma1_complete:
     assume h1: Val e w m
     assume h2: Suc n m
     assume h3: SuccAt v w x
-    r: SC e x                             by imp_e sc_succ sc h0 h1 h2 h3
+    r: SC e x by imp_e sc_succ sc h0 h1 h2 h3
     therefore forall e v w n m x. Val e v n -> Val e w m -> Suc n m -> SuccAt v w x -> SC e x
   lemma c_plus:
     variable e v w u n m k x
@@ -46,7 +46,7 @@ theorem sigma1_complete:
     assume h2: Val e u k
     assume h3: Add n m k
     assume h4: PlusAt v w u x
-    r: SC e x                             by imp_e sc_plus sc h0 h1 h2 h3 h4
+    r: SC e x by imp_e sc_plus sc h0 h1 h2 h3 h4
     therefore forall e v w u n m k x. Val e v n -> Val e w m -> Val e u k -> Add n m k -> PlusAt v w u x -> SC e x
   lemma c_times:
     variable e v w u n m k x
@@ -55,7 +55,7 @@ theorem sigma1_complete:
     assume h2: Val e u k
     assume h3: Mul n m k
     assume h4: TimesAt v w u x
-    r: SC e x                             by imp_e sc_times sc h0 h1 h2 h3 h4
+    r: SC e x by imp_e sc_times sc h0 h1 h2 h3 h4
     therefore forall e v w u n m k x. Val e v n -> Val e w m -> Val e u k -> Mul n m k -> TimesAt v w u x -> SC e x
   lemma c_eq:
     variable e v w n m x
@@ -63,26 +63,26 @@ theorem sigma1_complete:
     assume h1: Val e w m
     assume h2: Eq n m
     assume h3: EqAt v w x
-    r: SC e x                             by imp_e sc_eq sc h0 h1 h2 h3
+    r: SC e x by imp_e sc_eq sc h0 h1 h2 h3
     therefore forall e v w n m x. Val e v n -> Val e w m -> Eq n m -> EqAt v w x -> SC e x
   lemma c_and:
     variable e a b x
     assume h0: SC e a
     assume h1: SC e b
     assume h2: AndCode a b x
-    r: SC e x                             by imp_e sc_and q syn h0 h1 h2
+    r: SC e x by imp_e sc_and q syn h0 h1 h2
     therefore forall e a b x. SC e a -> SC e b -> AndCode a b x -> SC e x
   lemma c_or1:
     variable e a b x
     assume h0: SC e a
     assume h1: OrCode a b x
-    r: SC e x                             by imp_e sc_or1 q syn h0 h1
+    r: SC e x by imp_e sc_or1 q syn h0 h1
     therefore forall e a b x. SC e a -> OrCode a b x -> SC e x
   lemma c_or2:
     variable e a b x
     assume h0: SC e b
     assume h1: OrCode a b x
-    r: SC e x                             by imp_e sc_or2 q syn h0 h1
+    r: SC e x by imp_e sc_or2 q syn h0 h1
     therefore forall e a b x. SC e b -> OrCode a b x -> SC e x
   lemma c_ex:
     variable e v n e2 a x
@@ -90,7 +90,7 @@ theorem sigma1_complete:
     assume h1: Ext e v n e2
     assume h2: SC e2 a
     assume h3: ExCode v a x
-    r: SC e x                             by imp_e sc_ex sc syn tr lv lmn sub h0 h1 h2 h3
+    r: SC e x by imp_e sc_ex sc syn tr lv lmn sub h0 h1 h2 h3
     therefore forall e v n e2 a x. Nat n -> Ext e v n e2 -> SC e2 a -> ExCode v a x -> SC e x
   lemma c_nzero:
     variable e v n a x
@@ -98,7 +98,7 @@ theorem sigma1_complete:
     assume h1: not (Nil n)
     assume h2: ZeroAt v a
     assume h3: NotCode a x
-    r: SC e x                             by imp_e sc_nzero sc h0 h1 h2 h3
+    r: SC e x by imp_e sc_nzero sc h0 h1 h2 h3
     therefore forall e v n a x. Val e v n -> not (Nil n) -> ZeroAt v a -> NotCode a x -> SC e x
   lemma c_nsucc:
     variable e v w n m a x
@@ -107,7 +107,7 @@ theorem sigma1_complete:
     assume h2: not (Suc n m)
     assume h3: SuccAt v w a
     assume h4: NotCode a x
-    r: SC e x                             by imp_e sc_nsucc sc h0 h1 h2 h3 h4
+    r: SC e x by imp_e sc_nsucc sc h0 h1 h2 h3 h4
     therefore forall e v w n m a x. Val e v n -> Val e w m -> not (Suc n m) -> SuccAt v w a -> NotCode a x -> SC e x
   lemma c_nplus:
     variable e v w u n m k a x
@@ -117,7 +117,7 @@ theorem sigma1_complete:
     assume h3: not (Add n m k)
     assume h4: PlusAt v w u a
     assume h5: NotCode a x
-    r: SC e x                             by imp_e sc_nplus sc ac h0 h1 h2 h3 h4 h5
+    r: SC e x by imp_e sc_nplus sc ac h0 h1 h2 h3 h4 h5
     therefore forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Add n m k) -> PlusAt v w u a -> NotCode a x -> SC e x
   lemma c_ntimes:
     variable e v w u n m k a x
@@ -127,7 +127,7 @@ theorem sigma1_complete:
     assume h3: not (Mul n m k)
     assume h4: TimesAt v w u a
     assume h5: NotCode a x
-    r: SC e x                             by imp_e sc_ntimes sc ac h0 h1 h2 h3 h4 h5
+    r: SC e x by imp_e sc_ntimes sc ac h0 h1 h2 h3 h4 h5
     therefore forall e v w u n m k a x. Val e v n -> Val e w m -> Val e u k -> not (Mul n m k) -> TimesAt v w u a -> NotCode a x -> SC e x
   lemma c_neq:
     variable e v w n m a x
@@ -136,14 +136,14 @@ theorem sigma1_complete:
     assume h2: not (Eq n m)
     assume h3: EqAt v w a
     assume h4: NotCode a x
-    r: SC e x                             by imp_e sc_neq sc h0 h1 h2 h3 h4
+    r: SC e x by imp_e sc_neq sc h0 h1 h2 h3 h4
     therefore forall e v w n m a x. Val e v n -> Val e w m -> not (Eq n m) -> EqAt v w a -> NotCode a x -> SC e x
   lemma c_ball:
     variable e v w m a x
     assume h0: BAllCode v w a x
     assume h1: Val e w m
     assume h2: forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a
-    r: SC e x                             by imp_e sc_ball sb bc lbp lbe lbx h0 h1 h2
+    r: SC e x by imp_e sc_ball sb bc lbp lbe lbx h0 h1 h2
     therefore forall e v w m a x. BAllCode v w a x -> Val e w m -> (forall n e2. LtN n m -> Ext e v n e2 -> SC e2 a) -> SC e x
-  r: forall e f. Holds e f -> SC e f      by imp_e least c_zero c_succ c_plus c_times c_eq c_and c_or1 c_or2 c_ex c_nzero c_nsucc c_nplus c_ntimes c_neq c_ball
+  r: forall e f. Holds e f -> SC e f by imp_e least c_zero c_succ c_plus c_times c_eq c_and c_or1 c_or2 c_ex c_nzero c_nsucc c_nplus c_ntimes c_neq c_ball
   therefore SC1Ctx -> HoldsLeast SC -> forall e f. Holds e f -> SC e f

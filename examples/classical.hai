@@ -15,12 +15,12 @@ theorem peirce:
     assume na: not A
     lemma ab:
       assume a: A
-      x: absurd                           by imp_e na a
-      b: B                                by absurd_e x
+      x: absurd by imp_e na a
+      b: B      by absurd_e x
       therefore A -> B
-    a: A                                  by imp_e f ab
+    a: A by imp_e f ab
     therefore not A -> A
-  a: A                                    by or_e em yes no
+  a: A by or_e em yes no
   therefore ExcludedMiddle A -> ((A -> B) -> A) -> A
 
 -- Double negation elimination.
@@ -33,10 +33,10 @@ theorem dne:
     therefore A -> A
   lemma no:
     assume na: not A
-    f: absurd                             by imp_e nna na
-    a: A                                  by absurd_e f
+    f: absurd by imp_e nna na
+    a: A      by absurd_e f
     therefore not A -> A
-  a: A                                    by or_e em yes no
+  a: A by or_e em yes no
   therefore ExcludedMiddle A -> not (not A) -> A
 
 -- Contraposition, the classical direction.
@@ -51,9 +51,9 @@ theorem contrapositive:
     therefore B -> B
   lemma no:
     assume nb: not B
-    na: not A                             by imp_e h nb
-    f:  absurd                            by imp_e na a
-    b:  B                                 by absurd_e f
+    na: not A by imp_e h nb
+    f: absurd by imp_e na a
+    b: B      by absurd_e f
     therefore not B -> B
-  b: B                                    by or_e em yes no
+  b: B by or_e em yes no
   therefore ExcludedMiddle B -> (not B -> not A) -> A -> B

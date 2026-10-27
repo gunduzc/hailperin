@@ -8,175 +8,175 @@ define QTimes h a b c = exists x. TimesAt a b c x and PrH h x
 theorem timesat_exists:
   variable v w u
   assume fs0: FS0
-  tags: Tags                              by imp_e tag_exists fs0
-  t1:   exists t. T1 t                    by and_e tags
-  t3:   exists t. T3 t                    by and_e tags
-  el:   exists l. List3 v w u l           by imp_e list3_exists fs0
+  tags: Tags                  by imp_e tag_exists fs0
+  t1: exists t. T1 t          by and_e tags
+  t3: exists t. T3 t          by and_e tags
+  el: exists l. List3 v w u l by imp_e list3_exists fs0
   lemma w1:
     variable p
     assume tp: T3 p
     lemma w2:
       variable l
       assume l3: List3 v w u l
-      ex: exists x. Node2 T1 p l x        by imp_e node2_exists T1 fs0 t1
+      ex: exists x. Node2 T1 p l x by imp_e node2_exists T1 fs0 t1
       lemma w3:
         variable x
         assume nd: Node2 T1 p l x
         c: T3 p and List3 v w u l and Node2 T1 p l x
-                                          by and_i tp l3 nd
-        s: TimesAt v w u x                by exists_i c
-        e: exists x1. TimesAt v w u x1      by exists_i s
+                                       by and_i tp l3 nd
+        s: TimesAt v w u x             by exists_i c
+        e: exists x1. TimesAt v w u x1 by exists_i s
         therefore forall x. Node2 T1 p l x -> exists x1. TimesAt v w u x1
-      r: exists x. TimesAt v w u x        by exists_e ex w3
+      r: exists x. TimesAt v w u x by exists_e ex w3
       therefore forall l. List3 v w u l -> exists x. TimesAt v w u x
-    r: exists x. TimesAt v w u x          by exists_e el w2
+    r: exists x. TimesAt v w u x by exists_e el w2
     therefore forall p. T3 p -> exists x. TimesAt v w u x
-  r: exists x. TimesAt v w u x            by exists_e t3 w1
+  r: exists x. TimesAt v w u x by exists_e t3 w1
   therefore forall v w u. FS0 -> exists x. TimesAt v w u x
 
 theorem qt_zero:
   variable h a b
-  assume q:  QCtx
+  assume q: QCtx
   assume na: Nat a
   assume nb: Nat b
   assume qb: QZero h b
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
   lemma w1:
     variable c
     assume hc: ZeroAt b c and PrH h c
-    zb: ZeroAt b c                        by and_e hc
-    pc: PrH h c                           by and_e hc
-    ex: exists x. TimesAt a b b x         by imp_e timesat_exists fs0
+    zb: ZeroAt b c                by and_e hc
+    pc: PrH h c                   by and_e hc
+    ex: exists x. TimesAt a b b x by imp_e timesat_exists fs0
     lemma w2:
       variable d
       assume pd: TimesAt a b b d
-      fd: Form d                          by imp_e timesat_form form na nb nb pd
-      k:  PrH h d                         by imp_e q_tz fs0 form prf pfl na nb pd zb pc fd
-      c1: TimesAt a b b d and PrH h d     by and_i pd k
-      r:  QTimes h a b b                  by exists_i c1
+      fd: Form d                      by imp_e timesat_form form na nb nb pd
+      k: PrH h d                      by imp_e q_tz fs0 form prf pfl na nb pd zb pc fd
+      c1: TimesAt a b b d and PrH h d by and_i pd k
+      r: QTimes h a b b               by exists_i c1
       therefore forall d. TimesAt a b b d -> QTimes h a b b
-    r: QTimes h a b b                     by exists_e ex w2
+    r: QTimes h a b b by exists_e ex w2
     therefore forall c. (ZeroAt b c and PrH h c) -> QTimes h a b b
-  r: QTimes h a b b                       by exists_e qb w1
+  r: QTimes h a b b by exists_e qb w1
   therefore forall h a b. QCtx -> Nat a -> Nat b -> QZero h b -> QTimes h a b b
 
 theorem qt_tr:
   variable h a b c c1
-  assume q:   QCtx
-  assume na:  Nat a
-  assume nb:  Nat b
-  assume nc:  Nat c
+  assume q: QCtx
+  assume na: Nat a
+  assume nb: Nat b
+  assume nc: Nat c
   assume nc1: Nat c1
-  assume qp:  QTimes h a b c
-  assume qe:  QEq h c c1
-  fs0: FS0                                by and_e q
-  ea:  QEq h a a                          by imp_e qe_refl q na
-  eb:  QEq h b b                          by imp_e qe_refl q nb
+  assume qp: QTimes h a b c
+  assume qe: QEq h c c1
+  fs0: FS0      by and_e q
+  ea: QEq h a a by imp_e qe_refl q na
+  eb: QEq h b b by imp_e qe_refl q nb
   lemma w1:
     variable e1
     assume h1: EqAt a a e1 and PrH h e1
-    x1: EqAt a a e1                       by and_e h1
-    p1: PrH h e1                          by and_e h1
+    x1: EqAt a a e1 by and_e h1
+    p1: PrH h e1    by and_e h1
     lemma w2:
       variable e2
       assume h2: EqAt b b e2 and PrH h e2
-      x2: EqAt b b e2                     by and_e h2
-      p2: PrH h e2                        by and_e h2
+      x2: EqAt b b e2 by and_e h2
+      p2: PrH h e2    by and_e h2
       lemma w3:
         variable e3
         assume h3: EqAt c c1 e3 and PrH h e3
-        x3: EqAt c c1 e3                  by and_e h3
-        p3: PrH h e3                      by and_e h3
+        x3: EqAt c c1 e3 by and_e h3
+        p3: PrH h e3     by and_e h3
         lemma w4:
           variable e4
           assume h4: TimesAt a b c e4 and PrH h e4
-          x4: TimesAt a b c e4            by and_e h4
-          p4: PrH h e4                    by and_e h4
-          ex: exists z. TimesAt a b c1 z  by imp_e timesat_exists fs0
+          x4: TimesAt a b c e4           by and_e h4
+          p4: PrH h e4                   by and_e h4
+          ex: exists z. TimesAt a b c1 z by imp_e timesat_exists fs0
           lemma w5:
             variable d
             assume pd: TimesAt a b c1 d
-            k: PrH h d                    by imp_e q_times_tr q na nb nc na nb nc1 x1 p1 x2 p2 x3 p3 x4 p4 pd
+            k: PrH h d         by imp_e q_times_tr q na nb nc na nb nc1 x1 p1 x2 p2 x3 p3 x4 p4 pd
             c2: TimesAt a b c1 d and PrH h d
-                                          by and_i pd k
-            r: QTimes h a b c1            by exists_i c2
+                               by and_i pd k
+            r: QTimes h a b c1 by exists_i c2
             therefore forall d. TimesAt a b c1 d -> QTimes h a b c1
-          r: QTimes h a b c1              by exists_e ex w5
+          r: QTimes h a b c1 by exists_e ex w5
           therefore forall e4. (TimesAt a b c e4 and PrH h e4) -> QTimes h a b c1
-        r: QTimes h a b c1                by exists_e qp w4
+        r: QTimes h a b c1 by exists_e qp w4
         therefore forall e3. (EqAt c c1 e3 and PrH h e3) -> QTimes h a b c1
-      r: QTimes h a b c1                  by exists_e qe w3
+      r: QTimes h a b c1 by exists_e qe w3
       therefore forall e2. (EqAt b b e2 and PrH h e2) -> QTimes h a b c1
-    r: QTimes h a b c1                    by exists_e eb w2
+    r: QTimes h a b c1 by exists_e eb w2
     therefore forall e1. (EqAt a a e1 and PrH h e1) -> QTimes h a b c1
-  r: QTimes h a b c1                      by exists_e ea w1
+  r: QTimes h a b c1 by exists_e ea w1
   therefore forall h a b c c1. QCtx -> Nat a -> Nat b -> Nat c -> Nat c1 -> QTimes h a b c -> QEq h c c1
-              -> QTimes h a b c1
+      -> QTimes h a b c1
 
 theorem qt_succ:
   variable h x y s p u
-  assume q:   QCtx
-  assume nx:  Nat x
-  assume ny:  Nat y
-  assume ns:  Nat s
-  assume np:  Nat p
-  assume nu:  Nat u
+  assume q: QCtx
+  assume nx: Nat x
+  assume ny: Nat y
+  assume ns: Nat s
+  assume np: Nat p
+  assume nu: Nat u
   assume qys: QSucc h y s
-  assume qt:  QTimes h x y p
+  assume qt: QTimes h x y p
   assume qpu: QPlus h p x u
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
   lemma w1:
     variable c1
     assume h1: SuccAt y s c1 and PrH h c1
-    s1: SuccAt y s c1                     by and_e h1
-    p1: PrH h c1                          by and_e h1
+    s1: SuccAt y s c1 by and_e h1
+    p1: PrH h c1      by and_e h1
     lemma w2:
       variable c2
       assume h2: TimesAt x y p c2 and PrH h c2
-      s2: TimesAt x y p c2                by and_e h2
-      p2: PrH h c2                        by and_e h2
+      s2: TimesAt x y p c2 by and_e h2
+      p2: PrH h c2         by and_e h2
       lemma w3:
         variable c3
         assume h3: PlusAt p x u c3 and PrH h c3
-        s3: PlusAt p x u c3               by and_e h3
-        p3: PrH h c3                      by and_e h3
-        ex: exists z. TimesAt x s u z     by imp_e timesat_exists fs0
+        s3: PlusAt p x u c3           by and_e h3
+        p3: PrH h c3                  by and_e h3
+        ex: exists z. TimesAt x s u z by imp_e timesat_exists fs0
         lemma w4:
           variable d
           assume pd: TimesAt x s u d
-          fd: Form d                      by imp_e timesat_form form nx ns nu pd
-          k:  PrH h d                     by imp_e q_ts fs0 form prf pfl nx ny ns np nu pd s3 s2 s1 p1 p2 p3 fd
-          c:  TimesAt x s u d and PrH h d
-                                          by and_i pd k
-          r:  QTimes h x s u              by exists_i c
+          fd: Form d        by imp_e timesat_form form nx ns nu pd
+          k: PrH h d        by imp_e q_ts fs0 form prf pfl nx ny ns np nu pd s3 s2 s1 p1 p2 p3 fd
+          c: TimesAt x s u d and PrH h d
+                            by and_i pd k
+          r: QTimes h x s u by exists_i c
           therefore forall d. TimesAt x s u d -> QTimes h x s u
-        r: QTimes h x s u                 by exists_e ex w4
+        r: QTimes h x s u by exists_e ex w4
         therefore forall c3. (PlusAt p x u c3 and PrH h c3) -> QTimes h x s u
-      r: QTimes h x s u                   by exists_e qpu w3
+      r: QTimes h x s u by exists_e qpu w3
       therefore forall c2. (TimesAt x y p c2 and PrH h c2) -> QTimes h x s u
-    r: QTimes h x s u                     by exists_e qt w2
+    r: QTimes h x s u by exists_e qt w2
     therefore forall c1. (SuccAt y s c1 and PrH h c1) -> QTimes h x s u
-  r: QTimes h x s u                       by exists_e qys w1
+  r: QTimes h x s u by exists_e qys w1
   therefore forall h x y s p u. QCtx -> Nat x -> Nat y -> Nat s -> Nat p -> Nat u -> QSucc h y s -> QTimes h x y p
-              -> QPlus h p x u -> QTimes h x s u
+      -> QPlus h p x u -> QTimes h x s u
 
 -- A name of k names every number equal to k.
 define NamesNum h z j = forall j1. Eq j j1 -> Names h z j1
 
 theorem names_num:
-  assume fs0:   FS0
+  assume fs0: FS0
   assume names: NAMES
   assume least: NamesLeast NamesNum
-  nm0:  Nm0                               by and_e names
-  nm1:  Nm1                               by and_e names
-  en:   En                                by and_e fs0
-  refl: Refl                              by and_e fs0
+  nm0: Nm0   by and_e names
+  nm1: Nm1   by and_e names
+  en: En     by and_e fs0
+  refl: Refl by and_e fs0
   lemma c0:
     variable h z j
     assume nz: Nat z
@@ -185,48 +185,48 @@ theorem names_num:
     lemma each:
       variable j1
       assume e: Eq j j1
-      n1: Nil j1                          by imp_e en e nj
-      r:  Names h z j1                    by imp_e nm0 nz n1 qz
+      n1: Nil j1      by imp_e en e nj
+      r: Names h z j1 by imp_e nm0 nz n1 qz
       therefore forall j1. Eq j j1 -> Names h z j1
     therefore forall h z j. Nat z -> Nil j -> QZero h z -> NamesNum h z j
   lemma c1:
     variable h z j z1 j1
-    assume ih:  NamesNum h z j
+    assume ih: NamesNum h z j
     assume nz1: Nat z1
-    assume sj:  Suc j j1
-    assume qs:  QSucc h z z1
-    rj: Eq j j                            by forall_e refl j
-    n:  Names h z j                       by imp_e ih rj
+    assume sj: Suc j j1
+    assume qs: QSucc h z z1
+    rj: Eq j j     by forall_e refl j
+    n: Names h z j by imp_e ih rj
     lemma each:
       variable j2
       assume e: Eq j1 j2
-      s2: Suc j j2                        by imp_e suc_eq fs0 rj e sj
-      r:  Names h z1 j2                   by imp_e nm1 n nz1 s2 qs
+      s2: Suc j j2     by imp_e suc_eq fs0 rj e sj
+      r: Names h z1 j2 by imp_e nm1 n nz1 s2 qs
       therefore forall j2. Eq j1 j2 -> Names h z1 j2
     therefore forall h z j z1 j1. NamesNum h z j -> Nat z1 -> Suc j j1 -> QSucc h z z1 -> NamesNum h z1 j1
   r: forall h z j. Names h z j -> NamesNum h z j
-                                          by imp_e least c0 c1
+      by imp_e least c0 c1
   therefore FS0 -> NAMES -> NamesLeast NamesNum -> forall h z j. Names h z j -> NamesNum h z j
 
 -- A number below a named one is named: if c names k and p + d = k, some name names p.
 define NamesDown d = forall h c k p. Names h c k -> Add p d k -> exists e. Names h e p
 
 theorem names_down:
-  assume fs0:   FS0
-  assume plus:  PLUS
+  assume fs0: FS0
+  assume plus: PLUS
   assume names: NAMES
-  assume linv:  NamesLeast NamesInv
-  assume lnum:  NamesLeast NamesNum
-  assume ainv:  AddLeast AddShape
+  assume linv: NamesLeast NamesInv
+  assume lnum: NamesLeast NamesNum
+  assume ainv: AddLeast AddShape
   assume least: NatLeast NamesDown
-  refl: Refl                              by and_e fs0
-  qa:   Qa                                by and_e plus
-  inv:  forall h z j. Names h z j -> NamesInv h z j
-                                          by imp_e names_inv names linv
-  num:  forall h z j. Names h z j -> NamesNum h z j
-                                          by imp_e names_num fs0 names lnum
-  ads:  forall x y z. Add x y z -> AddShape x y z
-                                          by imp_e add_inv fs0 ainv
+  refl: Refl by and_e fs0
+  qa: Qa     by and_e plus
+  inv: forall h z j. Names h z j -> NamesInv h z j
+             by imp_e names_inv names linv
+  num: forall h z j. Names h z j -> NamesNum h z j
+             by imp_e names_num fs0 names lnum
+  ads: forall x y z. Add x y z -> AddShape x y z
+             by imp_e add_inv fs0 ainv
   lemma c0:
     variable d
     assume nd: Nil d
@@ -234,26 +234,26 @@ theorem names_down:
       variable h c k p
       assume nc: Names h c k
       assume ad: Add p d k
-      sh: AddShape p d k                  by imp_e ads ad
+      sh: AddShape p d k by imp_e ads ad
       lemma zero:
         assume z: Nil d and Eq k p
-        ekp: Eq k p                       by and_e z
-        nn:  NamesNum h c k               by imp_e num nc
-        ncp: Names h c p                  by imp_e nn ekp
-        r:   exists e. Names h e p        by exists_i ncp
+        ekp: Eq k p              by and_e z
+        nn: NamesNum h c k       by imp_e num nc
+        ncp: Names h c p         by imp_e nn ekp
+        r: exists e. Names h e p by exists_i ncp
         therefore (Nil d and Eq k p) -> exists e. Names h e p
       lemma succ:
         assume ex: exists y0 z0. Add p y0 z0 and Suc y0 d and Suc z0 k
         lemma wit:
           variable y0 z0
           assume hw: Add p y0 z0 and Suc y0 d and Suc z0 k
-          sy: Suc y0 d                    by and_e hw
-          f:  absurd                      by imp_e suc_nil fs0 sy nd
-          r:  exists e. Names h e p       by absurd_e f
+          sy: Suc y0 d             by and_e hw
+          f: absurd                by imp_e suc_nil fs0 sy nd
+          r: exists e. Names h e p by absurd_e f
           therefore forall y0 z0. (Add p y0 z0 and Suc y0 d and Suc z0 k) -> exists e. Names h e p
-        r: exists e. Names h e p          by exists_e ex wit
+        r: exists e. Names h e p by exists_e ex wit
         therefore (exists y0 z0. Add p y0 z0 and Suc y0 d and Suc z0 k) -> exists e. Names h e p
-      r: exists e. Names h e p            by or_e sh zero succ
+      r: exists e. Names h e p by or_e sh zero succ
       therefore forall h c k p. Names h c k -> Add p d k -> exists e. Names h e p
     therefore forall d. Nil d -> NamesDown d
   lemma c1:
@@ -261,123 +261,123 @@ theorem names_down:
     assume nz: Nil z
     assume ih: NamesDown d
     assume ps: Pair z d s
-    zs: Nil z and Pair z d s              by and_i nz ps
-    sd: Suc d s                           by exists_i zs
-    rs: Eq s s                            by forall_e refl s
+    zs: Nil z and Pair z d s by and_i nz ps
+    sd: Suc d s              by exists_i zs
+    rs: Eq s s               by forall_e refl s
     lemma each:
       variable h c k p
       assume nc: Names h c k
       assume ad: Add p s k
-      sh: AddShape p s k                  by imp_e ads ad
+      sh: AddShape p s k by imp_e ads ad
       lemma zero:
         assume b: Nil s and Eq k p
-        ns: Nil s                         by and_e b
-        f:  absurd                        by imp_e suc_nil fs0 sd ns
-        r:  exists e. Names h e p         by absurd_e f
+        ns: Nil s                by and_e b
+        f: absurd                by imp_e suc_nil fs0 sd ns
+        r: exists e. Names h e p by absurd_e f
         therefore (Nil s and Eq k p) -> exists e. Names h e p
       lemma succ:
         assume ex: exists y0 z0. Add p y0 z0 and Suc y0 s and Suc z0 k
         lemma wit:
           variable y0 k0
           assume hw: Add p y0 k0 and Suc y0 s and Suc k0 k
-          a0:  Add p y0 k0                by and_e hw
-          sy:  Suc y0 s                   by and_e hw
-          sk:  Suc k0 k                   by and_e hw
-          ey:  Eq y0 d                    by imp_e suc_inj fs0 sy sd rs
-          rp:  Eq p p                     by forall_e refl p
-          ic:  NamesInv h c k             by imp_e inv nc
-          shc: NamesShape h c k           by and_e ic
-          oc:  (Nil k and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c)
-                                          by and_e shc
+          a0: Add p y0 k0       by and_e hw
+          sy: Suc y0 s          by and_e hw
+          sk: Suc k0 k          by and_e hw
+          ey: Eq y0 d           by imp_e suc_inj fs0 sy sd rs
+          rp: Eq p p            by forall_e refl p
+          ic: NamesInv h c k    by imp_e inv nc
+          shc: NamesShape h c k by and_e ic
+          oc: (Nil k and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c)
+                                by and_e shc
           lemma cz:
             assume bz: Nil k and QZero h c
-            nk: Nil k                     by and_e bz
-            f:  absurd                    by imp_e suc_nil fs0 sk nk
-            r:  exists e. Names h e p     by absurd_e f
+            nk: Nil k                by and_e bz
+            f: absurd                by imp_e suc_nil fs0 sk nk
+            r: exists e. Names h e p by absurd_e f
             therefore (Nil k and QZero h c) -> exists e. Names h e p
           lemma cs:
             assume exc: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c
             lemma wc:
               variable u0 j0
               assume hc: Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c
-              n0:  Names h u0 j0          by and_e hc
-              sj:  Suc j0 k               by and_e hc
-              rk:  Eq k k                 by forall_e refl k
-              ej:  Eq k0 j0               by imp_e suc_inj fs0 sk sj rk
-              ad1: Add p d j0             by imp_e qa rp ey ej a0
-              r:   exists e. Names h e p  by imp_e ih n0 ad1
+              n0: Names h u0 j0        by and_e hc
+              sj: Suc j0 k             by and_e hc
+              rk: Eq k k               by forall_e refl k
+              ej: Eq k0 j0             by imp_e suc_inj fs0 sk sj rk
+              ad1: Add p d j0          by imp_e qa rp ey ej a0
+              r: exists e. Names h e p by imp_e ih n0 ad1
               therefore forall u0 j0. (Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c) -> exists e. Names h e p
-            r: exists e. Names h e p      by exists_e exc wc
+            r: exists e. Names h e p by exists_e exc wc
             therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c) -> exists e. Names h e p
-          r: exists e. Names h e p        by or_e oc cz cs
+          r: exists e. Names h e p by or_e oc cz cs
           therefore forall y0 k0. (Add p y0 k0 and Suc y0 s and Suc k0 k) -> exists e. Names h e p
-        r: exists e. Names h e p          by exists_e ex wit
+        r: exists e. Names h e p by exists_e ex wit
         therefore (exists y0 z0. Add p y0 z0 and Suc y0 s and Suc z0 k) -> exists e. Names h e p
-      r: exists e. Names h e p            by or_e sh zero succ
+      r: exists e. Names h e p by or_e sh zero succ
       therefore forall h c k p. Names h c k -> Add p s k -> exists e. Names h e p
     therefore forall z d s. Nil z -> NamesDown d -> Pair z d s -> NamesDown s
-  r: forall x. Nat x -> NamesDown x       by imp_e least c0 c1
+  r: forall x. Nat x -> NamesDown x by imp_e least c0 c1
   therefore FS0 -> PLUS -> NAMES -> NamesLeast NamesInv -> NamesLeast NamesNum -> AddLeast AddShape -> NatLeast NamesDown
-              -> forall x. Nat x -> NamesDown x
+      -> forall x. Nat x -> NamesDown x
 
 -- A named number is a numeral.
 define NamesNat h z j = Nat j
 
 theorem names_nat:
-  assume nat:   NAT
+  assume nat: NAT
   assume least: NamesLeast NamesNat
-  zn: Zn                                  by and_e nat
+  zn: Zn by and_e nat
   lemma c0:
     variable h z j
     assume nz: Nat z
     assume nj: Nil j
     assume qz: QZero h z
-    r: Nat j                              by imp_e zn nj
+    r: Nat j by imp_e zn nj
     therefore forall h z j. Nat z -> Nil j -> QZero h z -> NamesNat h z j
   lemma c1:
     variable h z j z1 j1
-    assume ih:  NamesNat h z j
+    assume ih: NamesNat h z j
     assume nz1: Nat z1
-    assume sj:  Suc j j1
-    assume qs:  QSucc h z z1
-    r: Nat j1                             by imp_e nat_suc nat ih sj
+    assume sj: Suc j j1
+    assume qs: QSucc h z z1
+    r: Nat j1 by imp_e nat_suc nat ih sj
     therefore forall h z j z1 j1. NamesNat h z j -> Nat z1 -> Suc j j1 -> QSucc h z z1 -> NamesNat h z1 j1
   r: forall h z j. Names h z j -> NamesNat h z j
-                                          by imp_e least c0 c1
+      by imp_e least c0 c1
   therefore NAT -> NamesLeast NamesNat -> forall h z j. Names h z j -> NamesNat h z j
 
 -- The product of named numbers, provably.
 define NamesTimes h b m = Nat b and forall a n c k. Names h a n -> Names h c k -> Mul n m k -> QTimes h a b c
 
 theorem names_times:
-  assume q:     QCtx
+  assume q: QCtx
   assume times: TIMES
   assume names: NAMES
-  assume linv:  NamesLeast NamesInv
-  assume leq:   NamesLeast NamesEq
-  assume lnum:  NamesLeast NamesNum
-  assume lnat:  NamesLeast NamesNat
-  assume lpl:   NamesLeast NamesPlus
-  assume ainv:  AddLeast AddShape
-  assume minv:  MulLeast MulShape
+  assume linv: NamesLeast NamesInv
+  assume leq: NamesLeast NamesEq
+  assume lnum: NamesLeast NamesNum
+  assume lnat: NamesLeast NamesNat
+  assume lpl: NamesLeast NamesPlus
+  assume ainv: AddLeast AddShape
+  assume minv: MulLeast MulShape
   assume ldown: NatLeast NamesDown
   assume least: NamesLeast NamesTimes
-  nm0:  Nm0                               by and_e names
-  fs0:  FS0                               by and_e q
-  nu:   Nu                                by and_e fs0
-  refl: Refl                              by and_e fs0
-  plus: PLUS                              by and_e times
-  nat:  NAT                               by and_e plus
-  qm:   Qm                                by and_e times
-  eqs:  forall h z j. Names h z j -> NamesEq h z j
-                                          by imp_e names_eq q names linv leq
+  nm0: Nm0                             by and_e names
+  fs0: FS0                             by and_e q
+  nu: Nu                               by and_e fs0
+  refl: Refl                           by and_e fs0
+  plus: PLUS                           by and_e times
+  nat: NAT                             by and_e plus
+  qm: Qm                               by and_e times
+  eqs: forall h z j. Names h z j -> NamesEq h z j
+                                       by imp_e names_eq q names linv leq
   nnat: forall h z j. Names h z j -> NamesNat h z j
-                                          by imp_e names_nat nat lnat
-  pls:  forall h z j. Names h z j -> NamesPlus h z j
-                                          by imp_e names_plus q plus names linv leq ainv lpl
-  down: forall x. Nat x -> NamesDown x    by imp_e names_down fs0 plus names linv lnum ainv ldown
-  mus:  forall x y z. Mul x y z -> MulShape x y z
-                                          by imp_e mul_inv minv
+                                       by imp_e names_nat nat lnat
+  pls: forall h z j. Names h z j -> NamesPlus h z j
+                                       by imp_e names_plus q plus names linv leq ainv lpl
+  down: forall x. Nat x -> NamesDown x by imp_e names_down fs0 plus names linv lnum ainv ldown
+  mus: forall x y z. Mul x y z -> MulShape x y z
+                                       by imp_e mul_inv minv
   lemma c0:
     variable h b m
     assume nb: Nat b
@@ -388,101 +388,101 @@ theorem names_times:
       assume na: Names h a n
       assume nc: Names h c k
       assume mu: Mul n m k
-      sh:  MulShape n m k                 by imp_e mus mu
-      ea:  NamesEq h a n                  by imp_e eqs na
-      nav: Nat a                          by and_e ea
-      ec:  NamesEq h c k                  by imp_e eqs nc
-      ncv: Nat c                          by and_e ec
+      sh: MulShape n m k by imp_e mus mu
+      ea: NamesEq h a n  by imp_e eqs na
+      nav: Nat a         by and_e ea
+      ec: NamesEq h c k  by imp_e eqs nc
+      ncv: Nat c         by and_e ec
       lemma zero:
         assume z: Nil m and Nil k
-        nk:  Nil k                        by and_e z
-        nbm: Names h b m                  by imp_e nm0 nb nm qb
-        eb:  NamesEq h b m                by imp_e eqs nbm
+        nk: Nil k          by and_e z
+        nbm: Names h b m   by imp_e nm0 nb nm qb
+        eb: NamesEq h b m  by imp_e eqs nbm
         ebe: forall c1 m1. Names h c1 m1 -> Eq m m1 -> QEq h b c1
-                                          by and_e eb
-        emk: Eq m k                       by imp_e nu nm nk
-        qbc: QEq h b c                    by imp_e ebe nc emk
-        tz:  QTimes h a b b               by imp_e qt_zero q nav nb qb
-        r:   QTimes h a b c               by imp_e qt_tr q nav nb nb ncv tz qbc
+                           by and_e eb
+        emk: Eq m k        by imp_e nu nm nk
+        qbc: QEq h b c     by imp_e ebe nc emk
+        tz: QTimes h a b b by imp_e qt_zero q nav nb qb
+        r: QTimes h a b c  by imp_e qt_tr q nav nb nb ncv tz qbc
         therefore (Nil m and Nil k) -> QTimes h a b c
       lemma succ:
         assume ex: exists y0 z0. Mul n y0 z0 and Suc y0 m and Add z0 n k
         lemma wit:
           variable y0 z0
           assume hw: Mul n y0 z0 and Suc y0 m and Add z0 n k
-          sy: Suc y0 m                    by and_e hw
-          f:  absurd                      by imp_e suc_nil fs0 sy nm
-          r:  QTimes h a b c              by absurd_e f
+          sy: Suc y0 m      by and_e hw
+          f: absurd         by imp_e suc_nil fs0 sy nm
+          r: QTimes h a b c by absurd_e f
           therefore forall y0 z0. (Mul n y0 z0 and Suc y0 m and Add z0 n k) -> QTimes h a b c
-        r: QTimes h a b c                 by exists_e ex wit
+        r: QTimes h a b c by exists_e ex wit
         therefore (exists y0 z0. Mul n y0 z0 and Suc y0 m and Add z0 n k) -> QTimes h a b c
-      r: QTimes h a b c                   by or_e sh zero succ
+      r: QTimes h a b c by or_e sh zero succ
       therefore forall a n c k. Names h a n -> Names h c k -> Mul n m k -> QTimes h a b c
-    r: NamesTimes h b m                   by and_i nb each
+    r: NamesTimes h b m by and_i nb each
     therefore forall h b m. Nat b -> Nil m -> QZero h b -> NamesTimes h b m
   lemma c1:
     variable h b m b1 m1
-    assume ih:  NamesTimes h b m
+    assume ih: NamesTimes h b m
     assume nb1: Nat b1
-    assume sm:  Suc m m1
-    assume qs:  QSucc h b b1
-    nb: Nat b                             by and_e ih
+    assume sm: Suc m m1
+    assume qs: QSucc h b b1
+    nb: Nat b     by and_e ih
     ihe: forall a n c k. Names h a n -> Names h c k -> Mul n m k -> QTimes h a b c
-                                          by and_e ih
-    rm1: Eq m1 m1                         by forall_e refl m1
+                  by and_e ih
+    rm1: Eq m1 m1 by forall_e refl m1
     lemma each:
       variable a n c k
       assume na: Names h a n
       assume nc: Names h c k
       assume mu: Mul n m1 k
-      sh:  MulShape n m1 k                by imp_e mus mu
-      ea:  NamesEq h a n                  by imp_e eqs na
-      nav: Nat a                          by and_e ea
-      ec:  NamesEq h c k                  by imp_e eqs nc
-      ncv: Nat c                          by and_e ec
-      nn:  Nat n                          by imp_e nnat na
+      sh: MulShape n m1 k by imp_e mus mu
+      ea: NamesEq h a n   by imp_e eqs na
+      nav: Nat a          by and_e ea
+      ec: NamesEq h c k   by imp_e eqs nc
+      ncv: Nat c          by and_e ec
+      nn: Nat n           by imp_e nnat na
       lemma zero:
         assume z: Nil m1 and Nil k
-        nm1: Nil m1                       by and_e z
-        f:   absurd                       by imp_e suc_nil fs0 sm nm1
-        r:   QTimes h a b1 c              by absurd_e f
+        nm1: Nil m1        by and_e z
+        f: absurd          by imp_e suc_nil fs0 sm nm1
+        r: QTimes h a b1 c by absurd_e f
         therefore (Nil m1 and Nil k) -> QTimes h a b1 c
       lemma succ:
         assume ex: exists y0 z0. Mul n y0 z0 and Suc y0 m1 and Add z0 n k
         lemma wit:
           variable y0 p
           assume hw: Mul n y0 p and Suc y0 m1 and Add p n k
-          m0: Mul n y0 p                  by and_e hw
-          sy: Suc y0 m1                   by and_e hw
-          ap: Add p n k                   by and_e hw
-          ey: Eq y0 m                     by imp_e suc_inj fs0 sy sm rm1
-          rn: Eq n n                      by forall_e refl n
-          rp: Eq p p                      by forall_e refl p
-          mp: Mul n m p                   by imp_e qm rn ey rp m0
-          dn: NamesDown n                 by imp_e down nn
-          ee: exists e. Names h e p       by imp_e dn nc ap
+          m0: Mul n y0 p            by and_e hw
+          sy: Suc y0 m1             by and_e hw
+          ap: Add p n k             by and_e hw
+          ey: Eq y0 m               by imp_e suc_inj fs0 sy sm rm1
+          rn: Eq n n                by forall_e refl n
+          rp: Eq p p                by forall_e refl p
+          mp: Mul n m p             by imp_e qm rn ey rp m0
+          dn: NamesDown n           by imp_e down nn
+          ee: exists e. Names h e p by imp_e dn nc ap
           lemma we:
             variable e
             assume ne: Names h e p
-            ee1: NamesEq h e p            by imp_e eqs ne
-            nev: Nat e                    by and_e ee1
-            te:  QTimes h a b e           by imp_e ihe na ne mp
-            pa:  NamesPlus h a n          by imp_e pls na
+            ee1: NamesEq h e p  by imp_e eqs ne
+            nev: Nat e          by and_e ee1
+            te: QTimes h a b e  by imp_e ihe na ne mp
+            pa: NamesPlus h a n by imp_e pls na
             pae: forall a1 n1 c1 k1. Names h a1 n1 -> Names h c1 k1 -> Add n1 n k1 -> QPlus h a1 a c1
-                                          by and_e pa
-            pe: QPlus h e a c             by imp_e pae ne nc ap
-            r:  QTimes h a b1 c           by imp_e qt_succ q nav nb nb1 nev ncv qs te pe
+                                by and_e pa
+            pe: QPlus h e a c   by imp_e pae ne nc ap
+            r: QTimes h a b1 c  by imp_e qt_succ q nav nb nb1 nev ncv qs te pe
             therefore forall e. Names h e p -> QTimes h a b1 c
-          r: QTimes h a b1 c              by exists_e ee we
+          r: QTimes h a b1 c by exists_e ee we
           therefore forall y0 p. (Mul n y0 p and Suc y0 m1 and Add p n k) -> QTimes h a b1 c
-        r: QTimes h a b1 c                by exists_e ex wit
+        r: QTimes h a b1 c by exists_e ex wit
         therefore (exists y0 z0. Mul n y0 z0 and Suc y0 m1 and Add z0 n k) -> QTimes h a b1 c
-      r: QTimes h a b1 c                  by or_e sh zero succ
+      r: QTimes h a b1 c by or_e sh zero succ
       therefore forall a n c k. Names h a n -> Names h c k -> Mul n m1 k -> QTimes h a b1 c
-    r: NamesTimes h b1 m1                 by and_i nb1 each
+    r: NamesTimes h b1 m1 by and_i nb1 each
     therefore forall h b m b1 m1. NamesTimes h b m -> Nat b1 -> Suc m m1 -> QSucc h b b1 -> NamesTimes h b1 m1
   r: forall h z j. Names h z j -> NamesTimes h z j
-                                          by imp_e least c0 c1
+      by imp_e least c0 c1
   therefore QCtx -> TIMES -> NAMES -> NamesLeast NamesInv -> NamesLeast NamesEq -> NamesLeast NamesNum
-              -> NamesLeast NamesNat -> NamesLeast NamesPlus -> AddLeast AddShape -> MulLeast MulShape
-              -> NatLeast NamesDown -> NamesLeast NamesTimes -> forall h z j. Names h z j -> NamesTimes h z j
+      -> NamesLeast NamesNat -> NamesLeast NamesPlus -> AddLeast AddShape -> MulLeast MulShape
+      -> NatLeast NamesDown -> NamesLeast NamesTimes -> forall h z j. Names h z j -> NamesTimes h z j

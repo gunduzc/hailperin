@@ -9,16 +9,16 @@ theorem prh_form:
   predicate Ax x
   variable h a
   assume form: FORM
-  assume pfl:  PrfLeast Ax PFormP
-  assume pa:   PrH h a
+  assume pfl: PrfLeast Ax PFormP
+  assume pa: PrH h a
   all: forall h1 d a1. Prf h1 d a1 -> PFormP h1 d a1
-                                          by imp_e prf_form Ax form pfl
+      by imp_e prf_form Ax form pfl
   lemma wit:
     variable d
     assume p: Prf h d a
-    r: Form a                             by imp_e all p
+    r: Form a by imp_e all p
     therefore forall d. Prf h d a -> Form a
-  r: Form a                               by exists_e pa wit
+  r: Form a by exists_e pa wit
   therefore forall h a. FORM -> PrfLeast Ax PFormP -> PrH h a -> Form a
 
 -- An axiom is provable from any hypotheses.
@@ -27,10 +27,10 @@ theorem prh_axiom:
   assume fs0: FS0
   assume prf: PRF Ax
   leaf: (forall h a. Form a -> LogAx a -> PrH h a) and (forall h a. Form a -> Ax a -> PrH h a)
-          and (forall h a. Form a -> Mem a h -> PrH h a)
-                                          by imp_e prh_leaf Ax fs0 prf
-  r:    forall h a. Form a -> Ax a -> PrH h a
-                                          by and_e leaf
+      and (forall h a. Form a -> Mem a h -> PrH h a)
+      by imp_e prh_leaf Ax fs0 prf
+  r: forall h a. Form a -> Ax a -> PrH h a
+      by and_e leaf
   therefore FS0 -> PRF Ax -> forall h a. Form a -> Ax a -> PrH h a
 
 -- An implication chain a1 -> ... -> an -> c of formulas has its codes, and they are formulas.
@@ -42,34 +42,34 @@ theorem imp2_exists:
     assume f2: Form a2
     assume fc: Form c
     e: exists x2. Form x2 and ImpCode a2 c x2
-                                          by imp_e imp_exists form f2 fc
+        by imp_e imp_exists form f2 fc
     lemma tail:
       variable x2
       assume t: Form x2 and Node2 T2 a2 c x2
-      fx2: Form x2                        by and_e t
-      e1:  exists x1. Form x1 and Node2 T2 a1 x2 x1
-                                          by imp_e imp_exists form f1 fx2
+      fx2: Form x2 by and_e t
+      e1: exists x1. Form x1 and Node2 T2 a1 x2 x1
+                   by imp_e imp_exists form f1 fx2
       lemma head:
         variable x1
         assume h: Form x1 and Node2 T2 a1 x2 x1
-        hf: Form x1                       by and_e h
-        hi: ImpCode a1 x2 x1              by and_e h
-        k:  Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
-                                          by and_i hf hi t
-        r:  exists x3 x4. Form x3 and ImpCode a1 x4 x3 and Form x4 and ImpCode a2 c x4
-                                          by exists_i k
+        hf: Form x1          by and_e h
+        hi: ImpCode a1 x2 x1 by and_e h
+        k: Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
+                             by and_i hf hi t
+        r: exists x3 x4. Form x3 and ImpCode a1 x4 x3 and Form x4 and ImpCode a2 c x4
+                             by exists_i k
         therefore forall x1. (Form x1 and Node2 T2 a1 x2 x1)
-                    -> exists x3 x4. Form x3 and ImpCode a1 x4 x3 and Form x4 and ImpCode a2 c x4
+            -> exists x3 x4. Form x3 and ImpCode a1 x4 x3 and Form x4 and ImpCode a2 c x4
       r: exists x1 x3. Form x1 and ImpCode a1 x3 x1 and Form x3 and ImpCode a2 c x3
-                                          by exists_e e1 head
+          by exists_e e1 head
       therefore forall x2. (Form x2 and Node2 T2 a2 c x2)
-                  -> exists x1 x3. Form x1 and ImpCode a1 x3 x1 and Form x3 and ImpCode a2 c x3
+          -> exists x1 x3. Form x1 and ImpCode a1 x3 x1 and Form x3 and ImpCode a2 c x3
     r: exists x1 x2. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
-                                          by exists_e e tail
+        by exists_e e tail
     therefore forall a1 a2 c. Form a1 -> Form a2 -> Form c
-                -> exists x1 x2. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
+        -> exists x1 x2. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
   therefore FORM -> forall a1 a2 c. Form a1 -> Form a2 -> Form c
-              -> exists x1 x2. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
+      -> exists x1 x2. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 c x2
 
 theorem imp3_exists:
   assume form: FORM
@@ -80,37 +80,37 @@ theorem imp3_exists:
     assume f3: Form a3
     assume fc: Form c
     e: exists x2 x3. Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
-                                          by imp_e imp2_exists form f2 f3 fc
+        by imp_e imp2_exists form f2 f3 fc
     lemma tail:
       variable x2 x3
       assume t: Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
-      fx2: Form x2                        by and_e t
-      e1:  exists x1. Form x1 and Node2 T2 a1 x2 x1
-                                          by imp_e imp_exists form f1 fx2
+      fx2: Form x2 by and_e t
+      e1: exists x1. Form x1 and Node2 T2 a1 x2 x1
+                   by imp_e imp_exists form f1 fx2
       lemma head:
         variable x1
         assume h: Form x1 and Node2 T2 a1 x2 x1
-        hf: Form x1                       by and_e h
-        hi: ImpCode a1 x2 x1              by and_e h
-        k:  Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
-                                          by and_i hf hi t
-        r:  exists x4 x5 x6. Form x4 and ImpCode a1 x5 x4 and Form x5 and ImpCode a2 x6 x5 and Form x6
-              and ImpCode a3 c x6
-                                          by exists_i k
+        hf: Form x1          by and_e h
+        hi: ImpCode a1 x2 x1 by and_e h
+        k: Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
+                             by and_i hf hi t
+        r: exists x4 x5 x6. Form x4 and ImpCode a1 x5 x4 and Form x5 and ImpCode a2 x6 x5 and Form x6
+            and ImpCode a3 c x6
+                             by exists_i k
         therefore forall x1. (Form x1 and Node2 T2 a1 x2 x1)
-                    -> exists x4 x5 x6. Form x4 and ImpCode a1 x5 x4 and Form x5 and ImpCode a2 x6 x5 and Form x6 and ImpCode a3 c x6
+            -> exists x4 x5 x6. Form x4 and ImpCode a1 x5 x4 and Form x5 and ImpCode a2 x6 x5 and Form x6 and ImpCode a3 c x6
       r: exists x1 x4 x5. Form x1 and ImpCode a1 x4 x1 and Form x4 and ImpCode a2 x5 x4 and Form x5
-           and ImpCode a3 c x5
-                                          by exists_e e1 head
+          and ImpCode a3 c x5
+          by exists_e e1 head
       therefore forall x2 x3. (Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3)
-                  -> exists x1 x4 x5. Form x1 and ImpCode a1 x4 x1 and Form x4 and ImpCode a2 x5 x4 and Form x5 and ImpCode a3 c x5
+          -> exists x1 x4 x5. Form x1 and ImpCode a1 x4 x1 and Form x4 and ImpCode a2 x5 x4 and Form x5 and ImpCode a3 c x5
     r: exists x1 x2 x3. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3
-         and ImpCode a3 c x3
-                                          by exists_e e tail
+        and ImpCode a3 c x3
+        by exists_e e tail
     therefore forall a1 a2 a3 c. Form a1 -> Form a2 -> Form a3 -> Form c
-                -> exists x1 x2 x3. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
+        -> exists x1 x2 x3. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
   therefore FORM -> forall a1 a2 a3 c. Form a1 -> Form a2 -> Form a3 -> Form c
-              -> exists x1 x2 x3. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
+      -> exists x1 x2 x3. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 c x3
 
 theorem imp4_exists:
   assume form: FORM
@@ -122,490 +122,490 @@ theorem imp4_exists:
     assume f4: Form a4
     assume fc: Form c
     e: exists x2 x3 x4. Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4
-         and ImpCode a4 c x4
-                                          by imp_e imp3_exists form f2 f3 f4 fc
+        and ImpCode a4 c x4
+        by imp_e imp3_exists form f2 f3 f4 fc
     lemma tail:
       variable x2 x3 x4
       assume t: Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
-      fx2: Form x2                        by and_e t
-      e1:  exists x1. Form x1 and Node2 T2 a1 x2 x1
-                                          by imp_e imp_exists form f1 fx2
+      fx2: Form x2 by and_e t
+      e1: exists x1. Form x1 and Node2 T2 a1 x2 x1
+                   by imp_e imp_exists form f1 fx2
       lemma head:
         variable x1
         assume h: Form x1 and Node2 T2 a1 x2 x1
-        hf: Form x1                       by and_e h
-        hi: ImpCode a1 x2 x1              by and_e h
-        k:  Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3
-              and Form x4 and ImpCode a4 c x4
-                                          by and_i hf hi t
-        r:  exists x5 x6 x7 x8. Form x5 and ImpCode a1 x6 x5 and Form x6 and ImpCode a2 x7 x6 and Form x7
-              and ImpCode a3 x8 x7 and Form x8 and ImpCode a4 c x8
-                                          by exists_i k
+        hf: Form x1          by and_e h
+        hi: ImpCode a1 x2 x1 by and_e h
+        k: Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3
+            and Form x4 and ImpCode a4 c x4
+                             by and_i hf hi t
+        r: exists x5 x6 x7 x8. Form x5 and ImpCode a1 x6 x5 and Form x6 and ImpCode a2 x7 x6 and Form x7
+            and ImpCode a3 x8 x7 and Form x8 and ImpCode a4 c x8
+                             by exists_i k
         therefore forall x1. (Form x1 and Node2 T2 a1 x2 x1)
-                    -> exists x5 x6 x7 x8. Form x5 and ImpCode a1 x6 x5 and Form x6 and ImpCode a2 x7 x6 and Form x7 and ImpCode a3 x8 x7 and Form x8 and ImpCode a4 c x8
+            -> exists x5 x6 x7 x8. Form x5 and ImpCode a1 x6 x5 and Form x6 and ImpCode a2 x7 x6 and Form x7 and ImpCode a3 x8 x7 and Form x8 and ImpCode a4 c x8
       r: exists x1 x5 x6 x7. Form x1 and ImpCode a1 x5 x1 and Form x5 and ImpCode a2 x6 x5 and Form x6
-           and ImpCode a3 x7 x6 and Form x7 and ImpCode a4 c x7
-                                          by exists_e e1 head
+          and ImpCode a3 x7 x6 and Form x7 and ImpCode a4 c x7
+          by exists_e e1 head
       therefore forall x2 x3 x4. (Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4)
-                  -> exists x1 x5 x6 x7. Form x1 and ImpCode a1 x5 x1 and Form x5 and ImpCode a2 x6 x5 and Form x6 and ImpCode a3 x7 x6 and Form x7 and ImpCode a4 c x7
+          -> exists x1 x5 x6 x7. Form x1 and ImpCode a1 x5 x1 and Form x5 and ImpCode a2 x6 x5 and Form x6 and ImpCode a3 x7 x6 and Form x7 and ImpCode a4 c x7
     r: exists x1 x2 x3 x4. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3
-         and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
-                                          by exists_e e tail
+        and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
+        by exists_e e tail
     therefore forall a1 a2 a3 a4 c. Form a1 -> Form a2 -> Form a3 -> Form a4 -> Form c
-                -> exists x1 x2 x3 x4. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
+        -> exists x1 x2 x3 x4. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
   therefore FORM -> forall a1 a2 a3 a4 c. Form a1 -> Form a2 -> Form a3 -> Form a4 -> Form c
-              -> exists x1 x2 x3 x4. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
+      -> exists x1 x2 x3 x4. Form x1 and ImpCode a1 x2 x1 and Form x2 and ImpCode a2 x3 x2 and Form x3 and ImpCode a3 x4 x3 and Form x4 and ImpCode a4 c x4
 
 -- Sz: forall x y. Succ x y -> not (Zero y)
 theorem q_sz:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 c3 c4 c5
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  NotCode c5 c4
-    assume k1:  ZeroAt v1 c5
-    assume k2:  SuccAt v0 v1 c3
-    assume p0:  PrH h c3
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: NotCode c5 c4
+    assume k1: ZeroAt v1 c5
+    assume k2: SuccAt v0 v1 c3
+    assume p0: PrH h c3
     assume fc4: Form c4
-    fc3: Form c3                          by imp_e prh_form QAx form pfl p0
-    e:   exists c2. Form c2 and Node2 T2 c3 c4 c2
-                                          by imp_e imp_exists form fc3 fc4
+    fc3: Form c3 by imp_e prh_form QAx form pfl p0
+    e: exists c2. Form c2 and Node2 T2 c3 c4 c2
+                 by imp_e imp_exists form fc3 fc4
     lemma code:
       variable c2
       assume c: Form c2 and Node2 T2 c3 c4 c2
-      fc2: Form c2                        by and_e c
-      ic2: ImpCode c3 c4 c2               by and_e c
-      kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and NotCode c5 c4 and ZeroAt v1 c5 and SuccAt v0 v1 c3
-                                          by and_i n0 n1 ic2 k0 k1 k2
-      cx:  SzCode c2                      by exists_i kx
-      qx:  QAx c2                         by or_i cx
-      pc2: PrH h c2                       by imp_e prh_axiom QAx fs0 prf fc2 qx
-      pc4: PrH h c4                       by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
+      fc2: Form c2          by and_e c
+      ic2: ImpCode c3 c4 c2 by and_e c
+      kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and NotCode c5 c4 and ZeroAt v1 c5 and SuccAt v0 v1 c3
+                            by and_i n0 n1 ic2 k0 k1 k2
+      cx: SzCode c2         by exists_i kx
+      qx: QAx c2            by or_i cx
+      pc2: PrH h c2         by imp_e prh_axiom QAx fs0 prf fc2 qx
+      pc4: PrH h c4         by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
       therefore forall c2. (Form c2 and Node2 T2 c3 c4 c2) -> PrH h c4
-    r: PrH h c4                           by exists_e e code
+    r: PrH h c4 by exists_e e code
     therefore forall h v0 v1 c3 c4 c5. Nat v0 -> Nat v1 -> NotCode c5 c4 -> ZeroAt v1 c5 -> SuccAt v0 v1 c3
-                -> PrH h c3 -> Form c4 -> PrH h c4
+        -> PrH h c3 -> Form c4 -> PrH h c4
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 c3 c4 c5. Nat v0 -> Nat v1
-              -> NotCode c5 c4 -> ZeroAt v1 c5 -> SuccAt v0 v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
+      -> NotCode c5 c4 -> ZeroAt v1 c5 -> SuccAt v0 v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
 
 -- Si: forall x y a b. Succ x a -> Succ y b -> Eq a b -> Eq x y
 theorem q_si:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c9 c10
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume k0:   EqAt v0 v1 c10
-    assume k1:   EqAt v2 v3 c9
-    assume k2:   SuccAt v1 v3 c7
-    assume k3:   SuccAt v0 v2 c5
-    assume p0:   PrH h c5
-    assume p1:   PrH h c7
-    assume p2:   PrH h c9
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: EqAt v0 v1 c10
+    assume k1: EqAt v2 v3 c9
+    assume k2: SuccAt v1 v3 c7
+    assume k3: SuccAt v0 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
+    assume p2: PrH h c9
     assume fc10: Form c10
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    fc9: Form c9                          by imp_e prh_form QAx form pfl p2
-    e:   exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
-           and ImpCode c9 c10 c8
-                                          by imp_e imp3_exists form fc5 fc7 fc9 fc10
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    fc9: Form c9 by imp_e prh_form QAx form pfl p2
+    e: exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
+        and ImpCode c9 c10 c8
+                 by imp_e imp3_exists form fc5 fc7 fc9 fc10
     lemma code:
       variable c4 c6 c8
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8
-      fc4:  Form c4                       by and_e c
-      ic4:  ImpCode c5 c6 c4              by and_e c
-      fc6:  Form c6                       by and_e c
-      ic6:  ImpCode c7 c8 c6              by and_e c
-      fc8:  Form c8                       by and_e c
-      ic8:  ImpCode c9 c10 c8             by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
-              and ImpCode c9 c10 c8 and EqAt v0 v1 c10 and EqAt v2 v3 c9 and SuccAt v1 v3 c7
-              and SuccAt v0 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
-      cx:   SiCode c4                     by exists_i kx
-      qx:   QAx c4                        by or_i cx
-      pc4:  PrH h c4                      by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6:  PrH h c6                      by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8:  PrH h c8                      by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
-      pc10: PrH h c10                     by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
+      fc4: Form c4           by and_e c
+      ic4: ImpCode c5 c6 c4  by and_e c
+      fc6: Form c6           by and_e c
+      ic6: ImpCode c7 c8 c6  by and_e c
+      fc8: Form c8           by and_e c
+      ic8: ImpCode c9 c10 c8 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and EqAt v0 v1 c10 and EqAt v2 v3 c9 and SuccAt v1 v3 c7
+          and SuccAt v0 v2 c5
+                             by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
+      cx: SiCode c4          by exists_i kx
+      qx: QAx c4             by or_i cx
+      pc4: PrH h c4          by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6          by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8          by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      pc10: PrH h c10        by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
       therefore forall c4 c6 c8. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8)
-                  -> PrH h c10
-    r: PrH h c10                          by exists_e e code
+          -> PrH h c10
+    r: PrH h c10 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v0 v1 c10
-                -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
-                -> Form c10 -> PrH h c10
+        -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
+        -> Form c10 -> PrH h c10
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v0 v1 c10 -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7
-              -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
+      -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v0 v1 c10 -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7
+      -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
 
 -- Pz: forall x z. Zero z -> Plus x z x
 theorem q_pz:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 c3 c4
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  PlusAt v0 v1 v0 c4
-    assume k1:  ZeroAt v1 c3
-    assume p0:  PrH h c3
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: PlusAt v0 v1 v0 c4
+    assume k1: ZeroAt v1 c3
+    assume p0: PrH h c3
     assume fc4: Form c4
-    fc3: Form c3                          by imp_e prh_form QAx form pfl p0
-    e:   exists c2. Form c2 and Node2 T2 c3 c4 c2
-                                          by imp_e imp_exists form fc3 fc4
+    fc3: Form c3 by imp_e prh_form QAx form pfl p0
+    e: exists c2. Form c2 and Node2 T2 c3 c4 c2
+                 by imp_e imp_exists form fc3 fc4
     lemma code:
       variable c2
       assume c: Form c2 and Node2 T2 c3 c4 c2
-      fc2: Form c2                        by and_e c
-      ic2: ImpCode c3 c4 c2               by and_e c
-      kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and PlusAt v0 v1 v0 c4 and ZeroAt v1 c3
-                                          by and_i n0 n1 ic2 k0 k1
-      cx:  PzCode c2                      by exists_i kx
-      qx:  QAx c2                         by or_i cx
-      pc2: PrH h c2                       by imp_e prh_axiom QAx fs0 prf fc2 qx
-      pc4: PrH h c4                       by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
+      fc2: Form c2          by and_e c
+      ic2: ImpCode c3 c4 c2 by and_e c
+      kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and PlusAt v0 v1 v0 c4 and ZeroAt v1 c3
+                            by and_i n0 n1 ic2 k0 k1
+      cx: PzCode c2         by exists_i kx
+      qx: QAx c2            by or_i cx
+      pc2: PrH h c2         by imp_e prh_axiom QAx fs0 prf fc2 qx
+      pc4: PrH h c4         by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
       therefore forall c2. (Form c2 and Node2 T2 c3 c4 c2) -> PrH h c4
-    r: PrH h c4                           by exists_e e code
+    r: PrH h c4 by exists_e e code
     therefore forall h v0 v1 c3 c4. Nat v0 -> Nat v1 -> PlusAt v0 v1 v0 c4 -> ZeroAt v1 c3 -> PrH h c3
-                -> Form c4 -> PrH h c4
+        -> Form c4 -> PrH h c4
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 c3 c4. Nat v0 -> Nat v1
-              -> PlusAt v0 v1 v0 c4 -> ZeroAt v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
+      -> PlusAt v0 v1 v0 c4 -> ZeroAt v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
 
 -- Ps: forall x y s p q. Succ y s -> Plus x y p -> Succ p q -> Plus x s q
 theorem q_ps:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 v4 c6 c8 c10 c11
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume n4:   Nat v4
-    assume k0:   PlusAt v0 v2 v4 c11
-    assume k1:   SuccAt v3 v4 c10
-    assume k2:   PlusAt v0 v1 v3 c8
-    assume k3:   SuccAt v1 v2 c6
-    assume p0:   PrH h c6
-    assume p1:   PrH h c8
-    assume p2:   PrH h c10
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume n4: Nat v4
+    assume k0: PlusAt v0 v2 v4 c11
+    assume k1: SuccAt v3 v4 c10
+    assume k2: PlusAt v0 v1 v3 c8
+    assume k3: SuccAt v1 v2 c6
+    assume p0: PrH h c6
+    assume p1: PrH h c8
+    assume p2: PrH h c10
     assume fc11: Form c11
-    fc6:  Form c6                         by imp_e prh_form QAx form pfl p0
-    fc8:  Form c8                         by imp_e prh_form QAx form pfl p1
-    fc10: Form c10                        by imp_e prh_form QAx form pfl p2
-    e:    exists c5 c7 c9. Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9
-            and ImpCode c10 c11 c9
-                                          by imp_e imp3_exists form fc6 fc8 fc10 fc11
+    fc6: Form c6   by imp_e prh_form QAx form pfl p0
+    fc8: Form c8   by imp_e prh_form QAx form pfl p1
+    fc10: Form c10 by imp_e prh_form QAx form pfl p2
+    e: exists c5 c7 c9. Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9
+        and ImpCode c10 c11 c9
+                   by imp_e imp3_exists form fc6 fc8 fc10 fc11
     lemma code:
       variable c5 c7 c9
       assume c: Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9 and ImpCode c10 c11 c9
-      fc5:  Form c5                       by and_e c
-      ic5:  ImpCode c6 c7 c5              by and_e c
-      fc7:  Form c7                       by and_e c
-      ic7:  ImpCode c8 c9 c7              by and_e c
-      fc9:  Form c9                       by and_e c
-      ic9:  ImpCode c10 c11 c9            by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 c5 and ImpCode c8 c9 c7
-              and ImpCode c10 c11 c9 and PlusAt v0 v2 v4 c11 and SuccAt v3 v4 c10 and PlusAt v0 v1 v3 c8
-              and SuccAt v1 v2 c6
-                                          by and_i n0 n1 n2 n3 n4 ic5 ic7 ic9 k0 k1 k2 k3
-      cx:   PsCode c5                     by exists_i kx
-      qx:   QAx c5                        by or_i cx
-      pc5:  PrH h c5                      by imp_e prh_axiom QAx fs0 prf fc5 qx
-      pc7:  PrH h c7                      by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p0
-      pc9:  PrH h c9                      by imp_e prh_mp QAx fs0 prf fc9 ic7 pc7 p1
-      pc11: PrH h c11                     by imp_e prh_mp QAx fs0 prf fc11 ic9 pc9 p2
+      fc5: Form c5            by and_e c
+      ic5: ImpCode c6 c7 c5   by and_e c
+      fc7: Form c7            by and_e c
+      ic7: ImpCode c8 c9 c7   by and_e c
+      fc9: Form c9            by and_e c
+      ic9: ImpCode c10 c11 c9 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 c5 and ImpCode c8 c9 c7
+          and ImpCode c10 c11 c9 and PlusAt v0 v2 v4 c11 and SuccAt v3 v4 c10 and PlusAt v0 v1 v3 c8
+          and SuccAt v1 v2 c6
+                              by and_i n0 n1 n2 n3 n4 ic5 ic7 ic9 k0 k1 k2 k3
+      cx: PsCode c5           by exists_i kx
+      qx: QAx c5              by or_i cx
+      pc5: PrH h c5           by imp_e prh_axiom QAx fs0 prf fc5 qx
+      pc7: PrH h c7           by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p0
+      pc9: PrH h c9           by imp_e prh_mp QAx fs0 prf fc9 ic7 pc7 p1
+      pc11: PrH h c11         by imp_e prh_mp QAx fs0 prf fc11 ic9 pc9 p2
       therefore forall c5 c7 c9. (Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9 and ImpCode c10 c11 c9)
-                  -> PrH h c11
-    r: PrH h c11                          by exists_e e code
+          -> PrH h c11
+    r: PrH h c11 by exists_e e code
     therefore forall h v0 v1 v2 v3 v4 c6 c8 c10 c11. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-                -> PlusAt v0 v2 v4 c11 -> SuccAt v3 v4 c10 -> PlusAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6
-                -> PrH h c8 -> PrH h c10 -> Form c11 -> PrH h c11
+        -> PlusAt v0 v2 v4 c11 -> SuccAt v3 v4 c10 -> PlusAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6
+        -> PrH h c8 -> PrH h c10 -> Form c11 -> PrH h c11
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 v4 c6 c8 c10 c11. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4 -> PlusAt v0 v2 v4 c11 -> SuccAt v3 v4 c10
-              -> PlusAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11
-              -> PrH h c11
+      -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4 -> PlusAt v0 v2 v4 c11 -> SuccAt v3 v4 c10
+      -> PlusAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11
+      -> PrH h c11
 
 -- Tz: forall x z. Zero z -> Times x z z
 theorem q_tz:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 c3 c4
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  TimesAt v0 v1 v1 c4
-    assume k1:  ZeroAt v1 c3
-    assume p0:  PrH h c3
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: TimesAt v0 v1 v1 c4
+    assume k1: ZeroAt v1 c3
+    assume p0: PrH h c3
     assume fc4: Form c4
-    fc3: Form c3                          by imp_e prh_form QAx form pfl p0
-    e:   exists c2. Form c2 and Node2 T2 c3 c4 c2
-                                          by imp_e imp_exists form fc3 fc4
+    fc3: Form c3 by imp_e prh_form QAx form pfl p0
+    e: exists c2. Form c2 and Node2 T2 c3 c4 c2
+                 by imp_e imp_exists form fc3 fc4
     lemma code:
       variable c2
       assume c: Form c2 and Node2 T2 c3 c4 c2
-      fc2: Form c2                        by and_e c
-      ic2: ImpCode c3 c4 c2               by and_e c
-      kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and TimesAt v0 v1 v1 c4 and ZeroAt v1 c3
-                                          by and_i n0 n1 ic2 k0 k1
-      cx:  TzCode c2                      by exists_i kx
-      qx:  QAx c2                         by or_i cx
-      pc2: PrH h c2                       by imp_e prh_axiom QAx fs0 prf fc2 qx
-      pc4: PrH h c4                       by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
+      fc2: Form c2          by and_e c
+      ic2: ImpCode c3 c4 c2 by and_e c
+      kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and TimesAt v0 v1 v1 c4 and ZeroAt v1 c3
+                            by and_i n0 n1 ic2 k0 k1
+      cx: TzCode c2         by exists_i kx
+      qx: QAx c2            by or_i cx
+      pc2: PrH h c2         by imp_e prh_axiom QAx fs0 prf fc2 qx
+      pc4: PrH h c4         by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
       therefore forall c2. (Form c2 and Node2 T2 c3 c4 c2) -> PrH h c4
-    r: PrH h c4                           by exists_e e code
+    r: PrH h c4 by exists_e e code
     therefore forall h v0 v1 c3 c4. Nat v0 -> Nat v1 -> TimesAt v0 v1 v1 c4 -> ZeroAt v1 c3 -> PrH h c3
-                -> Form c4 -> PrH h c4
+        -> Form c4 -> PrH h c4
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 c3 c4. Nat v0 -> Nat v1
-              -> TimesAt v0 v1 v1 c4 -> ZeroAt v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
+      -> TimesAt v0 v1 v1 c4 -> ZeroAt v1 c3 -> PrH h c3 -> Form c4 -> PrH h c4
 
 -- Ts: forall x y s p q. Succ y s -> Times x y p -> Plus p x q -> Times x s q
 theorem q_ts:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 v4 c6 c8 c10 c11
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume n4:   Nat v4
-    assume k0:   TimesAt v0 v2 v4 c11
-    assume k1:   PlusAt v3 v0 v4 c10
-    assume k2:   TimesAt v0 v1 v3 c8
-    assume k3:   SuccAt v1 v2 c6
-    assume p0:   PrH h c6
-    assume p1:   PrH h c8
-    assume p2:   PrH h c10
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume n4: Nat v4
+    assume k0: TimesAt v0 v2 v4 c11
+    assume k1: PlusAt v3 v0 v4 c10
+    assume k2: TimesAt v0 v1 v3 c8
+    assume k3: SuccAt v1 v2 c6
+    assume p0: PrH h c6
+    assume p1: PrH h c8
+    assume p2: PrH h c10
     assume fc11: Form c11
-    fc6:  Form c6                         by imp_e prh_form QAx form pfl p0
-    fc8:  Form c8                         by imp_e prh_form QAx form pfl p1
-    fc10: Form c10                        by imp_e prh_form QAx form pfl p2
-    e:    exists c5 c7 c9. Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9
-            and ImpCode c10 c11 c9
-                                          by imp_e imp3_exists form fc6 fc8 fc10 fc11
+    fc6: Form c6   by imp_e prh_form QAx form pfl p0
+    fc8: Form c8   by imp_e prh_form QAx form pfl p1
+    fc10: Form c10 by imp_e prh_form QAx form pfl p2
+    e: exists c5 c7 c9. Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9
+        and ImpCode c10 c11 c9
+                   by imp_e imp3_exists form fc6 fc8 fc10 fc11
     lemma code:
       variable c5 c7 c9
       assume c: Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9 and ImpCode c10 c11 c9
-      fc5:  Form c5                       by and_e c
-      ic5:  ImpCode c6 c7 c5              by and_e c
-      fc7:  Form c7                       by and_e c
-      ic7:  ImpCode c8 c9 c7              by and_e c
-      fc9:  Form c9                       by and_e c
-      ic9:  ImpCode c10 c11 c9            by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 c5 and ImpCode c8 c9 c7
-              and ImpCode c10 c11 c9 and TimesAt v0 v2 v4 c11 and PlusAt v3 v0 v4 c10 and TimesAt v0 v1 v3 c8
-              and SuccAt v1 v2 c6
-                                          by and_i n0 n1 n2 n3 n4 ic5 ic7 ic9 k0 k1 k2 k3
-      cx:   TsCode c5                     by exists_i kx
-      qx:   QAx c5                        by or_i cx
-      pc5:  PrH h c5                      by imp_e prh_axiom QAx fs0 prf fc5 qx
-      pc7:  PrH h c7                      by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p0
-      pc9:  PrH h c9                      by imp_e prh_mp QAx fs0 prf fc9 ic7 pc7 p1
-      pc11: PrH h c11                     by imp_e prh_mp QAx fs0 prf fc11 ic9 pc9 p2
+      fc5: Form c5            by and_e c
+      ic5: ImpCode c6 c7 c5   by and_e c
+      fc7: Form c7            by and_e c
+      ic7: ImpCode c8 c9 c7   by and_e c
+      fc9: Form c9            by and_e c
+      ic9: ImpCode c10 c11 c9 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 c5 and ImpCode c8 c9 c7
+          and ImpCode c10 c11 c9 and TimesAt v0 v2 v4 c11 and PlusAt v3 v0 v4 c10 and TimesAt v0 v1 v3 c8
+          and SuccAt v1 v2 c6
+                              by and_i n0 n1 n2 n3 n4 ic5 ic7 ic9 k0 k1 k2 k3
+      cx: TsCode c5           by exists_i kx
+      qx: QAx c5              by or_i cx
+      pc5: PrH h c5           by imp_e prh_axiom QAx fs0 prf fc5 qx
+      pc7: PrH h c7           by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p0
+      pc9: PrH h c9           by imp_e prh_mp QAx fs0 prf fc9 ic7 pc7 p1
+      pc11: PrH h c11         by imp_e prh_mp QAx fs0 prf fc11 ic9 pc9 p2
       therefore forall c5 c7 c9. (Form c5 and ImpCode c6 c7 c5 and Form c7 and ImpCode c8 c9 c7 and Form c9 and ImpCode c10 c11 c9)
-                  -> PrH h c11
-    r: PrH h c11                          by exists_e e code
+          -> PrH h c11
+    r: PrH h c11 by exists_e e code
     therefore forall h v0 v1 v2 v3 v4 c6 c8 c10 c11. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-                -> TimesAt v0 v2 v4 c11 -> PlusAt v3 v0 v4 c10 -> TimesAt v0 v1 v3 c8 -> SuccAt v1 v2 c6
-                -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11 -> PrH h c11
+        -> TimesAt v0 v2 v4 c11 -> PlusAt v3 v0 v4 c10 -> TimesAt v0 v1 v3 c8 -> SuccAt v1 v2 c6
+        -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11 -> PrH h c11
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 v4 c6 c8 c10 c11. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4 -> TimesAt v0 v2 v4 c11 -> PlusAt v3 v0 v4 c10
-              -> TimesAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11
-              -> PrH h c11
+      -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4 -> TimesAt v0 v2 v4 c11 -> PlusAt v3 v0 v4 c10
+      -> TimesAt v0 v1 v3 c8 -> SuccAt v1 v2 c6 -> PrH h c6 -> PrH h c8 -> PrH h c10 -> Form c11
+      -> PrH h c11
 
 -- Zu: forall a b. Zero a -> Zero b -> Eq a b
 theorem q_zu:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 c3 c5 c6
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  EqAt v0 v1 c6
-    assume k1:  ZeroAt v1 c5
-    assume k2:  ZeroAt v0 c3
-    assume p0:  PrH h c3
-    assume p1:  PrH h c5
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: EqAt v0 v1 c6
+    assume k1: ZeroAt v1 c5
+    assume k2: ZeroAt v0 c3
+    assume p0: PrH h c3
+    assume p1: PrH h c5
     assume fc6: Form c6
-    fc3: Form c3                          by imp_e prh_form QAx form pfl p0
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p1
-    e:   exists c2 c4. Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
-                                          by imp_e imp2_exists form fc3 fc5 fc6
+    fc3: Form c3 by imp_e prh_form QAx form pfl p0
+    fc5: Form c5 by imp_e prh_form QAx form pfl p1
+    e: exists c2 c4. Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
+                 by imp_e imp2_exists form fc3 fc5 fc6
     lemma code:
       variable c2 c4
       assume c: Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
-      fc2: Form c2                        by and_e c
-      ic2: ImpCode c3 c4 c2               by and_e c
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and EqAt v0 v1 c6 and ZeroAt v1 c5
-             and ZeroAt v0 c3
-                                          by and_i n0 n1 ic2 ic4 k0 k1 k2
-      cx:  ZuCode c2                      by exists_i kx
-      qx:  QAx c2                         by or_i cx
-      pc2: PrH h c2                       by imp_e prh_axiom QAx fs0 prf fc2 qx
-      pc4: PrH h c4                       by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p1
+      fc2: Form c2          by and_e c
+      ic2: ImpCode c3 c4 c2 by and_e c
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and EqAt v0 v1 c6 and ZeroAt v1 c5
+          and ZeroAt v0 c3
+                            by and_i n0 n1 ic2 ic4 k0 k1 k2
+      cx: ZuCode c2         by exists_i kx
+      qx: QAx c2            by or_i cx
+      pc2: PrH h c2         by imp_e prh_axiom QAx fs0 prf fc2 qx
+      pc4: PrH h c4         by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p1
       therefore forall c2 c4. (Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4) -> PrH h c6
-    r: PrH h c6                           by exists_e e code
+    r: PrH h c6 by exists_e e code
     therefore forall h v0 v1 c3 c5 c6. Nat v0 -> Nat v1 -> EqAt v0 v1 c6 -> ZeroAt v1 c5 -> ZeroAt v0 c3
-                -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
+        -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 c3 c5 c6. Nat v0 -> Nat v1
-              -> EqAt v0 v1 c6 -> ZeroAt v1 c5 -> ZeroAt v0 c3 -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
+      -> EqAt v0 v1 c6 -> ZeroAt v1 c5 -> ZeroAt v0 c3 -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
 
 -- Su: forall x a b. Succ x a -> Succ x b -> Eq a b
 theorem q_su:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 c4 c6 c7
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume k0:  EqAt v1 v2 c7
-    assume k1:  SuccAt v0 v2 c6
-    assume k2:  SuccAt v0 v1 c4
-    assume p0:  PrH h c4
-    assume p1:  PrH h c6
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume k0: EqAt v1 v2 c7
+    assume k1: SuccAt v0 v2 c6
+    assume k2: SuccAt v0 v1 c4
+    assume p0: PrH h c4
+    assume p1: PrH h c6
     assume fc7: Form c7
-    fc4: Form c4                          by imp_e prh_form QAx form pfl p0
-    fc6: Form c6                          by imp_e prh_form QAx form pfl p1
-    e:   exists c3 c5. Form c3 and ImpCode c4 c5 c3 and Form c5 and ImpCode c6 c7 c5
-                                          by imp_e imp2_exists form fc4 fc6 fc7
+    fc4: Form c4 by imp_e prh_form QAx form pfl p0
+    fc6: Form c6 by imp_e prh_form QAx form pfl p1
+    e: exists c3 c5. Form c3 and ImpCode c4 c5 c3 and Form c5 and ImpCode c6 c7 c5
+                 by imp_e imp2_exists form fc4 fc6 fc7
     lemma code:
       variable c3 c5
       assume c: Form c3 and ImpCode c4 c5 c3 and Form c5 and ImpCode c6 c7 c5
-      fc3: Form c3                        by and_e c
-      ic3: ImpCode c4 c5 c3               by and_e c
-      fc5: Form c5                        by and_e c
-      ic5: ImpCode c6 c7 c5               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and ImpCode c4 c5 c3 and ImpCode c6 c7 c5 and EqAt v1 v2 c7
-             and SuccAt v0 v2 c6 and SuccAt v0 v1 c4
-                                          by and_i n0 n1 n2 ic3 ic5 k0 k1 k2
-      cx:  SuCode c3                      by exists_i kx
-      qx:  QAx c3                         by or_i cx
-      pc3: PrH h c3                       by imp_e prh_axiom QAx fs0 prf fc3 qx
-      pc5: PrH h c5                       by imp_e prh_mp QAx fs0 prf fc5 ic3 pc3 p0
-      pc7: PrH h c7                       by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p1
+      fc3: Form c3          by and_e c
+      ic3: ImpCode c4 c5 c3 by and_e c
+      fc5: Form c5          by and_e c
+      ic5: ImpCode c6 c7 c5 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and ImpCode c4 c5 c3 and ImpCode c6 c7 c5 and EqAt v1 v2 c7
+          and SuccAt v0 v2 c6 and SuccAt v0 v1 c4
+                            by and_i n0 n1 n2 ic3 ic5 k0 k1 k2
+      cx: SuCode c3         by exists_i kx
+      qx: QAx c3            by or_i cx
+      pc3: PrH h c3         by imp_e prh_axiom QAx fs0 prf fc3 qx
+      pc5: PrH h c5         by imp_e prh_mp QAx fs0 prf fc5 ic3 pc3 p0
+      pc7: PrH h c7         by imp_e prh_mp QAx fs0 prf fc7 ic5 pc5 p1
       therefore forall c3 c5. (Form c3 and ImpCode c4 c5 c3 and Form c5 and ImpCode c6 c7 c5) -> PrH h c7
-    r: PrH h c7                           by exists_e e code
+    r: PrH h c7 by exists_e e code
     therefore forall h v0 v1 v2 c4 c6 c7. Nat v0 -> Nat v1 -> Nat v2 -> EqAt v1 v2 c7 -> SuccAt v0 v2 c6
-                -> SuccAt v0 v1 c4 -> PrH h c4 -> PrH h c6 -> Form c7 -> PrH h c7
+        -> SuccAt v0 v1 c4 -> PrH h c4 -> PrH h c6 -> Form c7 -> PrH h c7
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 c4 c6 c7. Nat v0 -> Nat v1
-              -> Nat v2 -> EqAt v1 v2 c7 -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4 -> PrH h c6
-              -> Form c7 -> PrH h c7
+      -> Nat v2 -> EqAt v1 v2 c7 -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4 -> PrH h c6
+      -> Form c7 -> PrH h c7
 
 -- Pu: forall x y a b. Plus x y a -> Plus x y b -> Eq a b
 theorem q_pu:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c8
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume n3:  Nat v3
-    assume k0:  EqAt v2 v3 c8
-    assume k1:  PlusAt v0 v1 v3 c7
-    assume k2:  PlusAt v0 v1 v2 c5
-    assume p0:  PrH h c5
-    assume p1:  PrH h c7
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: EqAt v2 v3 c8
+    assume k1: PlusAt v0 v1 v3 c7
+    assume k2: PlusAt v0 v1 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
     assume fc8: Form c8
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    e:   exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-                                          by imp_e imp2_exists form fc5 fc7 fc8
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    e: exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
+                 by imp_e imp2_exists form fc5 fc7 fc8
     lemma code:
       variable c4 c6
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      fc6: Form c6                        by and_e c
-      ic6: ImpCode c7 c8 c6               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
-             and PlusAt v0 v1 v3 c7 and PlusAt v0 v1 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2
-      cx:  PuCode c4                      by exists_i kx
-      qx:  QAx c4                         by or_i cx
-      pc4: PrH h c4                       by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8: PrH h c8                       by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      fc6: Form c6          by and_e c
+      ic6: ImpCode c7 c8 c6 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
+          and PlusAt v0 v1 v3 c7 and PlusAt v0 v1 v2 c5
+                            by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2
+      cx: PuCode c4         by exists_i kx
+      qx: QAx c4            by or_i cx
+      pc4: PrH h c4         by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8         by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
       therefore forall c4 c6. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6) -> PrH h c8
-    r: PrH h c8                           by exists_e e code
+    r: PrH h c8 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c8. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8
-                -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c8 -> PrH h c8
+        -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c8 -> PrH h c8
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c8. Nat v0 -> Nat v1
-              -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5
-              -> PrH h c7 -> Form c8 -> PrH h c8
+      -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5
+      -> PrH h c7 -> Form c8 -> PrH h c8
 
 -- Tu: forall x y a b. Times x y a -> Times x y b -> Eq a b
 theorem q_tu:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c8
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume n3:  Nat v3
-    assume k0:  EqAt v2 v3 c8
-    assume k1:  TimesAt v0 v1 v3 c7
-    assume k2:  TimesAt v0 v1 v2 c5
-    assume p0:  PrH h c5
-    assume p1:  PrH h c7
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: EqAt v2 v3 c8
+    assume k1: TimesAt v0 v1 v3 c7
+    assume k2: TimesAt v0 v1 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
     assume fc8: Form c8
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    e:   exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-                                          by imp_e imp2_exists form fc5 fc7 fc8
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    e: exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
+                 by imp_e imp2_exists form fc5 fc7 fc8
     lemma code:
       variable c4 c6
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      fc6: Form c6                        by and_e c
-      ic6: ImpCode c7 c8 c6               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
-             and TimesAt v0 v1 v3 c7 and TimesAt v0 v1 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2
-      cx:  TuCode c4                      by exists_i kx
-      qx:  QAx c4                         by or_i cx
-      pc4: PrH h c4                       by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8: PrH h c8                       by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      fc6: Form c6          by and_e c
+      ic6: ImpCode c7 c8 c6 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
+          and TimesAt v0 v1 v3 c7 and TimesAt v0 v1 v2 c5
+                            by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2
+      cx: TuCode c4         by exists_i kx
+      qx: QAx c4            by or_i cx
+      pc4: PrH h c4         by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8         by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
       therefore forall c4 c6. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6) -> PrH h c8
-    r: PrH h c8                           by exists_e e code
+    r: PrH h c8 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c8. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8
-                -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c8 -> PrH h c8
+        -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c8 -> PrH h c8
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c8. Nat v0 -> Nat v1
-              -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5
-              -> PrH h c7 -> Form c8 -> PrH h c8
+      -> Nat v2 -> Nat v3 -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5
+      -> PrH h c7 -> Form c8 -> PrH h c8
 
 -- Refl: forall x. Eq x x
 theorem q_refl:
@@ -613,547 +613,547 @@ theorem q_refl:
   assume prf: PRF QAx
   lemma all:
     variable h v0 c1
-    assume n0:  Nat v0
-    assume k0:  EqAt v0 v0 c1
+    assume n0: Nat v0
+    assume k0: EqAt v0 v0 c1
     assume fc1: Form c1
-    kx:  Nat v0 and EqAt v0 v0 c1         by and_i n0 k0
-    cx:  ReflCode c1                      by exists_i kx
-    qx:  QAx c1                           by or_i cx
-    pc1: PrH h c1                         by imp_e prh_axiom QAx fs0 prf fc1 qx
+    kx: Nat v0 and EqAt v0 v0 c1 by and_i n0 k0
+    cx: ReflCode c1              by exists_i kx
+    qx: QAx c1                   by or_i cx
+    pc1: PrH h c1                by imp_e prh_axiom QAx fs0 prf fc1 qx
     therefore forall h v0 c1. Nat v0 -> EqAt v0 v0 c1 -> Form c1 -> PrH h c1
   therefore FS0 -> PRF QAx -> forall h v0 c1. Nat v0 -> EqAt v0 v0 c1 -> Form c1 -> PrH h c1
 
 -- Ee: forall x y x1 y1. Eq x x1 -> Eq y y1 -> Eq x y -> Eq x1 y1
 theorem q_ee:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c9 c10
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume k0:   EqAt v2 v3 c10
-    assume k1:   EqAt v0 v1 c9
-    assume k2:   EqAt v1 v3 c7
-    assume k3:   EqAt v0 v2 c5
-    assume p0:   PrH h c5
-    assume p1:   PrH h c7
-    assume p2:   PrH h c9
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: EqAt v2 v3 c10
+    assume k1: EqAt v0 v1 c9
+    assume k2: EqAt v1 v3 c7
+    assume k3: EqAt v0 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
+    assume p2: PrH h c9
     assume fc10: Form c10
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    fc9: Form c9                          by imp_e prh_form QAx form pfl p2
-    e:   exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
-           and ImpCode c9 c10 c8
-                                          by imp_e imp3_exists form fc5 fc7 fc9 fc10
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    fc9: Form c9 by imp_e prh_form QAx form pfl p2
+    e: exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
+        and ImpCode c9 c10 c8
+                 by imp_e imp3_exists form fc5 fc7 fc9 fc10
     lemma code:
       variable c4 c6 c8
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8
-      fc4:  Form c4                       by and_e c
-      ic4:  ImpCode c5 c6 c4              by and_e c
-      fc6:  Form c6                       by and_e c
-      ic6:  ImpCode c7 c8 c6              by and_e c
-      fc8:  Form c8                       by and_e c
-      ic8:  ImpCode c9 c10 c8             by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
-              and ImpCode c9 c10 c8 and EqAt v2 v3 c10 and EqAt v0 v1 c9 and EqAt v1 v3 c7 and EqAt v0 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
-      cx:   EeCode c4                     by exists_i kx
-      qx:   QAx c4                        by or_i cx
-      pc4:  PrH h c4                      by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6:  PrH h c6                      by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8:  PrH h c8                      by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
-      pc10: PrH h c10                     by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
+      fc4: Form c4           by and_e c
+      ic4: ImpCode c5 c6 c4  by and_e c
+      fc6: Form c6           by and_e c
+      ic6: ImpCode c7 c8 c6  by and_e c
+      fc8: Form c8           by and_e c
+      ic8: ImpCode c9 c10 c8 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and EqAt v2 v3 c10 and EqAt v0 v1 c9 and EqAt v1 v3 c7 and EqAt v0 v2 c5
+                             by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
+      cx: EeCode c4          by exists_i kx
+      qx: QAx c4             by or_i cx
+      pc4: PrH h c4          by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6          by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8          by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      pc10: PrH h c10        by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
       therefore forall c4 c6 c8. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8)
-                  -> PrH h c10
-    r: PrH h c10                          by exists_e e code
+          -> PrH h c10
+    r: PrH h c10 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v2 v3 c10
-                -> EqAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
-                -> Form c10 -> PrH h c10
+        -> EqAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
+        -> Form c10 -> PrH h c10
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v2 v3 c10 -> EqAt v0 v1 c9 -> EqAt v1 v3 c7
-              -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
+      -> Nat v1 -> Nat v2 -> Nat v3 -> EqAt v2 v3 c10 -> EqAt v0 v1 c9 -> EqAt v1 v3 c7
+      -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
 
 -- Ez: forall x x1. Eq x x1 -> Zero x -> Zero x1
 theorem q_ez:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 c3 c5 c6
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  ZeroAt v1 c6
-    assume k1:  ZeroAt v0 c5
-    assume k2:  EqAt v0 v1 c3
-    assume p0:  PrH h c3
-    assume p1:  PrH h c5
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: ZeroAt v1 c6
+    assume k1: ZeroAt v0 c5
+    assume k2: EqAt v0 v1 c3
+    assume p0: PrH h c3
+    assume p1: PrH h c5
     assume fc6: Form c6
-    fc3: Form c3                          by imp_e prh_form QAx form pfl p0
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p1
-    e:   exists c2 c4. Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
-                                          by imp_e imp2_exists form fc3 fc5 fc6
+    fc3: Form c3 by imp_e prh_form QAx form pfl p0
+    fc5: Form c5 by imp_e prh_form QAx form pfl p1
+    e: exists c2 c4. Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
+                 by imp_e imp2_exists form fc3 fc5 fc6
     lemma code:
       variable c2 c4
       assume c: Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4
-      fc2: Form c2                        by and_e c
-      ic2: ImpCode c3 c4 c2               by and_e c
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and ZeroAt v1 c6 and ZeroAt v0 c5
-             and EqAt v0 v1 c3
-                                          by and_i n0 n1 ic2 ic4 k0 k1 k2
-      cx:  EzCode c2                      by exists_i kx
-      qx:  QAx c2                         by or_i cx
-      pc2: PrH h c2                       by imp_e prh_axiom QAx fs0 prf fc2 qx
-      pc4: PrH h c4                       by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p1
+      fc2: Form c2          by and_e c
+      ic2: ImpCode c3 c4 c2 by and_e c
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and ZeroAt v1 c6 and ZeroAt v0 c5
+          and EqAt v0 v1 c3
+                            by and_i n0 n1 ic2 ic4 k0 k1 k2
+      cx: EzCode c2         by exists_i kx
+      qx: QAx c2            by or_i cx
+      pc2: PrH h c2         by imp_e prh_axiom QAx fs0 prf fc2 qx
+      pc4: PrH h c4         by imp_e prh_mp QAx fs0 prf fc4 ic2 pc2 p0
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p1
       therefore forall c2 c4. (Form c2 and ImpCode c3 c4 c2 and Form c4 and ImpCode c5 c6 c4) -> PrH h c6
-    r: PrH h c6                           by exists_e e code
+    r: PrH h c6 by exists_e e code
     therefore forall h v0 v1 c3 c5 c6. Nat v0 -> Nat v1 -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3
-                -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
+        -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 c3 c5 c6. Nat v0 -> Nat v1
-              -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
+      -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> PrH h c3 -> PrH h c5 -> Form c6 -> PrH h c6
 
 -- Es: forall x y x1 y1. Eq x x1 -> Eq y y1 -> Succ x y -> Succ x1 y1
 theorem q_es:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c9 c10
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume k0:   SuccAt v2 v3 c10
-    assume k1:   SuccAt v0 v1 c9
-    assume k2:   EqAt v1 v3 c7
-    assume k3:   EqAt v0 v2 c5
-    assume p0:   PrH h c5
-    assume p1:   PrH h c7
-    assume p2:   PrH h c9
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: SuccAt v2 v3 c10
+    assume k1: SuccAt v0 v1 c9
+    assume k2: EqAt v1 v3 c7
+    assume k3: EqAt v0 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
+    assume p2: PrH h c9
     assume fc10: Form c10
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    fc9: Form c9                          by imp_e prh_form QAx form pfl p2
-    e:   exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
-           and ImpCode c9 c10 c8
-                                          by imp_e imp3_exists form fc5 fc7 fc9 fc10
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    fc9: Form c9 by imp_e prh_form QAx form pfl p2
+    e: exists c4 c6 c8. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8
+        and ImpCode c9 c10 c8
+                 by imp_e imp3_exists form fc5 fc7 fc9 fc10
     lemma code:
       variable c4 c6 c8
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8
-      fc4:  Form c4                       by and_e c
-      ic4:  ImpCode c5 c6 c4              by and_e c
-      fc6:  Form c6                       by and_e c
-      ic6:  ImpCode c7 c8 c6              by and_e c
-      fc8:  Form c8                       by and_e c
-      ic8:  ImpCode c9 c10 c8             by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
-              and ImpCode c9 c10 c8 and SuccAt v2 v3 c10 and SuccAt v0 v1 c9 and EqAt v1 v3 c7
-              and EqAt v0 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
-      cx:   EsCode c4                     by exists_i kx
-      qx:   QAx c4                        by or_i cx
-      pc4:  PrH h c4                      by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6:  PrH h c6                      by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8:  PrH h c8                      by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
-      pc10: PrH h c10                     by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
+      fc4: Form c4           by and_e c
+      ic4: ImpCode c5 c6 c4  by and_e c
+      fc6: Form c6           by and_e c
+      ic6: ImpCode c7 c8 c6  by and_e c
+      fc8: Form c8           by and_e c
+      ic8: ImpCode c9 c10 c8 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and SuccAt v2 v3 c10 and SuccAt v0 v1 c9 and EqAt v1 v3 c7
+          and EqAt v0 v2 c5
+                             by and_i n0 n1 n2 n3 ic4 ic6 ic8 k0 k1 k2 k3
+      cx: EsCode c4          by exists_i kx
+      qx: QAx c4             by or_i cx
+      pc4: PrH h c4          by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6          by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8          by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      pc10: PrH h c10        by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p2
       therefore forall c4 c6 c8. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8)
-                  -> PrH h c10
-    r: PrH h c10                          by exists_e e code
+          -> PrH h c10
+    r: PrH h c10 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> SuccAt v2 v3 c10
-                -> SuccAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
-                -> Form c10 -> PrH h c10
+        -> SuccAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9
+        -> Form c10 -> PrH h c10
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c9 c10. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> SuccAt v2 v3 c10 -> SuccAt v0 v1 c9 -> EqAt v1 v3 c7
-              -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
+      -> Nat v1 -> Nat v2 -> Nat v3 -> SuccAt v2 v3 c10 -> SuccAt v0 v1 c9 -> EqAt v1 v3 c7
+      -> EqAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> PrH h c9 -> Form c10 -> PrH h c10
 
 -- Ep: forall x y z x1 y1 z1. Eq x x1 -> Eq y y1 -> Eq z z1 -> Plus x y z -> Plus x1 y1 z1
 theorem q_ep:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume n4:   Nat v4
-    assume n5:   Nat v5
-    assume k0:   PlusAt v3 v4 v5 c14
-    assume k1:   PlusAt v0 v1 v2 c13
-    assume k2:   EqAt v2 v5 c11
-    assume k3:   EqAt v1 v4 c9
-    assume k4:   EqAt v0 v3 c7
-    assume p0:   PrH h c7
-    assume p1:   PrH h c9
-    assume p2:   PrH h c11
-    assume p3:   PrH h c13
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume n4: Nat v4
+    assume n5: Nat v5
+    assume k0: PlusAt v3 v4 v5 c14
+    assume k1: PlusAt v0 v1 v2 c13
+    assume k2: EqAt v2 v5 c11
+    assume k3: EqAt v1 v4 c9
+    assume k4: EqAt v0 v3 c7
+    assume p0: PrH h c7
+    assume p1: PrH h c9
+    assume p2: PrH h c11
+    assume p3: PrH h c13
     assume fc14: Form c14
-    fc7:  Form c7                         by imp_e prh_form QAx form pfl p0
-    fc9:  Form c9                         by imp_e prh_form QAx form pfl p1
-    fc11: Form c11                        by imp_e prh_form QAx form pfl p2
-    fc13: Form c13                        by imp_e prh_form QAx form pfl p3
-    e:    exists c6 c8 c10 c12. Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10
-            and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
-                                          by imp_e imp4_exists form fc7 fc9 fc11 fc13 fc14
+    fc7: Form c7   by imp_e prh_form QAx form pfl p0
+    fc9: Form c9   by imp_e prh_form QAx form pfl p1
+    fc11: Form c11 by imp_e prh_form QAx form pfl p2
+    fc13: Form c13 by imp_e prh_form QAx form pfl p3
+    e: exists c6 c8 c10 c12. Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10
+        and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
+                   by imp_e imp4_exists form fc7 fc9 fc11 fc13 fc14
     lemma code:
       variable c6 c8 c10 c12
       assume c: Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10 and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
-      fc6:  Form c6                       by and_e c
-      ic6:  ImpCode c7 c8 c6              by and_e c
-      fc8:  Form c8                       by and_e c
-      ic8:  ImpCode c9 c10 c8             by and_e c
-      fc10: Form c10                      by and_e c
-      ic10: ImpCode c11 c12 c10           by and_e c
-      fc12: Form c12                      by and_e c
-      ic12: ImpCode c13 c14 c12           by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 c6
-              and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and PlusAt v3 v4 v5 c14
-              and PlusAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
-                                          by and_i n0 n1 n2 n3 n4 n5 ic6 ic8 ic10 ic12 k0 k1 k2 k3 k4
-      cx:   EpCode c6                     by exists_i kx
-      qx:   QAx c6                        by or_i cx
-      pc6:  PrH h c6                      by imp_e prh_axiom QAx fs0 prf fc6 qx
-      pc8:  PrH h c8                      by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p0
-      pc10: PrH h c10                     by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p1
-      pc12: PrH h c12                     by imp_e prh_mp QAx fs0 prf fc12 ic10 pc10 p2
-      pc14: PrH h c14                     by imp_e prh_mp QAx fs0 prf fc14 ic12 pc12 p3
+      fc6: Form c6              by and_e c
+      ic6: ImpCode c7 c8 c6     by and_e c
+      fc8: Form c8              by and_e c
+      ic8: ImpCode c9 c10 c8    by and_e c
+      fc10: Form c10            by and_e c
+      ic10: ImpCode c11 c12 c10 by and_e c
+      fc12: Form c12            by and_e c
+      ic12: ImpCode c13 c14 c12 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and PlusAt v3 v4 v5 c14
+          and PlusAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
+                                by and_i n0 n1 n2 n3 n4 n5 ic6 ic8 ic10 ic12 k0 k1 k2 k3 k4
+      cx: EpCode c6             by exists_i kx
+      qx: QAx c6                by or_i cx
+      pc6: PrH h c6             by imp_e prh_axiom QAx fs0 prf fc6 qx
+      pc8: PrH h c8             by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p0
+      pc10: PrH h c10           by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p1
+      pc12: PrH h c12           by imp_e prh_mp QAx fs0 prf fc12 ic10 pc10 p2
+      pc14: PrH h c14           by imp_e prh_mp QAx fs0 prf fc14 ic12 pc12 p3
       therefore forall c6 c8 c10 c12. (Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10 and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12)
-                  -> PrH h c14
-    r: PrH h c14                          by exists_e e code
+          -> PrH h c14
+    r: PrH h c14 by exists_e e code
     therefore forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-                -> Nat v5 -> PlusAt v3 v4 v5 c14 -> PlusAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
-                -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
+        -> Nat v5 -> PlusAt v3 v4 v5 c14 -> PlusAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
+        -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP
-              -> forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-              -> Nat v5 -> PlusAt v3 v4 v5 c14 -> PlusAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
-              -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
+      -> forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
+      -> Nat v5 -> PlusAt v3 v4 v5 c14 -> PlusAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
+      -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
 
 -- Et: forall x y z x1 y1 z1. Eq x x1 -> Eq y y1 -> Eq z z1 -> Times x y z -> Times x1 y1 z1
 theorem q_et:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
   lemma all:
     variable h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume n4:   Nat v4
-    assume n5:   Nat v5
-    assume k0:   TimesAt v3 v4 v5 c14
-    assume k1:   TimesAt v0 v1 v2 c13
-    assume k2:   EqAt v2 v5 c11
-    assume k3:   EqAt v1 v4 c9
-    assume k4:   EqAt v0 v3 c7
-    assume p0:   PrH h c7
-    assume p1:   PrH h c9
-    assume p2:   PrH h c11
-    assume p3:   PrH h c13
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume n4: Nat v4
+    assume n5: Nat v5
+    assume k0: TimesAt v3 v4 v5 c14
+    assume k1: TimesAt v0 v1 v2 c13
+    assume k2: EqAt v2 v5 c11
+    assume k3: EqAt v1 v4 c9
+    assume k4: EqAt v0 v3 c7
+    assume p0: PrH h c7
+    assume p1: PrH h c9
+    assume p2: PrH h c11
+    assume p3: PrH h c13
     assume fc14: Form c14
-    fc7:  Form c7                         by imp_e prh_form QAx form pfl p0
-    fc9:  Form c9                         by imp_e prh_form QAx form pfl p1
-    fc11: Form c11                        by imp_e prh_form QAx form pfl p2
-    fc13: Form c13                        by imp_e prh_form QAx form pfl p3
-    e:    exists c6 c8 c10 c12. Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10
-            and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
-                                          by imp_e imp4_exists form fc7 fc9 fc11 fc13 fc14
+    fc7: Form c7   by imp_e prh_form QAx form pfl p0
+    fc9: Form c9   by imp_e prh_form QAx form pfl p1
+    fc11: Form c11 by imp_e prh_form QAx form pfl p2
+    fc13: Form c13 by imp_e prh_form QAx form pfl p3
+    e: exists c6 c8 c10 c12. Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10
+        and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
+                   by imp_e imp4_exists form fc7 fc9 fc11 fc13 fc14
     lemma code:
       variable c6 c8 c10 c12
       assume c: Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10 and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12
-      fc6:  Form c6                       by and_e c
-      ic6:  ImpCode c7 c8 c6              by and_e c
-      fc8:  Form c8                       by and_e c
-      ic8:  ImpCode c9 c10 c8             by and_e c
-      fc10: Form c10                      by and_e c
-      ic10: ImpCode c11 c12 c10           by and_e c
-      fc12: Form c12                      by and_e c
-      ic12: ImpCode c13 c14 c12           by and_e c
-      kx:   Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 c6
-              and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and TimesAt v3 v4 v5 c14
-              and TimesAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
-                                          by and_i n0 n1 n2 n3 n4 n5 ic6 ic8 ic10 ic12 k0 k1 k2 k3 k4
-      cx:   EtCode c6                     by exists_i kx
-      qx:   QAx c6                        by or_i cx
-      pc6:  PrH h c6                      by imp_e prh_axiom QAx fs0 prf fc6 qx
-      pc8:  PrH h c8                      by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p0
-      pc10: PrH h c10                     by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p1
-      pc12: PrH h c12                     by imp_e prh_mp QAx fs0 prf fc12 ic10 pc10 p2
-      pc14: PrH h c14                     by imp_e prh_mp QAx fs0 prf fc14 ic12 pc12 p3
+      fc6: Form c6              by and_e c
+      ic6: ImpCode c7 c8 c6     by and_e c
+      fc8: Form c8              by and_e c
+      ic8: ImpCode c9 c10 c8    by and_e c
+      fc10: Form c10            by and_e c
+      ic10: ImpCode c11 c12 c10 by and_e c
+      fc12: Form c12            by and_e c
+      ic12: ImpCode c13 c14 c12 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and TimesAt v3 v4 v5 c14
+          and TimesAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
+                                by and_i n0 n1 n2 n3 n4 n5 ic6 ic8 ic10 ic12 k0 k1 k2 k3 k4
+      cx: EtCode c6             by exists_i kx
+      qx: QAx c6                by or_i cx
+      pc6: PrH h c6             by imp_e prh_axiom QAx fs0 prf fc6 qx
+      pc8: PrH h c8             by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p0
+      pc10: PrH h c10           by imp_e prh_mp QAx fs0 prf fc10 ic8 pc8 p1
+      pc12: PrH h c12           by imp_e prh_mp QAx fs0 prf fc12 ic10 pc10 p2
+      pc14: PrH h c14           by imp_e prh_mp QAx fs0 prf fc14 ic12 pc12 p3
       therefore forall c6 c8 c10 c12. (Form c6 and ImpCode c7 c8 c6 and Form c8 and ImpCode c9 c10 c8 and Form c10 and ImpCode c11 c12 c10 and Form c12 and ImpCode c13 c14 c12)
-                  -> PrH h c14
-    r: PrH h c14                          by exists_e e code
+          -> PrH h c14
+    r: PrH h c14 by exists_e e code
     therefore forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-                -> Nat v5 -> TimesAt v3 v4 v5 c14 -> TimesAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
-                -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
+        -> Nat v5 -> TimesAt v3 v4 v5 c14 -> TimesAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
+        -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP
-              -> forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
-              -> Nat v5 -> TimesAt v3 v4 v5 c14 -> TimesAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
-              -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
+      -> forall h v0 v1 v2 v3 v4 v5 c7 c9 c11 c13 c14. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> Nat v4
+      -> Nat v5 -> TimesAt v3 v4 v5 c14 -> TimesAt v0 v1 v2 c13 -> EqAt v2 v5 c11 -> EqAt v1 v4 c9
+      -> EqAt v0 v3 c7 -> PrH h c7 -> PrH h c9 -> PrH h c11 -> PrH h c13 -> Form c14 -> PrH h c14
 
 -- Si: forall x y a b. Succ x a -> Succ y b -> Eq a b -> Eq x y, stopping before its last antecedent
 theorem q_si_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 v2 v3 c5 c7 c8 c9 c10
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume k0:   ImpCode c9 c10 c8
-    assume k1:   EqAt v0 v1 c10
-    assume k2:   EqAt v2 v3 c9
-    assume k3:   SuccAt v1 v3 c7
-    assume k4:   SuccAt v0 v2 c5
-    assume p0:   PrH h c5
-    assume p1:   PrH h c7
-    assume fc9:  Form c9
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: ImpCode c9 c10 c8
+    assume k1: EqAt v0 v1 c10
+    assume k2: EqAt v2 v3 c9
+    assume k3: SuccAt v1 v3 c7
+    assume k4: SuccAt v0 v2 c5
+    assume p0: PrH h c5
+    assume p1: PrH h c7
+    assume fc9: Form c9
     assume fc10: Form c10
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc7: Form c7                          by imp_e prh_form QAx form pfl p1
-    fc8: Form c8                          by imp_e fim fc9 fc10 k0
-    e:   exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-                                          by imp_e imp2_exists form fc5 fc7 fc8
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc7: Form c7 by imp_e prh_form QAx form pfl p1
+    fc8: Form c8 by imp_e fim fc9 fc10 k0
+    e: exists c4 c6. Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
+                 by imp_e imp2_exists form fc5 fc7 fc8
     lemma code:
       variable c4 c6
       assume c: Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      fc6: Form c6                        by and_e c
-      ic6: ImpCode c7 c8 c6               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
-             and ImpCode c9 c10 c8 and EqAt v0 v1 c10 and EqAt v2 v3 c9 and SuccAt v1 v3 c7 and SuccAt v0 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2 k3 k4
-      cx:  SiCode c4                      by exists_i kx
-      qx:  QAx c4                         by or_i cx
-      pc4: PrH h c4                       by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
-      pc8: PrH h c8                       by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      fc6: Form c6          by and_e c
+      ic6: ImpCode c7 c8 c6 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
+          and ImpCode c9 c10 c8 and EqAt v0 v1 c10 and EqAt v2 v3 c9 and SuccAt v1 v3 c7 and SuccAt v0 v2 c5
+                            by and_i n0 n1 n2 n3 ic4 ic6 k0 k1 k2 k3 k4
+      cx: SiCode c4         by exists_i kx
+      qx: QAx c4            by or_i cx
+      pc4: PrH h c4         by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      pc8: PrH h c8         by imp_e prh_mp QAx fs0 prf fc8 ic6 pc6 p1
       therefore forall c4 c6. (Form c4 and ImpCode c5 c6 c4 and Form c6 and ImpCode c7 c8 c6) -> PrH h c8
-    r: PrH h c8                           by exists_e e code
+    r: PrH h c8 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c7 c8 c9 c10. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> ImpCode c9 c10 c8
-                -> EqAt v0 v1 c10 -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5
-                -> PrH h c7 -> Form c9 -> Form c10 -> PrH h c8
+        -> EqAt v0 v1 c10 -> EqAt v2 v3 c9 -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5
+        -> PrH h c7 -> Form c9 -> Form c10 -> PrH h c8
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c7 c8 c9 c10. Nat v0
-              -> Nat v1 -> Nat v2 -> Nat v3 -> ImpCode c9 c10 c8 -> EqAt v0 v1 c10 -> EqAt v2 v3 c9
-              -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c9 -> Form c10 -> PrH h c8
+      -> Nat v1 -> Nat v2 -> Nat v3 -> ImpCode c9 c10 c8 -> EqAt v0 v1 c10 -> EqAt v2 v3 c9
+      -> SuccAt v1 v3 c7 -> SuccAt v0 v2 c5 -> PrH h c5 -> PrH h c7 -> Form c9 -> Form c10 -> PrH h c8
 
 -- Su: forall x a b. Succ x a -> Succ x b -> Eq a b, stopping before its last antecedent
 theorem q_su_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 v2 c4 c5 c6 c7
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume k0:  ImpCode c6 c7 c5
-    assume k1:  EqAt v1 v2 c7
-    assume k2:  SuccAt v0 v2 c6
-    assume k3:  SuccAt v0 v1 c4
-    assume p0:  PrH h c4
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume k0: ImpCode c6 c7 c5
+    assume k1: EqAt v1 v2 c7
+    assume k2: SuccAt v0 v2 c6
+    assume k3: SuccAt v0 v1 c4
+    assume p0: PrH h c4
     assume fc6: Form c6
     assume fc7: Form c7
-    fc4: Form c4                          by imp_e prh_form QAx form pfl p0
-    fc5: Form c5                          by imp_e fim fc6 fc7 k0
-    e:   exists c3. Form c3 and Node2 T2 c4 c5 c3
-                                          by imp_e imp_exists form fc4 fc5
+    fc4: Form c4 by imp_e prh_form QAx form pfl p0
+    fc5: Form c5 by imp_e fim fc6 fc7 k0
+    e: exists c3. Form c3 and Node2 T2 c4 c5 c3
+                 by imp_e imp_exists form fc4 fc5
     lemma code:
       variable c3
       assume c: Form c3 and Node2 T2 c4 c5 c3
-      fc3: Form c3                        by and_e c
-      ic3: ImpCode c4 c5 c3               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and ImpCode c4 c5 c3 and ImpCode c6 c7 c5 and EqAt v1 v2 c7
-             and SuccAt v0 v2 c6 and SuccAt v0 v1 c4
-                                          by and_i n0 n1 n2 ic3 k0 k1 k2 k3
-      cx:  SuCode c3                      by exists_i kx
-      qx:  QAx c3                         by or_i cx
-      pc3: PrH h c3                       by imp_e prh_axiom QAx fs0 prf fc3 qx
-      pc5: PrH h c5                       by imp_e prh_mp QAx fs0 prf fc5 ic3 pc3 p0
+      fc3: Form c3          by and_e c
+      ic3: ImpCode c4 c5 c3 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and ImpCode c4 c5 c3 and ImpCode c6 c7 c5 and EqAt v1 v2 c7
+          and SuccAt v0 v2 c6 and SuccAt v0 v1 c4
+                            by and_i n0 n1 n2 ic3 k0 k1 k2 k3
+      cx: SuCode c3         by exists_i kx
+      qx: QAx c3            by or_i cx
+      pc3: PrH h c3         by imp_e prh_axiom QAx fs0 prf fc3 qx
+      pc5: PrH h c5         by imp_e prh_mp QAx fs0 prf fc5 ic3 pc3 p0
       therefore forall c3. (Form c3 and Node2 T2 c4 c5 c3) -> PrH h c5
-    r: PrH h c5                           by exists_e e code
+    r: PrH h c5 by exists_e e code
     therefore forall h v0 v1 v2 c4 c5 c6 c7. Nat v0 -> Nat v1 -> Nat v2 -> ImpCode c6 c7 c5 -> EqAt v1 v2 c7
-                -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4 -> Form c6 -> Form c7 -> PrH h c5
+        -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4 -> Form c6 -> Form c7 -> PrH h c5
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 c4 c5 c6 c7. Nat v0 -> Nat v1
-              -> Nat v2 -> ImpCode c6 c7 c5 -> EqAt v1 v2 c7 -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4
-              -> Form c6 -> Form c7 -> PrH h c5
+      -> Nat v2 -> ImpCode c6 c7 c5 -> EqAt v1 v2 c7 -> SuccAt v0 v2 c6 -> SuccAt v0 v1 c4 -> PrH h c4
+      -> Form c6 -> Form c7 -> PrH h c5
 
 -- Pu: forall x y a b. Plus x y a -> Plus x y b -> Eq a b, stopping before its last antecedent
 theorem q_pu_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 v2 v3 c5 c6 c7 c8
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume n3:  Nat v3
-    assume k0:  ImpCode c7 c8 c6
-    assume k1:  EqAt v2 v3 c8
-    assume k2:  PlusAt v0 v1 v3 c7
-    assume k3:  PlusAt v0 v1 v2 c5
-    assume p0:  PrH h c5
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: ImpCode c7 c8 c6
+    assume k1: EqAt v2 v3 c8
+    assume k2: PlusAt v0 v1 v3 c7
+    assume k3: PlusAt v0 v1 v2 c5
+    assume p0: PrH h c5
     assume fc7: Form c7
     assume fc8: Form c8
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc6: Form c6                          by imp_e fim fc7 fc8 k0
-    e:   exists c4. Form c4 and Node2 T2 c5 c6 c4
-                                          by imp_e imp_exists form fc5 fc6
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc6: Form c6 by imp_e fim fc7 fc8 k0
+    e: exists c4. Form c4 and Node2 T2 c5 c6 c4
+                 by imp_e imp_exists form fc5 fc6
     lemma code:
       variable c4
       assume c: Form c4 and Node2 T2 c5 c6 c4
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
-             and PlusAt v0 v1 v3 c7 and PlusAt v0 v1 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 k0 k1 k2 k3
-      cx:  PuCode c4                      by exists_i kx
-      qx:  QAx c4                         by or_i cx
-      pc4: PrH h c4                       by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
+          and PlusAt v0 v1 v3 c7 and PlusAt v0 v1 v2 c5
+                            by and_i n0 n1 n2 n3 ic4 k0 k1 k2 k3
+      cx: PuCode c4         by exists_i kx
+      qx: QAx c4            by or_i cx
+      pc4: PrH h c4         by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
       therefore forall c4. (Form c4 and Node2 T2 c5 c6 c4) -> PrH h c6
-    r: PrH h c6                           by exists_e e code
+    r: PrH h c6 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c6 c7 c8. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6
-                -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8
-                -> PrH h c6
+        -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7 -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8
+        -> PrH h c6
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c6 c7 c8. Nat v0 -> Nat v1
-              -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6 -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7
-              -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8 -> PrH h c6
+      -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6 -> EqAt v2 v3 c8 -> PlusAt v0 v1 v3 c7
+      -> PlusAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8 -> PrH h c6
 
 -- Tu: forall x y a b. Times x y a -> Times x y b -> Eq a b, stopping before its last antecedent
 theorem q_tu_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  assume pfl:  PrfLeast QAx PFormP
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  assume pfl: PrfLeast QAx PFormP
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 v2 v3 c5 c6 c7 c8
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume n2:  Nat v2
-    assume n3:  Nat v3
-    assume k0:  ImpCode c7 c8 c6
-    assume k1:  EqAt v2 v3 c8
-    assume k2:  TimesAt v0 v1 v3 c7
-    assume k3:  TimesAt v0 v1 v2 c5
-    assume p0:  PrH h c5
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: ImpCode c7 c8 c6
+    assume k1: EqAt v2 v3 c8
+    assume k2: TimesAt v0 v1 v3 c7
+    assume k3: TimesAt v0 v1 v2 c5
+    assume p0: PrH h c5
     assume fc7: Form c7
     assume fc8: Form c8
-    fc5: Form c5                          by imp_e prh_form QAx form pfl p0
-    fc6: Form c6                          by imp_e fim fc7 fc8 k0
-    e:   exists c4. Form c4 and Node2 T2 c5 c6 c4
-                                          by imp_e imp_exists form fc5 fc6
+    fc5: Form c5 by imp_e prh_form QAx form pfl p0
+    fc6: Form c6 by imp_e fim fc7 fc8 k0
+    e: exists c4. Form c4 and Node2 T2 c5 c6 c4
+                 by imp_e imp_exists form fc5 fc6
     lemma code:
       variable c4
       assume c: Form c4 and Node2 T2 c5 c6 c4
-      fc4: Form c4                        by and_e c
-      ic4: ImpCode c5 c6 c4               by and_e c
-      kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
-             and TimesAt v0 v1 v3 c7 and TimesAt v0 v1 v2 c5
-                                          by and_i n0 n1 n2 n3 ic4 k0 k1 k2 k3
-      cx:  TuCode c4                      by exists_i kx
-      qx:  QAx c4                         by or_i cx
-      pc4: PrH h c4                       by imp_e prh_axiom QAx fs0 prf fc4 qx
-      pc6: PrH h c6                       by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
+      fc4: Form c4          by and_e c
+      ic4: ImpCode c5 c6 c4 by and_e c
+      kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6 and EqAt v2 v3 c8
+          and TimesAt v0 v1 v3 c7 and TimesAt v0 v1 v2 c5
+                            by and_i n0 n1 n2 n3 ic4 k0 k1 k2 k3
+      cx: TuCode c4         by exists_i kx
+      qx: QAx c4            by or_i cx
+      pc4: PrH h c4         by imp_e prh_axiom QAx fs0 prf fc4 qx
+      pc6: PrH h c6         by imp_e prh_mp QAx fs0 prf fc6 ic4 pc4 p0
       therefore forall c4. (Form c4 and Node2 T2 c5 c6 c4) -> PrH h c6
-    r: PrH h c6                           by exists_e e code
+    r: PrH h c6 by exists_e e code
     therefore forall h v0 v1 v2 v3 c5 c6 c7 c8. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6
-                -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> Form c7
-                -> Form c8 -> PrH h c6
+        -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7 -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> Form c7
+        -> Form c8 -> PrH h c6
   therefore FS0 -> FORM -> PRF QAx -> PrfLeast QAx PFormP -> forall h v0 v1 v2 v3 c5 c6 c7 c8. Nat v0 -> Nat v1
-              -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6 -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7
-              -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8 -> PrH h c6
+      -> Nat v2 -> Nat v3 -> ImpCode c7 c8 c6 -> EqAt v2 v3 c8 -> TimesAt v0 v1 v3 c7
+      -> TimesAt v0 v1 v2 c5 -> PrH h c5 -> Form c7 -> Form c8 -> PrH h c6
 
 -- Ee: forall x y x1 y1. Eq x x1 -> Eq y y1 -> Eq x y -> Eq x1 y1, stopping before its last antecedent
 theorem q_ee_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 v2 v3 c4 c5 c6 c7 c8 c9 c10
-    assume n0:   Nat v0
-    assume n1:   Nat v1
-    assume n2:   Nat v2
-    assume n3:   Nat v3
-    assume k0:   ImpCode c5 c6 c4
-    assume k1:   ImpCode c7 c8 c6
-    assume k2:   ImpCode c9 c10 c8
-    assume k3:   EqAt v2 v3 c10
-    assume k4:   EqAt v0 v1 c9
-    assume k5:   EqAt v1 v3 c7
-    assume k6:   EqAt v0 v2 c5
-    assume fc5:  Form c5
-    assume fc7:  Form c7
-    assume fc9:  Form c9
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume n2: Nat v2
+    assume n3: Nat v3
+    assume k0: ImpCode c5 c6 c4
+    assume k1: ImpCode c7 c8 c6
+    assume k2: ImpCode c9 c10 c8
+    assume k3: EqAt v2 v3 c10
+    assume k4: EqAt v0 v1 c9
+    assume k5: EqAt v1 v3 c7
+    assume k6: EqAt v0 v2 c5
+    assume fc5: Form c5
+    assume fc7: Form c7
+    assume fc9: Form c9
     assume fc10: Form c10
-    fc8: Form c8                          by imp_e fim fc9 fc10 k2
-    fc6: Form c6                          by imp_e fim fc7 fc8 k1
-    fc4: Form c4                          by imp_e fim fc5 fc6 k0
-    kx:  Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
-           and ImpCode c9 c10 c8 and EqAt v2 v3 c10 and EqAt v0 v1 c9 and EqAt v1 v3 c7 and EqAt v0 v2 c5
-                                          by and_i n0 n1 n2 n3 k0 k1 k2 k3 k4 k5 k6
-    cx:  EeCode c4                        by exists_i kx
-    qx:  QAx c4                           by or_i cx
-    pc4: PrH h c4                         by imp_e prh_axiom QAx fs0 prf fc4 qx
+    fc8: Form c8  by imp_e fim fc9 fc10 k2
+    fc6: Form c6  by imp_e fim fc7 fc8 k1
+    fc4: Form c4  by imp_e fim fc5 fc6 k0
+    kx: Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 c4 and ImpCode c7 c8 c6
+        and ImpCode c9 c10 c8 and EqAt v2 v3 c10 and EqAt v0 v1 c9 and EqAt v1 v3 c7 and EqAt v0 v2 c5
+                  by and_i n0 n1 n2 n3 k0 k1 k2 k3 k4 k5 k6
+    cx: EeCode c4 by exists_i kx
+    qx: QAx c4    by or_i cx
+    pc4: PrH h c4 by imp_e prh_axiom QAx fs0 prf fc4 qx
     therefore forall h v0 v1 v2 v3 c4 c5 c6 c7 c8 c9 c10. Nat v0 -> Nat v1 -> Nat v2 -> Nat v3
-                -> ImpCode c5 c6 c4 -> ImpCode c7 c8 c6 -> ImpCode c9 c10 c8 -> EqAt v2 v3 c10 -> EqAt v0 v1 c9
-                -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> Form c5 -> Form c7 -> Form c9 -> Form c10 -> PrH h c4
+        -> ImpCode c5 c6 c4 -> ImpCode c7 c8 c6 -> ImpCode c9 c10 c8 -> EqAt v2 v3 c10 -> EqAt v0 v1 c9
+        -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> Form c5 -> Form c7 -> Form c9 -> Form c10 -> PrH h c4
   therefore FS0 -> FORM -> PRF QAx -> forall h v0 v1 v2 v3 c4 c5 c6 c7 c8 c9 c10. Nat v0 -> Nat v1 -> Nat v2
-              -> Nat v3 -> ImpCode c5 c6 c4 -> ImpCode c7 c8 c6 -> ImpCode c9 c10 c8 -> EqAt v2 v3 c10
-              -> EqAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> Form c5 -> Form c7 -> Form c9 -> Form c10
-              -> PrH h c4
+      -> Nat v3 -> ImpCode c5 c6 c4 -> ImpCode c7 c8 c6 -> ImpCode c9 c10 c8 -> EqAt v2 v3 c10
+      -> EqAt v0 v1 c9 -> EqAt v1 v3 c7 -> EqAt v0 v2 c5 -> Form c5 -> Form c7 -> Form c9 -> Form c10
+      -> PrH h c4
 
 -- Ez: forall x x1. Eq x x1 -> Zero x -> Zero x1, stopping before its last antecedent
 theorem q_ez_pre:
-  assume fs0:  FS0
+  assume fs0: FS0
   assume form: FORM
-  assume prf:  PRF QAx
-  fim: Fim                                by and_e form
+  assume prf: PRF QAx
+  fim: Fim by and_e form
   lemma all:
     variable h v0 v1 c2 c3 c4 c5 c6
-    assume n0:  Nat v0
-    assume n1:  Nat v1
-    assume k0:  ImpCode c3 c4 c2
-    assume k1:  ImpCode c5 c6 c4
-    assume k2:  ZeroAt v1 c6
-    assume k3:  ZeroAt v0 c5
-    assume k4:  EqAt v0 v1 c3
+    assume n0: Nat v0
+    assume n1: Nat v1
+    assume k0: ImpCode c3 c4 c2
+    assume k1: ImpCode c5 c6 c4
+    assume k2: ZeroAt v1 c6
+    assume k3: ZeroAt v0 c5
+    assume k4: EqAt v0 v1 c3
     assume fc3: Form c3
     assume fc5: Form c5
     assume fc6: Form c6
-    fc4: Form c4                          by imp_e fim fc5 fc6 k1
-    fc2: Form c2                          by imp_e fim fc3 fc4 k0
-    kx:  Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and ZeroAt v1 c6 and ZeroAt v0 c5
-           and EqAt v0 v1 c3
-                                          by and_i n0 n1 k0 k1 k2 k3 k4
-    cx:  EzCode c2                        by exists_i kx
-    qx:  QAx c2                           by or_i cx
-    pc2: PrH h c2                         by imp_e prh_axiom QAx fs0 prf fc2 qx
+    fc4: Form c4  by imp_e fim fc5 fc6 k1
+    fc2: Form c2  by imp_e fim fc3 fc4 k0
+    kx: Nat v0 and Nat v1 and ImpCode c3 c4 c2 and ImpCode c5 c6 c4 and ZeroAt v1 c6 and ZeroAt v0 c5
+        and EqAt v0 v1 c3
+                  by and_i n0 n1 k0 k1 k2 k3 k4
+    cx: EzCode c2 by exists_i kx
+    qx: QAx c2    by or_i cx
+    pc2: PrH h c2 by imp_e prh_axiom QAx fs0 prf fc2 qx
     therefore forall h v0 v1 c2 c3 c4 c5 c6. Nat v0 -> Nat v1 -> ImpCode c3 c4 c2 -> ImpCode c5 c6 c4
-                -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> Form c3 -> Form c5 -> Form c6 -> PrH h c2
+        -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> Form c3 -> Form c5 -> Form c6 -> PrH h c2
   therefore FS0 -> FORM -> PRF QAx -> forall h v0 v1 c2 c3 c4 c5 c6. Nat v0 -> Nat v1 -> ImpCode c3 c4 c2
-              -> ImpCode c5 c6 c4 -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> Form c3 -> Form c5
-              -> Form c6 -> PrH h c2
+      -> ImpCode c5 c6 c4 -> ZeroAt v1 c6 -> ZeroAt v0 c5 -> EqAt v0 v1 c3 -> Form c3 -> Form c5
+      -> Form c6 -> PrH h c2

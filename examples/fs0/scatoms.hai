@@ -8,207 +8,207 @@ define Covers e h = forall v n. Val e v n -> exists z c. Nat v and NamesM h z n 
 
 -- Everything about names, once.
 define NamesCtx = NAMES and NamesLeast NamesInv and NamesLeast NamesEq and NamesLeast NamesNum
-                  and NamesLeast NamesNat and NamesLeast NamesPlus and NamesLeast NamesTimes
-                  and NamesLeast NamesNeq and NAMESM and NamesMLeast NamesMN and NamesMLeast NamesMMono
-                  and AddLeast AddShape and MulLeast MulShape and NatLeast NamesDown and TIMES
+    and NamesLeast NamesNat and NamesLeast NamesPlus and NamesLeast NamesTimes
+    and NamesLeast NamesNeq and NAMESM and NamesMLeast NamesMN and NamesMLeast NamesMMono
+    and AddLeast AddShape and MulLeast MulShape and NatLeast NamesDown and TIMES
 
 -- A covered variable is named by its value.
 theorem var_name:
   variable e h v n
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vl: Val e v n
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  lmn:   NamesMLeast NamesMN              by and_e nc
-  leaf:  (forall h1 a. Form a -> LogAx a -> PrH h1 a) and (forall h2 a. Form a -> QAx a -> PrH h2 a)
-         and (forall h3 a. Form a -> Mem a h3 -> PrH h3 a)
-                                          by imp_e prh_leaf QAx fs0 prf
-  hyp:   forall h1 a. Form a -> Mem a h1 -> PrH h1 a
-                                          by and_e leaf
-  mns:   forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
-                                          by imp_e namesm_names q names lmn
-  ex:    exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
-                                          by imp_e cv vl
+  fs0: FS0                  by and_e q
+  form: FORM                by and_e q
+  prf: PRF QAx              by and_e q
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  lmn: NamesMLeast NamesMN  by and_e nc
+  leaf: (forall h1 a. Form a -> LogAx a -> PrH h1 a) and (forall h2 a. Form a -> QAx a -> PrH h2 a)
+      and (forall h3 a. Form a -> Mem a h3 -> PrH h3 a)
+                            by imp_e prh_leaf QAx fs0 prf
+  hyp: forall h1 a. Form a -> Mem a h1 -> PrH h1 a
+                            by and_e leaf
+  mns: forall h1 z j. NamesM h1 z j -> NamesMN h1 z j
+                            by imp_e namesm_names q names lmn
+  ex: exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
+                            by imp_e cv vl
   lemma wit:
     variable z c
     assume hw: Nat v and NamesM h z n and EqAt z v c and Mem c h
-    nv:  Nat v                            by and_e hw
-    nm:  NamesM h z n                     by and_e hw
-    ec:  EqAt z v c                       by and_e hw
-    mc:  Mem c h                          by and_e hw
-    mn:  NamesMN h z n                    by imp_e mns nm
-    nz:  Nat z                            by and_e mn
-    nzn: Names h z n                      by and_e mn
-    fc:  Form c                           by imp_e eqat_form form nz nv ec
-    pc:  PrH h c                          by imp_e hyp fc mc
-    k:   EqAt z v c and PrH h c           by and_i ec pc
-    qe:  QEq h z v                        by exists_i k
-    nvn: Names h v n                      by imp_e names_var q names linv nzn nv qe
-    r:   Nat v and Names h v n            by and_i nv nvn
+    nv: Nat v                 by and_e hw
+    nm: NamesM h z n          by and_e hw
+    ec: EqAt z v c            by and_e hw
+    mc: Mem c h               by and_e hw
+    mn: NamesMN h z n         by imp_e mns nm
+    nz: Nat z                 by and_e mn
+    nzn: Names h z n          by and_e mn
+    fc: Form c                by imp_e eqat_form form nz nv ec
+    pc: PrH h c               by imp_e hyp fc mc
+    k: EqAt z v c and PrH h c by and_i ec pc
+    qe: QEq h z v             by exists_i k
+    nvn: Names h v n          by imp_e names_var q names linv nzn nv qe
+    r: Nat v and Names h v n  by and_i nv nvn
     therefore forall z c. (Nat v and NamesM h z n and EqAt z v c and Mem c h) -> Nat v and Names h v n
-  r: Nat v and Names h v n                by exists_e ex wit
+  r: Nat v and Names h v n by exists_e ex wit
   therefore forall e h v n. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Nat v and Names h v n
 
 -- The true atoms: each comes from a names lemma, and its code is the one the truth rule names.
 theorem true_zero:
   variable e h v n x
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vl: Val e v n
   assume nn: Nil n
   assume za: ZeroAt v x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  inv:   forall h1 z j. Names h1 z j -> NamesInv h1 z j
-                                          by imp_e names_inv names linv
-  vn:  Nat v and Names h v n              by imp_e var_name q nc cv vl
-  nvn: Names h v n                        by and_e vn
-  iv:  NamesInv h v n                     by imp_e inv nvn
-  sh:  NamesShape h v n                   by and_e iv
-  o:     (Nil n and QZero h v) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v)
-                                          by and_e sh
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  inv: forall h1 z j. Names h1 z j -> NamesInv h1 z j
+                            by imp_e names_inv names linv
+  vn: Nat v and Names h v n by imp_e var_name q nc cv vl
+  nvn: Names h v n          by and_e vn
+  iv: NamesInv h v n        by imp_e inv nvn
+  sh: NamesShape h v n      by and_e iv
+  o: (Nil n and QZero h v) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v)
+                            by and_e sh
   lemma zero:
     assume b: Nil n and QZero h v
-    qz: QZero h v                         by and_e b
+    qz: QZero h v by and_e b
     lemma wit:
       variable c
       assume hc: ZeroAt v c and PrH h c
-      xc: ZeroAt v c                      by and_e hc
-      pc: PrH h c                         by and_e hc
-      ec: Eq c x                          by imp_e zeroat_fun fs0 xc za
-      r:  PrH h x                         by imp_e prh_eq QAx fs0 prf pc ec
+      xc: ZeroAt v c by and_e hc
+      pc: PrH h c    by and_e hc
+      ec: Eq c x     by imp_e zeroat_fun fs0 xc za
+      r: PrH h x     by imp_e prh_eq QAx fs0 prf pc ec
       therefore forall c. (ZeroAt v c and PrH h c) -> PrH h x
-    r: PrH h x                            by exists_e qz wit
+    r: PrH h x by exists_e qz wit
     therefore (Nil n and QZero h v) -> PrH h x
   lemma succ:
     assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v
     lemma wit:
       variable z0 j0
       assume hw: Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v
-      sj: Suc j0 n                        by and_e hw
-      f:  absurd                          by imp_e suc_nil fs0 sj nn
-      r:  PrH h x                         by absurd_e f
+      sj: Suc j0 n by and_e hw
+      f: absurd    by imp_e suc_nil fs0 sj nn
+      r: PrH h x   by absurd_e f
       therefore forall z0 j0. (Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v) -> PrH h x
-    r: PrH h x                            by exists_e ex wit
+    r: PrH h x by exists_e ex wit
     therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 v) -> PrH h x
-  r: PrH h x                              by or_e o zero succ
+  r: PrH h x by or_e o zero succ
   therefore forall e h v n x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Nil n -> ZeroAt v x -> PrH h x
 
 theorem true_succ:
   variable e h v w n m x
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vv: Val e v n
   assume vw: Val e w m
   assume sn: Suc n m
   assume sa: SuccAt v w x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  refl:  Refl                             by and_e fs0
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  inv:   forall h1 z j. Names h1 z j -> NamesInv h1 z j
-                                          by imp_e names_inv names linv
-  eqs:   forall h1 z j. Names h1 z j -> NamesEq h1 z j
-                                          by imp_e names_eq q names linv leq
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  nv:  Nat v                              by and_e a1
-  nvn: Names h v n                        by and_e a1
-  nw:  Nat w                              by and_e a2
-  nwm: Names h w m                        by and_e a2
-  rm:  Eq m m                             by forall_e refl m
-  iw:  NamesInv h w m                     by imp_e inv nwm
-  sh:  NamesShape h w m                   by and_e iw
-  o:     (Nil m and QZero h w) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 w)
-                                          by and_e sh
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  refl: Refl                by and_e fs0
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  leq: NamesLeast NamesEq   by and_e nc
+  inv: forall h1 z j. Names h1 z j -> NamesInv h1 z j
+                            by imp_e names_inv names linv
+  eqs: forall h1 z j. Names h1 z j -> NamesEq h1 z j
+                            by imp_e names_eq q names linv leq
+  a1: Nat v and Names h v n by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m by imp_e var_name q nc cv vw
+  nv: Nat v                 by and_e a1
+  nvn: Names h v n          by and_e a1
+  nw: Nat w                 by and_e a2
+  nwm: Names h w m          by and_e a2
+  rm: Eq m m                by forall_e refl m
+  iw: NamesInv h w m        by imp_e inv nwm
+  sh: NamesShape h w m      by and_e iw
+  o: (Nil m and QZero h w) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 w)
+                            by and_e sh
   lemma zero:
     assume b: Nil m and QZero h w
-    nm: Nil m                             by and_e b
-    f:  absurd                            by imp_e suc_nil fs0 sn nm
-    r:  PrH h x                           by absurd_e f
+    nm: Nil m  by and_e b
+    f: absurd  by imp_e suc_nil fs0 sn nm
+    r: PrH h x by absurd_e f
     therefore (Nil m and QZero h w) -> PrH h x
   lemma succ:
     assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 w
     lemma wit:
       variable w0 j0
       assume hw: Names h w0 j0 and Nat w0 and Suc j0 m and QSucc h w0 w
-      n0:  Names h w0 j0                  by and_e hw
-      nw0: Nat w0                         by and_e hw
-      sj:  Suc j0 m                       by and_e hw
-      qw:  QSucc h w0 w                   by and_e hw
-      ej:  Eq j0 n                        by imp_e suc_inj fs0 sj sn rm
-      e0:  NamesEq h w0 j0                by imp_e eqs n0
+      n0: Names h w0 j0   by and_e hw
+      nw0: Nat w0         by and_e hw
+      sj: Suc j0 m        by and_e hw
+      qw: QSucc h w0 w    by and_e hw
+      ej: Eq j0 n         by imp_e suc_inj fs0 sj sn rm
+      e0: NamesEq h w0 j0 by imp_e eqs n0
       e0e: forall c k. Names h c k -> Eq j0 k -> QEq h w0 c
-                                          by and_e e0
-      qwv: QEq h w0 v                     by imp_e e0e nvn ej
-      qww: QEq h w w                      by imp_e qe_refl q nw
-      qs:  QSucc h v w                    by imp_e qs_tr q nw0 nw nv nw qwv qww qw
+                          by and_e e0
+      qwv: QEq h w0 v     by imp_e e0e nvn ej
+      qww: QEq h w w      by imp_e qe_refl q nw
+      qs: QSucc h v w     by imp_e qs_tr q nw0 nw nv nw qwv qww qw
       lemma code:
         variable c
         assume hc: SuccAt v w c and PrH h c
-        xc: SuccAt v w c                  by and_e hc
-        pc: PrH h c                       by and_e hc
-        ec: Eq c x                        by imp_e succat_fun fs0 xc sa
-        r:  PrH h x                       by imp_e prh_eq QAx fs0 prf pc ec
+        xc: SuccAt v w c by and_e hc
+        pc: PrH h c      by and_e hc
+        ec: Eq c x       by imp_e succat_fun fs0 xc sa
+        r: PrH h x       by imp_e prh_eq QAx fs0 prf pc ec
         therefore forall c. (SuccAt v w c and PrH h c) -> PrH h x
-      r: PrH h x                          by exists_e qs code
+      r: PrH h x by exists_e qs code
       therefore forall w0 j0. (Names h w0 j0 and Nat w0 and Suc j0 m and QSucc h w0 w) -> PrH h x
-    r: PrH h x                            by exists_e ex wit
+    r: PrH h x by exists_e ex wit
     therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 w) -> PrH h x
-  r: PrH h x                              by or_e o zero succ
+  r: PrH h x by or_e o zero succ
   therefore forall e h v w n m x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Val e w m -> Suc n m -> SuccAt v w x
-              -> PrH h x
+      -> PrH h x
 
 theorem true_eq:
   variable e h v w n m x
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vv: Val e v n
   assume vw: Val e w m
   assume enm: Eq n m
   assume ea: EqAt v w x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  eqs:   forall h1 z j. Names h1 z j -> NamesEq h1 z j
-                                          by imp_e names_eq q names linv leq
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  ev:  NamesEq h v n                      by imp_e eqs nvn
-  eve:   forall c k. Names h c k -> Eq n k -> QEq h v c
-                                          by and_e ev
-  qe: QEq h v w                           by imp_e eve nwm enm
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  leq: NamesLeast NamesEq   by and_e nc
+  eqs: forall h1 z j. Names h1 z j -> NamesEq h1 z j
+                            by imp_e names_eq q names linv leq
+  a1: Nat v and Names h v n by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m by imp_e var_name q nc cv vw
+  nvn: Names h v n          by and_e a1
+  nwm: Names h w m          by and_e a2
+  ev: NamesEq h v n         by imp_e eqs nvn
+  eve: forall c k. Names h c k -> Eq n k -> QEq h v c
+                            by and_e ev
+  qe: QEq h v w             by imp_e eve nwm enm
   lemma code:
     variable c
     assume hc: EqAt v w c and PrH h c
-    xc: EqAt v w c                        by and_e hc
-    pc: PrH h c                           by and_e hc
-    ec: Eq c x                            by imp_e eqat_fun fs0 xc ea
-    r:  PrH h x                           by imp_e prh_eq QAx fs0 prf pc ec
+    xc: EqAt v w c by and_e hc
+    pc: PrH h c    by and_e hc
+    ec: Eq c x     by imp_e eqat_fun fs0 xc ea
+    r: PrH h x     by imp_e prh_eq QAx fs0 prf pc ec
     therefore forall c. (EqAt v w c and PrH h c) -> PrH h x
-  r: PrH h x                              by exists_e qe code
+  r: PrH h x by exists_e qe code
   therefore forall e h v w n m x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Val e w m -> Eq n m -> EqAt v w x
-              -> PrH h x
+      -> PrH h x
 
 theorem true_plus:
   variable e h v w u n m k x
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vv: Val e v n
@@ -216,42 +216,42 @@ theorem true_plus:
   assume vu: Val e u k
   assume ad: Add n m k
   assume pa: PlusAt v w u x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  times: TIMES                            by and_e nc
-  plus:  PLUS                             by and_e times
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  lpl:   NamesLeast NamesPlus             by and_e nc
-  ainv:  AddLeast AddShape                by and_e nc
-  all:   forall h1 z j. Names h1 z j -> NamesPlus h1 z j
-                                          by imp_e names_plus q plus names linv leq ainv lpl
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  a3:  Nat u and Names h u k              by imp_e var_name q nc cv vu
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  nuk: Names h u k                        by and_e a3
-  pw:  NamesPlus h w m                    by imp_e all nwm
-  pwe:   forall a n1 c k1. Names h a n1 -> Names h c k1 -> Add n1 m k1 -> QPlus h a w c
-                                          by and_e pw
-  qp: QPlus h v w u                       by imp_e pwe nvn nuk ad
+  fs0: FS0                  by and_e q
+  prf: PRF QAx              by and_e q
+  times: TIMES              by and_e nc
+  plus: PLUS                by and_e times
+  names: NAMES              by and_e nc
+  linv: NamesLeast NamesInv by and_e nc
+  leq: NamesLeast NamesEq   by and_e nc
+  lpl: NamesLeast NamesPlus by and_e nc
+  ainv: AddLeast AddShape   by and_e nc
+  all: forall h1 z j. Names h1 z j -> NamesPlus h1 z j
+                            by imp_e names_plus q plus names linv leq ainv lpl
+  a1: Nat v and Names h v n by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m by imp_e var_name q nc cv vw
+  a3: Nat u and Names h u k by imp_e var_name q nc cv vu
+  nvn: Names h v n          by and_e a1
+  nwm: Names h w m          by and_e a2
+  nuk: Names h u k          by and_e a3
+  pw: NamesPlus h w m       by imp_e all nwm
+  pwe: forall a n1 c k1. Names h a n1 -> Names h c k1 -> Add n1 m k1 -> QPlus h a w c
+                            by and_e pw
+  qp: QPlus h v w u         by imp_e pwe nvn nuk ad
   lemma code:
     variable c
     assume hc: PlusAt v w u c and PrH h c
-    xc: PlusAt v w u c                    by and_e hc
-    pc: PrH h c                           by and_e hc
-    ec: Eq c x                            by imp_e plusat_fun fs0 xc pa
-    r:  PrH h x                           by imp_e prh_eq QAx fs0 prf pc ec
+    xc: PlusAt v w u c by and_e hc
+    pc: PrH h c        by and_e hc
+    ec: Eq c x         by imp_e plusat_fun fs0 xc pa
+    r: PrH h x         by imp_e prh_eq QAx fs0 prf pc ec
     therefore forall c. (PlusAt v w u c and PrH h c) -> PrH h x
-  r: PrH h x                              by exists_e qp code
+  r: PrH h x by exists_e qp code
   therefore forall e h v w u n m k x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Val e w m -> Val e u k -> Add n m k
-              -> PlusAt v w u x -> PrH h x
+      -> PlusAt v w u x -> PrH h x
 
 theorem true_times:
   variable e h v w u n m k x
-  assume q:  QCtx
+  assume q: QCtx
   assume nc: NamesCtx
   assume cv: Covers e h
   assume vv: Val e v n
@@ -259,39 +259,39 @@ theorem true_times:
   assume vu: Val e u k
   assume ad: Mul n m k
   assume pa: TimesAt v w u x
-  fs0:   FS0                              by and_e q
-  prf:   PRF QAx                          by and_e q
-  times: TIMES                            by and_e nc
-  names: NAMES                            by and_e nc
-  linv:  NamesLeast NamesInv              by and_e nc
-  leq:   NamesLeast NamesEq               by and_e nc
-  lnum:  NamesLeast NamesNum              by and_e nc
-  lnat:  NamesLeast NamesNat              by and_e nc
-  lpl:   NamesLeast NamesPlus             by and_e nc
-  ltm:   NamesLeast NamesTimes            by and_e nc
-  ainv:  AddLeast AddShape                by and_e nc
-  minv:  MulLeast MulShape                by and_e nc
-  ldown: NatLeast NamesDown               by and_e nc
-  all:   forall h1 z j. Names h1 z j -> NamesTimes h1 z j
-                                          by imp_e names_times q times names linv leq lnum lnat lpl ainv minv ldown ltm
-  a1:  Nat v and Names h v n              by imp_e var_name q nc cv vv
-  a2:  Nat w and Names h w m              by imp_e var_name q nc cv vw
-  a3:  Nat u and Names h u k              by imp_e var_name q nc cv vu
-  nvn: Names h v n                        by and_e a1
-  nwm: Names h w m                        by and_e a2
-  nuk: Names h u k                        by and_e a3
-  pw:  NamesTimes h w m                   by imp_e all nwm
-  pwe:   forall a n1 c k1. Names h a n1 -> Names h c k1 -> Mul n1 m k1 -> QTimes h a w c
-                                          by and_e pw
-  qp: QTimes h v w u                      by imp_e pwe nvn nuk ad
+  fs0: FS0                   by and_e q
+  prf: PRF QAx               by and_e q
+  times: TIMES               by and_e nc
+  names: NAMES               by and_e nc
+  linv: NamesLeast NamesInv  by and_e nc
+  leq: NamesLeast NamesEq    by and_e nc
+  lnum: NamesLeast NamesNum  by and_e nc
+  lnat: NamesLeast NamesNat  by and_e nc
+  lpl: NamesLeast NamesPlus  by and_e nc
+  ltm: NamesLeast NamesTimes by and_e nc
+  ainv: AddLeast AddShape    by and_e nc
+  minv: MulLeast MulShape    by and_e nc
+  ldown: NatLeast NamesDown  by and_e nc
+  all: forall h1 z j. Names h1 z j -> NamesTimes h1 z j
+                             by imp_e names_times q times names linv leq lnum lnat lpl ainv minv ldown ltm
+  a1: Nat v and Names h v n  by imp_e var_name q nc cv vv
+  a2: Nat w and Names h w m  by imp_e var_name q nc cv vw
+  a3: Nat u and Names h u k  by imp_e var_name q nc cv vu
+  nvn: Names h v n           by and_e a1
+  nwm: Names h w m           by and_e a2
+  nuk: Names h u k           by and_e a3
+  pw: NamesTimes h w m       by imp_e all nwm
+  pwe: forall a n1 c k1. Names h a n1 -> Names h c k1 -> Mul n1 m k1 -> QTimes h a w c
+                             by and_e pw
+  qp: QTimes h v w u         by imp_e pwe nvn nuk ad
   lemma code:
     variable c
     assume hc: TimesAt v w u c and PrH h c
-    xc: TimesAt v w u c                   by and_e hc
-    pc: PrH h c                           by and_e hc
-    ec: Eq c x                            by imp_e timesat_fun fs0 xc pa
-    r:  PrH h x                           by imp_e prh_eq QAx fs0 prf pc ec
+    xc: TimesAt v w u c by and_e hc
+    pc: PrH h c         by and_e hc
+    ec: Eq c x          by imp_e timesat_fun fs0 xc pa
+    r: PrH h x          by imp_e prh_eq QAx fs0 prf pc ec
     therefore forall c. (TimesAt v w u c and PrH h c) -> PrH h x
-  r: PrH h x                              by exists_e qp code
+  r: PrH h x by exists_e qp code
   therefore forall e h v w u n m k x. QCtx -> NamesCtx -> Covers e h -> Val e v n -> Val e w m -> Val e u k -> Mul n m k
-              -> TimesAt v w u x -> PrH h x
+      -> TimesAt v w u x -> PrH h x

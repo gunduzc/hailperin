@@ -12,214 +12,214 @@ define QNTimes h a b c = exists x. TimesAt a b c x and QNot h x
 -- A successor is not zero: Sz.
 theorem neg_zero:
   variable h a0 a
-  assume q:   QCtx
+  assume q: QCtx
   assume na0: Nat a0
-  assume na:  Nat a
-  assume qs:  QSucc h a0 a
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
-  fim:   Fim                              by and_e form
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
+  assume na: Nat a
+  assume qs: QSucc h a0 a
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
+  fim: Fim                 by and_e form
+  tags: Tags               by imp_e tag_exists fs0
+  t2: exists t. T2 t       by and_e tags
   lemma w1:
     variable s
     assume h1: SuccAt a0 a s and PrH h s
-    xs: SuccAt a0 a s                     by and_e h1
-    ps: PrH h s                           by and_e h1
-    ez: exists x. ZeroAt a x              by imp_e zeroat_exists fs0
+    xs: SuccAt a0 a s        by and_e h1
+    ps: PrH h s              by and_e h1
+    ez: exists x. ZeroAt a x by imp_e zeroat_exists fs0
     lemma w2:
       variable za
       assume xz: ZeroAt a za
-      fz: Form za                         by imp_e zeroat_form form na xz
-      eb: exists z. BotCode z             by imp_e bot_exists fs0
+      fz: Form za             by imp_e zeroat_form form na xz
+      eb: exists z. BotCode z by imp_e bot_exists fs0
       lemma w3:
         variable z
         assume bz: BotCode z
-        fb: Form z                        by imp_e bot_form form bz
-        en: exists x. Node2 T2 za z x     by imp_e node2_exists T2 fs0 t2
+        fb: Form z                    by imp_e bot_form form bz
+        en: exists x. Node2 T2 za z x by imp_e node2_exists T2 fs0 t2
         lemma w4:
           variable nz
           assume inz: ImpCode za z nz
           cn: BotCode z and ImpCode za z nz
-                                          by and_i bz inz
-          nc: NotCode za nz               by exists_i cn
-          fn: Form nz                     by imp_e fim fz fb inz
-          pn: PrH h nz                    by imp_e q_sz fs0 form prf pfl na0 na nc xz xs ps fn
+                                        by and_i bz inz
+          nc: NotCode za nz             by exists_i cn
+          fn: Form nz                   by imp_e fim fz fb inz
+          pn: PrH h nz                  by imp_e q_sz fs0 form prf pfl na0 na nc xz xs ps fn
           kn: ImpCode za z nz and PrH h nz
-                                          by and_i inz pn
-          qi: QI h za z                   by exists_i kn
-          kb: BotCode z and QI h za z     by and_i bz qi
-          qn: QNot h za                   by exists_i kb
-          cc: ZeroAt a za and QNot h za   by and_i xz qn
-          r:  QNZero h a                  by exists_i cc
+                                        by and_i inz pn
+          qi: QI h za z                 by exists_i kn
+          kb: BotCode z and QI h za z   by and_i bz qi
+          qn: QNot h za                 by exists_i kb
+          cc: ZeroAt a za and QNot h za by and_i xz qn
+          r: QNZero h a                 by exists_i cc
           therefore forall nz. ImpCode za z nz -> QNZero h a
-        r: QNZero h a                     by exists_e en w4
+        r: QNZero h a by exists_e en w4
         therefore forall z. BotCode z -> QNZero h a
-      r: QNZero h a                       by exists_e eb w3
+      r: QNZero h a by exists_e eb w3
       therefore forall za. ZeroAt a za -> QNZero h a
-    r: QNZero h a                         by exists_e ez w2
+    r: QNZero h a by exists_e ez w2
     therefore forall s. (SuccAt a0 a s and PrH h s) -> QNZero h a
-  r: QNZero h a                           by exists_e qs w1
+  r: QNZero h a by exists_e qs w1
   therefore forall h a0 a. QCtx -> Nat a0 -> Nat a -> QSucc h a0 a -> QNZero h a
 
 -- A false successor: Su gives Succ a b -> Eq s b, for the true successor s.
 theorem neg_succ:
   variable h a b s
-  assume q:  QCtx
+  assume q: QCtx
   assume na: Nat a
   assume nb: Nat b
   assume ns: Nat s
   assume qt: QSucc h a s
   assume qe: QNeq h s b
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
+  tags: Tags               by imp_e tag_exists fs0
+  t2: exists t. T2 t       by and_e tags
   lemma w1:
     variable t
     assume h1: SuccAt a s t and PrH h t
-    xt: SuccAt a s t                      by and_e h1
-    pt: PrH h t                           by and_e h1
+    xt: SuccAt a s t by and_e h1
+    pt: PrH h t      by and_e h1
     lemma w2:
       variable e
       assume h2: EqAt s b e and QNot h e
-      xe: EqAt s b e                      by and_e h2
-      ne: QNot h e                        by and_e h2
-      fe: Form e                          by imp_e eqat_form form ns nb xe
-      ef: exists x. SuccAt a b x          by imp_e succat_exists fs0
+      xe: EqAt s b e             by and_e h2
+      ne: QNot h e               by and_e h2
+      fe: Form e                 by imp_e eqat_form form ns nb xe
+      ef: exists x. SuccAt a b x by imp_e succat_exists fs0
       lemma w3:
         variable f
         assume xf: SuccAt a b f
-        ff: Form f                        by imp_e succat_form form na nb xf
-        ei: exists x. Node2 T2 f e x      by imp_e node2_exists T2 fs0 t2
+        ff: Form f                   by imp_e succat_form form na nb xf
+        ei: exists x. Node2 T2 f e x by imp_e node2_exists T2 fs0 t2
         lemma w4:
           variable i
           assume xi: ImpCode f e i
-          pi: PrH h i                     by imp_e q_su_pre fs0 form prf pfl na ns nb xi xe xf xt pt ff fe
-          ki: ImpCode f e i and PrH h i   by and_i xi pi
-          qi: QI h f e                    by exists_i ki
-          nf: QNot h f                    by imp_e neg_hs fs0 form logax prf ff fe qi ne
-          cc: SuccAt a b f and QNot h f   by and_i xf nf
-          r:  QNSucc h a b                by exists_i cc
+          pi: PrH h i                   by imp_e q_su_pre fs0 form prf pfl na ns nb xi xe xf xt pt ff fe
+          ki: ImpCode f e i and PrH h i by and_i xi pi
+          qi: QI h f e                  by exists_i ki
+          nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
+          cc: SuccAt a b f and QNot h f by and_i xf nf
+          r: QNSucc h a b               by exists_i cc
           therefore forall i. ImpCode f e i -> QNSucc h a b
-        r: QNSucc h a b                   by exists_e ei w4
+        r: QNSucc h a b by exists_e ei w4
         therefore forall f. SuccAt a b f -> QNSucc h a b
-      r: QNSucc h a b                     by exists_e ef w3
+      r: QNSucc h a b by exists_e ef w3
       therefore forall e. (EqAt s b e and QNot h e) -> QNSucc h a b
-    r: QNSucc h a b                       by exists_e qe w2
+    r: QNSucc h a b by exists_e qe w2
     therefore forall t. (SuccAt a s t and PrH h t) -> QNSucc h a b
-  r: QNSucc h a b                         by exists_e qt w1
+  r: QNSucc h a b by exists_e qt w1
   therefore forall h a b s. QCtx -> Nat a -> Nat b -> Nat s -> QSucc h a s -> QNeq h s b -> QNSucc h a b
 
 -- A false sum: Pu gives Plus a b c -> Eq d c, for the true sum d.
 theorem neg_plus:
   variable h a b c d
-  assume q:  QCtx
+  assume q: QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume nd: Nat d
   assume qt: QPlus h a b d
   assume qe: QNeq h d c
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
+  tags: Tags               by imp_e tag_exists fs0
+  t2: exists t. T2 t       by and_e tags
   lemma w1:
     variable t
     assume h1: PlusAt a b d t and PrH h t
-    xt: PlusAt a b d t                    by and_e h1
-    pt: PrH h t                           by and_e h1
+    xt: PlusAt a b d t by and_e h1
+    pt: PrH h t        by and_e h1
     lemma w2:
       variable e
       assume h2: EqAt d c e and QNot h e
-      xe: EqAt d c e                      by and_e h2
-      ne: QNot h e                        by and_e h2
-      fe: Form e                          by imp_e eqat_form form nd nc xe
-      ef: exists x. PlusAt a b c x        by imp_e plusat_exists fs0
+      xe: EqAt d c e               by and_e h2
+      ne: QNot h e                 by and_e h2
+      fe: Form e                   by imp_e eqat_form form nd nc xe
+      ef: exists x. PlusAt a b c x by imp_e plusat_exists fs0
       lemma w3:
         variable f
         assume xf: PlusAt a b c f
-        ff: Form f                        by imp_e plusat_form form na nb nc xf
-        ei: exists x. Node2 T2 f e x      by imp_e node2_exists T2 fs0 t2
+        ff: Form f                   by imp_e plusat_form form na nb nc xf
+        ei: exists x. Node2 T2 f e x by imp_e node2_exists T2 fs0 t2
         lemma w4:
           variable i
           assume xi: ImpCode f e i
-          pi: PrH h i                     by imp_e q_pu_pre fs0 form prf pfl na nb nd nc xi xe xf xt pt ff fe
-          ki: ImpCode f e i and PrH h i   by and_i xi pi
-          qi: QI h f e                    by exists_i ki
-          nf: QNot h f                    by imp_e neg_hs fs0 form logax prf ff fe qi ne
+          pi: PrH h i                   by imp_e q_pu_pre fs0 form prf pfl na nb nd nc xi xe xf xt pt ff fe
+          ki: ImpCode f e i and PrH h i by and_i xi pi
+          qi: QI h f e                  by exists_i ki
+          nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
           cc: PlusAt a b c f and QNot h f
-                                          by and_i xf nf
-          r: QNPlus h a b c               by exists_i cc
+                                        by and_i xf nf
+          r: QNPlus h a b c             by exists_i cc
           therefore forall i. ImpCode f e i -> QNPlus h a b c
-        r: QNPlus h a b c                 by exists_e ei w4
+        r: QNPlus h a b c by exists_e ei w4
         therefore forall f. PlusAt a b c f -> QNPlus h a b c
-      r: QNPlus h a b c                   by exists_e ef w3
+      r: QNPlus h a b c by exists_e ef w3
       therefore forall e. (EqAt d c e and QNot h e) -> QNPlus h a b c
-    r: QNPlus h a b c                     by exists_e qe w2
+    r: QNPlus h a b c by exists_e qe w2
     therefore forall t. (PlusAt a b d t and PrH h t) -> QNPlus h a b c
-  r: QNPlus h a b c                       by exists_e qt w1
+  r: QNPlus h a b c by exists_e qt w1
   therefore forall h a b c d. QCtx -> Nat a -> Nat b -> Nat c -> Nat d -> QPlus h a b d -> QNeq h d c -> QNPlus h a b c
 
 -- A false product: Tu gives Times a b c -> Eq d c, for the true product d.
 theorem neg_times:
   variable h a b c d
-  assume q:  QCtx
+  assume q: QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume nd: Nat d
   assume qt: QTimes h a b d
   assume qe: QNeq h d c
-  fs0:   FS0                              by and_e q
-  form:  FORM                             by and_e q
-  logax: LOGAX                            by and_e q
-  prf:   PRF QAx                          by and_e q
-  pfl:   PrfLeast QAx PFormP              by and_e q
-  tags:  Tags                             by imp_e tag_exists fs0
-  t2:    exists t. T2 t                   by and_e tags
+  fs0: FS0                 by and_e q
+  form: FORM               by and_e q
+  logax: LOGAX             by and_e q
+  prf: PRF QAx             by and_e q
+  pfl: PrfLeast QAx PFormP by and_e q
+  tags: Tags               by imp_e tag_exists fs0
+  t2: exists t. T2 t       by and_e tags
   lemma w1:
     variable t
     assume h1: TimesAt a b d t and PrH h t
-    xt: TimesAt a b d t                   by and_e h1
-    pt: PrH h t                           by and_e h1
+    xt: TimesAt a b d t by and_e h1
+    pt: PrH h t         by and_e h1
     lemma w2:
       variable e
       assume h2: EqAt d c e and QNot h e
-      xe: EqAt d c e                      by and_e h2
-      ne: QNot h e                        by and_e h2
-      fe: Form e                          by imp_e eqat_form form nd nc xe
-      ef: exists x. TimesAt a b c x       by imp_e timesat_exists fs0
+      xe: EqAt d c e                by and_e h2
+      ne: QNot h e                  by and_e h2
+      fe: Form e                    by imp_e eqat_form form nd nc xe
+      ef: exists x. TimesAt a b c x by imp_e timesat_exists fs0
       lemma w3:
         variable f
         assume xf: TimesAt a b c f
-        ff: Form f                        by imp_e timesat_form form na nb nc xf
-        ei: exists x. Node2 T2 f e x      by imp_e node2_exists T2 fs0 t2
+        ff: Form f                   by imp_e timesat_form form na nb nc xf
+        ei: exists x. Node2 T2 f e x by imp_e node2_exists T2 fs0 t2
         lemma w4:
           variable i
           assume xi: ImpCode f e i
-          pi: PrH h i                     by imp_e q_tu_pre fs0 form prf pfl na nb nd nc xi xe xf xt pt ff fe
-          ki: ImpCode f e i and PrH h i   by and_i xi pi
-          qi: QI h f e                    by exists_i ki
-          nf: QNot h f                    by imp_e neg_hs fs0 form logax prf ff fe qi ne
+          pi: PrH h i                   by imp_e q_tu_pre fs0 form prf pfl na nb nd nc xi xe xf xt pt ff fe
+          ki: ImpCode f e i and PrH h i by and_i xi pi
+          qi: QI h f e                  by exists_i ki
+          nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
           cc: TimesAt a b c f and QNot h f
-                                          by and_i xf nf
-          r: QNTimes h a b c              by exists_i cc
+                                        by and_i xf nf
+          r: QNTimes h a b c            by exists_i cc
           therefore forall i. ImpCode f e i -> QNTimes h a b c
-        r: QNTimes h a b c                by exists_e ei w4
+        r: QNTimes h a b c by exists_e ei w4
         therefore forall f. TimesAt a b c f -> QNTimes h a b c
-      r: QNTimes h a b c                  by exists_e ef w3
+      r: QNTimes h a b c by exists_e ef w3
       therefore forall e. (EqAt d c e and QNot h e) -> QNTimes h a b c
-    r: QNTimes h a b c                    by exists_e qe w2
+    r: QNTimes h a b c by exists_e qe w2
     therefore forall t. (TimesAt a b d t and PrH h t) -> QNTimes h a b c
-  r: QNTimes h a b c                      by exists_e qt w1
+  r: QNTimes h a b c by exists_e qt w1
   therefore forall h a b c d. QCtx -> Nat a -> Nat b -> Nat c -> Nat d -> QTimes h a b d -> QNeq h d c -> QNTimes h a b c

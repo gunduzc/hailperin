@@ -38,10 +38,10 @@ define Q = Sz and Si and Pred and Pz and Ps and Tz and Ts and Ze and Zu and Se a
 -- Whatever is zero, added to itself, gives itself.
 theorem zero_plus_zero:
   assume ax: Q
-  pz: Pz                                  by and_e ax
+  pz: Pz by and_e ax
   lemma all:
     variable w
     assume zw: Zero w
-    p: Plus w w w                         by imp_e pz zw
+    p: Plus w w w by imp_e pz zw
     therefore forall w. Zero w -> Plus w w w
   therefore Q -> forall w. Zero w -> Plus w w w
