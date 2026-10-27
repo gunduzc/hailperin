@@ -67,8 +67,8 @@ I hope you enjoy Hailperin. I certainly did.
 
 - Diaconescu's theorem: choice implies excluded middle, over an intuitionistic core of ZF ([diaconescu.hai](examples/diaconescu.hai))
 - Foundation implies excluded middle ([zfc.hai](examples/zfc.hai), `em_from_foundation`)
-- Tarski's undefinability of truth, from the diagonal lemma as a hypothesis ([tarski.hai](examples/tarski.hai))
-- Russell's paradox: there is no set of all sets ([zfc.hai](examples/zfc.hai), `russell`)
+- Russell's paradox: there is no set of all sets ([russell.hai](examples/russell.hai), `russell`)
+- Cantor's theorem: no function from a set onto its subsets, by the diagonal set ([cantor.hai](examples/cantor.hai), `cantor`)
 - Commutativity of addition in Peano arithmetic, with relations instead of functions ([plus_comm.hai](examples/plus_comm.hai))
 - A universal set in New Foundations, from Hailperin's finite axiomatization ([nf.hai](examples/nf.hai), `universe`)
 - $\in$-induction from adduction in intuitionistic hereditarily finite set theory ([hf.hai](examples/hf.hai), `eps_induction`)
