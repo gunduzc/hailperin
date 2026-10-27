@@ -107,7 +107,9 @@ pub fn format(src: &str, opts: &Options) -> Result<String, Error> {
             out.push_str(text);
             // Comments on this source line, after the last output line it gave, and own-line
             // comments before the next.
-            let last_of_line = it.lines.get(j + 1).is_none_or(|(l, _)| l != line);
+            // When the next item starts on this source line too, the comments wait for it.
+            let next_here = j + 1 == it.lines.len() && items.get(k + 1).is_some_and(|n| n.first_line == *line);
+            let last_of_line = it.lines.get(j + 1).is_none_or(|(l, _)| l != line) && !next_here;
             let until = it.lines.get(j + 1).map_or(*line, |(l, _)| *l - 1);
             while last_of_line && next_comment < comments.len() && comments[next_comment].line <= until {
                 let c = &comments[next_comment];
@@ -244,7 +246,10 @@ fn align_columns(items: &mut [Item], blank_between: &dyn Fn(usize, usize) -> boo
         let mut end = k;
         while runs(&items[k]) && end + 1 < items.len() {
             let (a, b) = (&items[end], &items[end + 1]);
-            if head(b) != head(a) || b.depth != a.depth || blank_between(a.lines.last().map_or(0, |(l, _)| *l), b.first_line) {
+            // Top-level items other than definitions get a blank line between them, which ends a
+            // run as one in the source does.
+            let parted = b.depth == 0 && head(b) != Some(&Tok::Kw(Kw::Define));
+            if parted || head(b) != head(a) || b.depth != a.depth || blank_between(a.lines.last().map_or(0, |(l, _)| *l), b.first_line) {
                 break;
             }
             end += 1;
@@ -508,6 +513,20 @@ mod tests {
         let src = "theorem t:\npredicate A\nassume a: A\nassume bb: A\nk: A by reit a\nkkk: A by reit bb\ntherefore A\n";
         let want = "theorem t:\n  predicate A\n  assume a:  A\n  assume bb: A\n  k:   A by reit a\n  kkk: A by reit bb\n  therefore A\n";
         assert_eq!(fmt(src), want);
+    }
+
+    #[test]
+    fn a_trailing_comment_stays_after_the_last_item_of_its_line() {
+        let got = fmt("theorem t:\n  variable x  assume h: P x  -- note\n  therefore forall x. P x -> P x\n");
+        assert_eq!(got, "theorem t:\n  variable x\n  assume h: P x  -- note\n  therefore forall x. P x -> P x\n");
+    }
+
+    #[test]
+    fn stable_on_a_file_that_doesnt_parse() {
+        // Top-level assumptions get blank lines between them, so they don't align.
+        let once = fmt("assume a: A\nassume bb: A\n");
+        assert_eq!(once, "assume a: A\n\nassume bb: A\n");
+        assert_eq!(fmt(&once), once);
     }
 
     #[test]
