@@ -470,7 +470,7 @@ fn reit_brings_a_line_down() {
 #[test]
 fn neg_parse_unbalanced_paren() {
     let src = "theorem t:\n  predicate A\n  predicate B\n  assume a: (A -> B\n  therefore A\n";
-    assert_eq!(fail(src), "failure: line 5: expected `)`");
+    assert_eq!(fail(src), "failure: line 4: this `(` has no `)`");
 }
 
 /// The import cases need files: each is written to a scratch directory, then checked there.
@@ -575,4 +575,20 @@ fn templates_are_named_only_with_arguments() {
 fn only_theorems_declare_predicates() {
     let src = "predicate Q x\ntheorem u:\n variable a\n assume q: Q a\n lemma l:\n  predicate P x\n  variable b\n  assume p: P b\n  therefore forall b. P b -> P b\n therefore forall a. Q a -> Q a";
     assert_eq!(err(src), "a lemma declares no predicates: declare `P` in its theorem");
+}
+
+#[test]
+fn templates_after_a_name_that_is_not_a_theorem() {
+    let pre = "predicate Q x\ntheorem t:\n predicate P x\n variable a\n assume p: P a\n therefore forall a. P a -> P a\n";
+    let cite = |by: &str| format!("{pre}theorem use:\n variable a\n assume q: Q a\n k: Q a by {by}\n therefore forall a. Q a -> Q a");
+    assert_eq!(err(&cite("imp_e q Q")), "use: `q` is a line, and only a theorem takes templates");
+    assert_eq!(err(&cite("imp_e a Q q")), "use: `a` is a variable, and only a theorem takes templates");
+    assert_eq!(err(&cite("imp_e tt Q q")), "use: `tt` is not a theorem: did you mean `t`?");
+}
+
+#[test]
+fn an_unclosed_paren_is_pointed_at() {
+    let src = "predicate Q x\ntheorem t:\n variable a\n assume q: Q a\n k: Q a by imp_e t (Q a q\n therefore forall a. Q a -> Q a";
+    let e = hailperin::verify(src).unwrap_err();
+    assert_eq!((e.line, e.msg.as_str()), (5, "this `(` has no `)`"));
 }

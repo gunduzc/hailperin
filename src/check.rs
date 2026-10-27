@@ -660,13 +660,24 @@ impl Checker {
             },
             Arg::Instance { head: n, targs, line } => match theorem(n) {
                 Some(info) => cite(n, info, targs, *line, cx),
-                None => Err(Error::new(*line, format!("`{n}` is not a theorem"))),
+                None => Err(self.not_a_theorem(n, *line, cx)),
             },
             _ => {
                 let o = self.arg_open(head, cx)?;
                 self.apply_all(o, args, cx, Some(want))
             }
         }
+    }
+
+    /// The error for templates after a name that isn't a theorem here: what it is instead.
+    fn not_a_theorem(&self, n: &str, line: usize, cx: &Cx) -> Error {
+        if cx.lookup(n).is_some() {
+            return Error::new(line, format!("`{n}` is a line, and only a theorem takes templates"));
+        }
+        if cx.var_index(n).is_some() {
+            return Error::new(line, format!("`{n}` is a variable, and only a theorem takes templates"));
+        }
+        self.unseen(n, line).unwrap_or_else(|| Error::new(line, format!("`{n}` is not a theorem{}", self.did_you_mean(n, cx))))
     }
 
     /// `: did you mean `x`?` for a misspelled name, from the rules, the lines in scope and the
@@ -704,7 +715,7 @@ impl Checker {
             }
             Arg::Instance { head: n, targs, line } => match self.global(n) {
                 Some(Global::Theorem(info)) => self.call(n, info, targs, &[], cx, None, *line),
-                _ => Err(self.unseen(n, *line).unwrap_or_else(|| Error::new(*line, format!("`{n}` is not a theorem")))),
+                _ => Err(self.not_a_theorem(n, *line, cx)),
             },
         }
     }
@@ -815,6 +826,14 @@ impl Checker {
     // ---- rules ----
 
     fn rule(&self, h: &str, args: &[Arg], cx: &mut Cx, want: &Formula, line: usize) -> Result<Open, Error> {
+        // Templates follow theorems only, whatever the rule.
+        for a in args {
+            if let Arg::Instance { head, line, .. } = a {
+                if !matches!(self.global(head), Some(Global::Theorem(_))) {
+                    return Err(self.not_a_theorem(head, *line, cx));
+                }
+            }
+        }
         let err = |m: String| Error::new(line, m);
         let need = |n: usize, what: &str| -> Result<(), Error> {
             if args.len() == n {

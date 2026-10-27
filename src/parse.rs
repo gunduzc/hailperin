@@ -201,6 +201,18 @@ impl Parser<'_> {
         }
     }
 
+    /// The `)` for a `(` on line `open`. When the formula ran on to a later line without it, the
+    /// error points at the `(`.
+    fn close(&mut self, open: usize) -> Result<(), Error> {
+        if self.eat(Sym::RParen) {
+            return Ok(());
+        }
+        if self.line() > open {
+            return Err(Error::new(open, "this `(` has no `)`"));
+        }
+        Err(self.err("expected `)`"))
+    }
+
     fn at_item_keyword(&self) -> bool {
         match self.peek() {
             None => true,
@@ -500,6 +512,7 @@ impl Parser<'_> {
 
     /// `( formula )` as a template, which a lone name doesn't need.
     fn paren_targ(&mut self) -> Result<TArg, Error> {
+        let open = self.line();
         self.pos += 1;
         let f = self.formula()?;
         if let FExpr::Atom { name, args, .. } = &f {
@@ -507,7 +520,7 @@ impl Parser<'_> {
                 return Err(self.err(format!("`{name}` has no arguments, so it goes without parentheses: `{name}`")));
             }
         }
-        self.expect(Sym::RParen, "`)`")?;
+        self.close(open)?;
         Ok(TArg::Paren(Box::new(f)))
     }
 
@@ -618,7 +631,7 @@ impl Parser<'_> {
             Some(Tok::Sym(Sym::LParen)) => {
                 self.pos += 1;
                 let f = self.formula()?;
-                self.expect(Sym::RParen, "`)`")?;
+                self.close(line)?;
                 Ok(f)
             }
             Some(Tok::Lower(n)) => Err(self.err(format!("`{n}` is lowercase, so it isn't a statement or predicate"))),
