@@ -1,6 +1,0 @@
-theorem t
-  assume a: A
-  k: A by a
-theorem u
-  assume a: A
-  u: A -> A by imp_i a a

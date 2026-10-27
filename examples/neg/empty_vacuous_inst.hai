@@ -1,5 +1,0 @@
-{- Dropping a vacuous `forall`: `forall_e` needs a variable, and there is none. -}
-theorem vacuous
-  assume h: forall x. A
-  a: A by forall_e h
-  vacuous: (forall x. A) -> A by imp_i h a

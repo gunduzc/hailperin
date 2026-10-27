@@ -1,6 +1,6 @@
 //! Tokens. A file is ASCII. A name is a letter, then letters, digits and single underscores
-//! between them. Comments are `{- ... -}` and nest. Whitespace separates tokens and does
-//! nothing else.
+//! between them. A comment runs from `--` to the end of its line. Whitespace separates tokens
+//! and does nothing else.
 
 use crate::Error;
 
@@ -12,18 +12,20 @@ pub enum Tok {
     Lower(String),
     Kw(Kw),
     Sym(Sym),
+    /// The path after `import`: names, `.` and `..`, joined by `/`.
+    Path(String),
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Kw {
     Theorem,
-    Theory,
-    Define,
-    Include,
-    Import,
-    In,
-    Assume,
     Lemma,
+    Define,
+    Import,
+    Predicate,
+    Variable,
+    Assume,
+    Therefore,
     By,
     Forall,
     Exists,
@@ -63,13 +65,13 @@ pub struct Token {
 
 pub const KEYWORDS: &[(&str, Kw)] = &[
     ("theorem", Kw::Theorem),
-    ("theory", Kw::Theory),
-    ("define", Kw::Define),
-    ("include", Kw::Include),
-    ("import", Kw::Import),
-    ("in", Kw::In),
-    ("assume", Kw::Assume),
     ("lemma", Kw::Lemma),
+    ("define", Kw::Define),
+    ("import", Kw::Import),
+    ("predicate", Kw::Predicate),
+    ("variable", Kw::Variable),
+    ("assume", Kw::Assume),
+    ("therefore", Kw::Therefore),
     ("by", Kw::By),
     ("forall", Kw::Forall),
     ("exists", Kw::Exists),
@@ -99,33 +101,23 @@ pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
             i += 1;
             continue;
         }
-        // Nestable comments.
-        if c == b'{' && at(i + 1, b'-') {
-            let opened = line;
-            let mut depth = 0;
-            loop {
-                if i >= bytes.len() {
-                    return Err(Error::new(opened, "unclosed comment `{-`"));
-                }
+        // A comment: `--` to the end of the line.
+        if c == b'-' && at(i + 1, b'-') {
+            while i < bytes.len() && bytes[i] != b'\n' {
                 if !bytes[i].is_ascii() {
                     return Err(Error::new(line, "files are ASCII, and this byte isn't"));
                 }
-                if bytes[i] == b'{' && at(i + 1, b'-') {
-                    depth += 1;
-                    i += 2;
-                } else if bytes[i] == b'-' && at(i + 1, b'}') {
-                    depth -= 1;
-                    i += 2;
-                    if depth == 0 {
-                        break;
-                    }
-                } else {
-                    if bytes[i] == b'\n' {
-                        line += 1;
-                    }
-                    i += 1;
-                }
+                i += 1;
             }
+            continue;
+        }
+        // After `import`, everything up to whitespace is one path.
+        if matches!(out.last(), Some(Token { tok: Tok::Kw(Kw::Import), .. })) {
+            let start = i;
+            while i < bytes.len() && !bytes[i].is_ascii_whitespace() {
+                i += 1;
+            }
+            out.push(Token { tok: Tok::Path(path(&src[start..i], line)?), line });
             continue;
         }
         if c.is_ascii_alphabetic() {
@@ -155,7 +147,7 @@ pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
             b'.' => (Sym::Dot, 1),
             b'=' => (Sym::Equals, 1),
             b'-' if at(i + 1, b'>') => (Sym::Arrow, 2),
-            b'-' if at(i + 1, b'}') => return Err(Error::new(line, "`-}` without a matching `{-`")),
+            b'{' if at(i + 1, b'-') => return Err(Error::new(line, "comments are `--` to the end of the line, not `{- -}`")),
             b'_' => return Err(Error::new(line, "a name starts with a letter, not `_`")),
             b'\'' => return Err(Error::new(line, "there are no primes: write `xp` or `x1`")),
             _ => return Err(Error::new(line, format!("unexpected character `{}`", c as char))),
@@ -164,6 +156,24 @@ pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
         i += len;
     }
     Ok(out)
+}
+
+/// A path to import: parts joined by `/`, each a lowercase name, `.` or `..`. Relative, so
+/// a file checks the same wherever the directory it sits in is.
+fn path(p: &str, line: usize) -> Result<String, Error> {
+    if p.starts_with('/') {
+        return Err(Error::new(line, format!("`{p}` is absolute: import by a path relative to this file")));
+    }
+    for part in p.split('/') {
+        let name = part.bytes().next().is_some_and(|c| c.is_ascii_lowercase())
+            && part.bytes().all(|c| c.is_ascii_alphanumeric() || c == b'_')
+            && !part.ends_with('_')
+            && !part.contains("__");
+        if !(name || part == "." || part == "..") {
+            return Err(Error::new(line, format!("`{p}` is not a path: each part between `/` is a lowercase name, `.` or `..`")));
+        }
+    }
+    Ok(p.to_string())
 }
 
 #[cfg(test)]
@@ -187,10 +197,10 @@ mod tests {
     }
 
     #[test]
-    fn nested_comments() {
-        assert_eq!(toks("a {- x {- y -} z -} b"), [Tok::Lower("a".into()), Tok::Lower("b".into())]);
-        let e = lex("a\n{- x {- y -}\n").unwrap_err();
-        assert_eq!((e.line, e.msg.as_str()), (2, "unclosed comment `{-`"));
+    fn line_comments() {
+        assert_eq!(toks("a -- x -> y\nb"), [Tok::Lower("a".into()), Tok::Lower("b".into())]);
+        assert_eq!(lex("a -- c\nb").unwrap()[1].line, 2);
+        assert_eq!(lex("{- old -}").unwrap_err().msg, "comments are `--` to the end of the line, not `{- -}`");
     }
 
     #[test]
@@ -203,10 +213,20 @@ mod tests {
     }
 
     #[test]
+    fn import_paths() {
+        assert_eq!(toks("import ../fs0/syntax"), [Tok::Kw(Kw::Import), Tok::Path("../fs0/syntax".into())]);
+        assert_eq!(toks("import ./pa\nimport q"), [Tok::Kw(Kw::Import), Tok::Path("./pa".into()), Tok::Kw(Kw::Import), Tok::Path("q".into())]);
+        assert!(lex("import /home/pa").unwrap_err().msg.contains("absolute"));
+        assert!(lex("import fs0/*").unwrap_err().msg.contains("not a path"));
+        assert!(lex("import a//b").unwrap_err().msg.contains("not a path"));
+        assert!(lex("import Pa").unwrap_err().msg.contains("not a path"));
+    }
+
+    #[test]
     fn rejected_characters() {
-        assert_eq!(lex("a -} b").unwrap_err().msg, "`-}` without a matching `{-`");
+        assert_eq!(lex("a -} b").unwrap_err().msg, "unexpected character `-`");
         assert_eq!(lex("A $ B").unwrap_err().msg, "unexpected character `$`");
-        assert_eq!(lex("{- caf\u{e9} -}").unwrap_err().msg, "files are ASCII, and this byte isn't");
+        assert_eq!(lex("-- caf\u{e9}").unwrap_err().msg, "files are ASCII, and this byte isn't");
         assert_eq!(lex("\u{2200}x").unwrap_err().msg, "files are ASCII, and this byte isn't");
     }
 }

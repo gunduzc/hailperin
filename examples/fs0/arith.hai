@@ -1,0 +1,62 @@
+-- Addition on unary numerals, as an inductive relation. The first computation over FS0.
+
+import syntax
+
+predicate Add x y z
+
+define Ab = forall x z. Nat x -> Nil z -> Add x z x
+define As = forall x y z y1 z1. Add x y z -> Suc y y1 -> Suc z z1 -> Add x y1 z1
+define Qa = forall x y z x1 y1 z1. Eq x x1 -> Eq y y1 -> Eq z z1 -> Add x y z -> Add x1 y1 z1
+
+define PLUS = NAT and Ab and As and Qa
+
+define AddLeast (P x y z) = (forall x z. Nat x -> Nil z -> P x z x)
+                            -> (forall x y z y1 z1. Add x y z -> P x y z -> Suc y y1 -> Suc z z1 -> P x y1 z1)
+                            -> forall x y z. Add x y z -> P x y z
+
+define AddEx x y = exists z. Add x y z
+
+-- Addition is total on numerals.
+theorem add_total:
+  assume plus:  PLUS
+  assume least: forall x. NatLeast (AddEx x)
+  fs0: FS0                                by and_e plus
+  ab:  Ab                                 by and_e plus
+  as:  As                                 by and_e plus
+  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
+  lemma all:
+    variable x y
+    assume hx: Nat x
+    assume hy: Nat y
+    lemma base:
+      variable n
+      assume nn: Nil n
+      a: Add x n x                        by imp_e ab hx nn
+      e: AddEx x n                        by exists_i a
+      therefore forall n. Nil n -> AddEx x n
+    lemma step:
+      variable z n s
+      assume nz: Nil z
+      assume ih: AddEx x n
+      assume pz: Pair z n s
+      lemma w1:
+        variable w
+        assume aw: Add x n w
+        su: exists t. Suc w t             by forall_e sucs w
+        lemma w2:
+          variable t
+          assume st: Suc w t
+          c:  Nil z and Pair z n s        by and_i nz pz
+          sn: Suc n s                     by exists_i c
+          a:  Add x s t                   by imp_e as aw sn st
+          e:  AddEx x s                   by exists_i a
+          therefore forall t. Suc w t -> AddEx x s
+        f1: AddEx x s                     by exists_e su w2
+        therefore forall w. Add x n w -> AddEx x s
+      f2: AddEx x s                       by exists_e ih w1
+      therefore forall z n s. Nil z -> AddEx x n -> Pair z n s -> AddEx x s
+    lx: NatLeast (AddEx x)                by forall_e least x
+    r: forall y. Nat y -> AddEx x y       by imp_e lx base step
+    k: AddEx x y                          by imp_e r hy
+    therefore forall x y. Nat x -> Nat y -> AddEx x y
+  therefore PLUS -> (forall x. NatLeast (AddEx x)) -> forall x y. Nat x -> Nat y -> AddEx x y

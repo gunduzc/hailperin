@@ -1,6 +1,0 @@
-{- A lemma's result rests on an assumption the lemma opened. -}
-theorem bad
-  lemma l
-    assume a: A
-    l: A by a
-  bad: A by l

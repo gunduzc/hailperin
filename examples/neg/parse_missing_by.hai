@@ -1,3 +1,0 @@
-theorem t
-  assume a: A
-  t: A -> A

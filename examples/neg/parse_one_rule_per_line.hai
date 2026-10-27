@@ -1,4 +1,0 @@
-theorem t
-  assume a: A
-  assume b: B
-  t: A -> B -> A and B by imp_i a (imp_i b (and_i a b))

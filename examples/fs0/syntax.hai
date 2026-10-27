@@ -1,0 +1,419 @@
+-- Syntax over FS0. Numerals are unary: zero is the atom, the successor of n is the pair of the
+-- atom with n. Tags are numerals, and a node of the syntax tree is a tag paired with its
+-- payload. Nat is the first closure predicate here, the same shape as List.
+
+import fs0
+
+predicate Nat x
+
+define Zn   = forall n. Nil n -> Nat n
+define Sn   = forall z n s. Nil z -> Nat n -> Pair z n s -> Nat s
+define Qn   = forall x x1. Eq x x1 -> Nat x -> Nat x1
+
+define NAT = FS0 and Zn and Sn and Qn
+
+define NatLeast (P x) = (forall n. Nil n -> P n)
+                        -> (forall z n s. Nil z -> P n -> Pair z n s -> P s)
+                        -> forall x. Nat x -> P x
+
+-- s is the numeral after t
+define Suc t s = exists z. Nil z and Pair z t s
+
+-- t is the numeral after some numeral with property P
+define Next (P s) t = exists s. P s and Suc s t
+
+define T0 t = Nil t
+define T1 t = Next T0 t
+define T2 t = Next T1 t
+define T3 t = Next T2 t
+define T4 t = Next T3 t
+define T5 t = Next T4 t
+define T6 t = Next T5 t
+
+-- Every object has a successor numeral.
+theorem suc_exists:
+  assume fs0: FS0
+  ne: Ne                                  by and_e fs0
+  pe: Pe                                  by and_e fs0
+  lemma all:
+    variable s
+    lemma g:
+      variable w
+      assume nw: Nil w
+      e_q: exists q. Pair w s q           by forall_e pe w s
+      lemma h:
+        variable q
+        assume pq: Pair w s q
+        a:  Nil w and Pair w s q          by and_i nw pq
+        sq: Suc s q                       by exists_i a
+        ex: exists t. Suc s t             by exists_i sq
+        therefore forall q. Pair w s q -> exists t. Suc s t
+      f1: exists t. Suc s t               by exists_e e_q h
+      therefore forall w. Nil w -> exists t. Suc s t
+    f2: exists t. Suc s t                 by exists_e ne g
+    therefore forall s. exists t. Suc s t
+  therefore FS0 -> forall s. exists t. Suc s t
+
+-- Whatever has a successor numeral after it has one.
+theorem next_exists:
+  predicate P a
+  assume fs0: FS0
+  assume h: exists a. P a
+  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
+  lemma g:
+    variable a
+    assume pa: P a
+    su: exists t. Suc a t                 by forall_e sucs a
+    lemma k:
+      variable b
+      assume sb: Suc a b
+      c:  P a and Suc a b                 by and_i pa sb
+      n:  Next P b                        by exists_i c
+      ex: exists t. Next P t              by exists_i n
+      therefore forall b. Suc a b -> exists t. Next P t
+    f1: exists t. Next P t                by exists_e su k
+    therefore forall a. P a -> exists t. Next P t
+  f2: exists t. Next P t                  by exists_e h g
+  therefore FS0 -> (exists a. P a) -> exists t. Next P t
+
+-- The tags exist.
+theorem tag_exists:
+  assume fs0: FS0
+  ne: Ne                                  by and_e fs0
+  t0: exists t. T0 t                      by reit ne
+  t1: exists t. T1 t                      by imp_e next_exists fs0 t0
+  t2: exists t. T2 t                      by imp_e next_exists fs0 t1
+  t3: exists t. T3 t                      by imp_e next_exists fs0 t2
+  t4: exists t. T4 t                      by imp_e next_exists fs0 t3
+  t5: exists t. T5 t                      by imp_e next_exists fs0 t4
+  t6: exists t. T6 t                      by imp_e next_exists fs0 t5
+  k: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+     and (exists t. T5 t) and (exists t. T6 t)
+                                          by and_i t1 t2 t3 t4 t5 t6
+  therefore FS0 -> (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+              and (exists t. T5 t) and (exists t. T6 t)
+
+-- A numeral cannot be zero and a successor at once.
+theorem nil_next_apart:
+  predicate P s
+  assume fs0: FS0
+  en:   En                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  pn:   Pn                                by and_e fs0
+  lemma all:
+    variable s s1
+    assume x: Nil s
+    assume y: Next P s1
+    assume e: Eq s s1
+    lemma c:
+      variable u
+      assume h1: P u and Suc u s1
+      lemma d:
+        variable z
+        assume h2: Nil z and Pair z u s1
+        n1: Nil s1                        by imp_e en e x
+        pz: Pair z u s1                   by and_e h2
+        r:  Eq s1 s1                      by forall_e refl s1
+        f:  absurd                        by imp_e pn pz n1 r
+        therefore forall z. (Nil z and Pair z u s1) -> absurd
+      su: Suc u s1                        by and_e h1
+      f1: absurd                          by exists_e su d
+      therefore forall u. (P u and Suc u s1) -> absurd
+    f2: absurd                            by exists_e y c
+    therefore forall s s1. Nil s -> Next P s1 -> Eq s s1 -> absurd
+  therefore FS0 -> forall s s1. Nil s -> Next P s1 -> Eq s s1 -> absurd
+
+-- Two successors are apart when their predecessors are.
+theorem next_apart:
+  predicate P s
+  predicate Q s
+  assume fs0: FS0
+  assume h: forall s s1. P s -> Q s1 -> Eq s s1 -> absurd
+  pj: Pj                                  by and_e fs0
+  lemma all:
+    variable t t1
+    assume np: Next P t
+    assume nq: Next Q t1
+    assume e:  Eq t t1
+    lemma c1:
+      variable s
+      assume h1: P s and Suc s t
+      lemma c2:
+        variable z
+        assume h2: Nil z and Pair z s t
+        lemma c3:
+          variable s1
+          assume h3: Q s1 and Suc s1 t1
+          lemma c4:
+            variable z1
+            assume h4: Nil z1 and Pair z1 s1 t1
+            ps:  P s                      by and_e h1
+            qs:  Q s1                     by and_e h3
+            pz:  Pair z s t               by and_e h2
+            pz1: Pair z1 s1 t1            by and_e h4
+            c:   Eq z z1 and Eq s s1      by imp_e pj pz pz1 e
+            es:  Eq s s1                  by and_e c
+            f:   absurd                   by imp_e h ps qs es
+            therefore forall z1. (Nil z1 and Pair z1 s1 t1) -> absurd
+          sz1: Suc s1 t1                  by and_e h3
+          f1:  absurd                     by exists_e sz1 c4
+          therefore forall s1. (Q s1 and Suc s1 t1) -> absurd
+        f2: absurd                        by exists_e nq c3
+        therefore forall z. (Nil z and Pair z s t) -> absurd
+      sz: Suc s t                         by and_e h1
+      f3: absurd                          by exists_e sz c2
+      therefore forall s. (P s and Suc s t) -> absurd
+    f4: absurd                            by exists_e np c1
+    therefore forall t t1. Next P t -> Next Q t1 -> Eq t t1 -> absurd
+  therefore FS0 -> (forall s s1. P s -> Q s1 -> Eq s s1 -> absurd)
+              -> forall t t1. Next P t -> Next Q t1 -> Eq t t1 -> absurd
+
+theorem ap_0_1:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T1 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T0)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T1 s1 -> Eq s s1 -> absurd
+
+theorem ap_0_2:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T1)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T2 s1 -> Eq s s1 -> absurd
+
+theorem ap_0_3:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T2)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T3 s1 -> Eq s s1 -> absurd
+
+theorem ap_0_4:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T3)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T4 s1 -> Eq s s1 -> absurd
+
+theorem ap_0_5:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T4)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T5 s1 -> Eq s s1 -> absurd
+
+theorem ap_0_6:
+  assume fs0: FS0
+  g: forall s s1. T0 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e (nil_next_apart (T5)) fs0
+  therefore FS0 -> forall s s1. T0 s -> T6 s1 -> Eq s s1 -> absurd
+
+theorem ap_1_2:
+  assume fs0: FS0
+  prev: forall s s1. T0 s -> T1 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_0_1 fs0
+  g: forall s s1. T1 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T1 s -> T2 s1 -> Eq s s1 -> absurd
+
+theorem ap_1_3:
+  assume fs0: FS0
+  prev: forall s s1. T0 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_0_2 fs0
+  g: forall s s1. T1 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T1 s -> T3 s1 -> Eq s s1 -> absurd
+
+theorem ap_1_4:
+  assume fs0: FS0
+  prev: forall s s1. T0 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_0_3 fs0
+  g: forall s s1. T1 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T1 s -> T4 s1 -> Eq s s1 -> absurd
+
+theorem ap_1_5:
+  assume fs0: FS0
+  prev: forall s s1. T0 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_0_4 fs0
+  g: forall s s1. T1 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T1 s -> T5 s1 -> Eq s s1 -> absurd
+
+theorem ap_1_6:
+  assume fs0: FS0
+  prev: forall s s1. T0 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_0_5 fs0
+  g: forall s s1. T1 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T1 s -> T6 s1 -> Eq s s1 -> absurd
+
+theorem ap_2_3:
+  assume fs0: FS0
+  prev: forall s s1. T1 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_2 fs0
+  g: forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
+
+theorem ap_2_4:
+  assume fs0: FS0
+  prev: forall s s1. T1 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_3 fs0
+  g: forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
+
+theorem ap_2_5:
+  assume fs0: FS0
+  prev: forall s s1. T1 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_4 fs0
+  g: forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+
+theorem ap_2_6:
+  assume fs0: FS0
+  prev: forall s s1. T1 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_5 fs0
+  g: forall s s1. T2 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T2 s -> T6 s1 -> Eq s s1 -> absurd
+
+theorem ap_3_4:
+  assume fs0: FS0
+  prev: forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_3 fs0
+  g: forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
+
+theorem ap_3_5:
+  assume fs0: FS0
+  prev: forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_4 fs0
+  g: forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
+
+theorem ap_3_6:
+  assume fs0: FS0
+  prev: forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_5 fs0
+  g: forall s s1. T3 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T3 s -> T6 s1 -> Eq s s1 -> absurd
+
+theorem ap_4_5:
+  assume fs0: FS0
+  prev: forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_4 fs0
+  g: forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
+
+theorem ap_4_6:
+  assume fs0: FS0
+  prev: forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_5 fs0
+  g: forall s s1. T4 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T4 s -> T6 s1 -> Eq s s1 -> absurd
+
+theorem ap_5_6:
+  assume fs0: FS0
+  prev: forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_4_5 fs0
+  g: forall s s1. T5 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e next_apart fs0 prev
+  therefore FS0 -> forall s s1. T5 s -> T6 s1 -> Eq s s1 -> absurd
+
+-- A node is a tag paired with its payload. Binary nodes pair two parts first.
+define Node1 (K t) a x = exists t. K t and Pair t a x
+define Node2 (K t) a b x = exists r t. Pair a b r and K t and Pair t r x
+
+predicate Vs x
+predicate Form x
+
+-- Formulas. The tags are: 0 absurd, 1 atom, 2 implication, 3 and, 4 or, 5 forall, 6 exists.
+-- An atom pairs a predicate numeral with a list of variable numerals.
+define Vn   = forall n. Nil n -> Vs n
+define Vc   = forall v t p. Nat v -> Vs t -> Pair v t p -> Vs p
+define Qv   = forall x x1. Eq x x1 -> Vs x -> Vs x1
+define Fbot = forall n x. Nil n -> Node1 T0 n x -> Form x
+define Fat  = forall p l x. Nat p -> Vs l -> Node2 T1 p l x -> Form x
+define Fim  = forall a b x. Form a -> Form b -> Node2 T2 a b x -> Form x
+define Fan  = forall a b x. Form a -> Form b -> Node2 T3 a b x -> Form x
+define Fo   = forall a b x. Form a -> Form b -> Node2 T4 a b x -> Form x
+define Ffa  = forall v a x. Nat v -> Form a -> Node2 T5 v a x -> Form x
+define Fex  = forall v a x. Nat v -> Form a -> Node2 T6 v a x -> Form x
+define Qf   = forall x x1. Eq x x1 -> Form x -> Form x1
+
+define FORM = NAT and Vn and Vc and Qv and Fbot and Fat and Fim and Fan and Fo and Ffa and Fex and Qf
+
+define VsLeast (P x) = (forall n. Nil n -> P n)
+                       -> (forall v t p. Nat v -> P t -> Pair v t p -> P p)
+                       -> forall x. Vs x -> P x
+
+define FormLeast (P x) = (forall n x. Nil n -> Node1 T0 n x -> P x)
+                         -> (forall p l x. Nat p -> Vs l -> Node2 T1 p l x -> P x)
+                         -> (forall a b x. P a -> P b -> Node2 T2 a b x -> P x)
+                         -> (forall a b x. P a -> P b -> Node2 T3 a b x -> P x)
+                         -> (forall a b x. P a -> P b -> Node2 T4 a b x -> P x)
+                         -> (forall v a x. Nat v -> P a -> Node2 T5 v a x -> P x)
+                         -> (forall v a x. Nat v -> P a -> Node2 T6 v a x -> P x)
+                         -> forall x. Form x -> P x
+
+-- Any two parts can be put in a node with an existing tag.
+theorem node2_exists:
+  predicate K t
+  variable a b
+  assume fs0: FS0
+  assume ek: exists t. K t
+  pe: Pe                                  by and_e fs0
+  e1: exists r. Pair a b r                by forall_e pe a b
+  lemma w1:
+    variable r
+    assume pab: Pair a b r
+    lemma w2:
+      variable t
+      assume kt: K t
+      e2: exists x. Pair t r x            by forall_e pe t r
+      lemma w3:
+        variable x
+        assume ptr: Pair t r x
+        c1: K t and Pair t r x            by and_i kt ptr
+        c2: Pair a b r and K t and Pair t r x
+                                          by and_i pab c1
+        n2: Node2 K a b x                 by exists_i c2
+        ex: exists x. Node2 K a b x       by exists_i n2
+        therefore forall x. Pair t r x -> exists x. Node2 K a b x
+      f1: exists x. Node2 K a b x         by exists_e e2 w3
+      therefore forall t. K t -> exists x. Node2 K a b x
+    f3: exists x. Node2 K a b x           by exists_e ek w2
+    therefore forall r. Pair a b r -> exists x. Node2 K a b x
+  f2: exists x. Node2 K a b x             by exists_e e1 w1
+  therefore forall a b. FS0 -> (exists t. K t) -> exists x. Node2 K a b x
+
+-- Two formulas always have an implication node, and it is a formula.
+theorem imp_exists:
+  assume form: FORM
+  fs0: FS0                                by and_e form
+  fim: Fim                                by and_e form
+  lemma all:
+    variable a b
+    assume fa: Form a
+    assume fb: Form b
+    tg: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+        and (exists t. T5 t) and (exists t. T6 t)
+                                          by imp_e tag_exists fs0
+    e2: exists t. T2 t                    by and_e tg
+    ex: exists x. Node2 T2 a b x          by imp_e node2_exists fs0 e2
+    lemma w:
+      variable x
+      assume n: Node2 T2 a b x
+      fx: Form x                          by imp_e fim fa fb n
+      c:  Form x and Node2 T2 a b x       by and_i fx n
+      ok: exists x. Form x and Node2 T2 a b x
+                                          by exists_i c
+      therefore forall x. Node2 T2 a b x -> exists x. Form x and Node2 T2 a b x
+    f: exists x. Form x and Node2 T2 a b x
+                                          by exists_e ex w
+    therefore forall a b. Form a -> Form b -> exists x. Form x and Node2 T2 a b x
+  therefore FORM -> forall a b. Form a -> Form b -> exists x. Form x and Node2 T2 a b x

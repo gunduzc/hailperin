@@ -3,20 +3,51 @@ use std::path::Path;
 use std::process::exit;
 
 const USAGE: &str = "usage: hailperin [FILE]          check a file (`-` or nothing: standard input)
-       hailperin fmt FILE        print the file with one indentation level per block
-       hailperin explain FILE    print each line's scope and formula, and what each theorem rests on";
+       hailperin fmt [OPTIONS] FILE
+                                 print the file in its canonical layout
+           --indent N            spaces per level (2)
+           --by pad|space        `by` in one column per segment, or after one space (pad)
+           --scope segment|theorem
+                                 a column per run of steps, or per theorem (segment)
+       hailperin explain FILE    print each line's scope and formula";
 
 fn main() {
     let args: Vec<String> = std::env::args().collect();
-    let (mode, file) = match args.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+    let argv: Vec<&str> = args.iter().map(String::as_str).collect();
+    let mut opts = hailperin::fmt::Options::default();
+    let (mode, file) = match argv.as_slice() {
         [_] => ("check", None),
-        [_, "fmt", f] => ("fmt", Some(*f)),
+        [_, "fmt", rest @ ..] => {
+            let mut file = None;
+            let mut i = 0;
+            while i < rest.len() {
+                let value = rest.get(i + 1).copied();
+                match (rest[i], value) {
+                    ("--indent", Some(n)) => match n.parse() {
+                        Ok(n) => opts.indent = n,
+                        Err(_) => usage(),
+                    },
+                    ("--by", Some("pad")) => opts.pad = true,
+                    ("--by", Some("space")) => opts.pad = false,
+                    ("--scope", Some("segment")) => opts.theorem_wide = false,
+                    ("--scope", Some("theorem")) => opts.theorem_wide = true,
+                    (f, _) if !f.starts_with("--") && file.is_none() => {
+                        file = Some(f);
+                        i += 1;
+                        continue;
+                    }
+                    _ => usage(),
+                }
+                i += 2;
+            }
+            match file {
+                Some(f) => ("fmt", Some(f)),
+                None => usage(),
+            }
+        }
         [_, "explain", f] => ("explain", Some(*f)),
         [_, f] if !matches!(*f, "fmt" | "explain" | "--help" | "-h") => ("check", Some(*f)),
-        _ => {
-            eprintln!("{USAGE}");
-            exit(2);
-        }
+        _ => usage(),
     };
     let path = file.filter(|f| *f != "-").map(Path::new);
     let src = match path {
@@ -30,7 +61,7 @@ fn main() {
     // Imports are found next to the file, or in the current directory for standard input.
     let dir = path.and_then(Path::parent).filter(|d| !d.as_os_str().is_empty()).unwrap_or(Path::new("."));
     let result = match mode {
-        "fmt" => hailperin::fmt::format(&src).map(|out| print!("{out}")),
+        "fmt" => hailperin::fmt::format(&src, &opts).map(|out| print!("{out}")),
         "explain" => hailperin::explain_in(&src, dir, path).map(|lines| {
             for l in lines {
                 println!("{l}");
@@ -42,6 +73,11 @@ fn main() {
         println!("failure: {e}");
         exit(1);
     }
+}
+
+fn usage() -> ! {
+    eprintln!("{USAGE}");
+    exit(2);
 }
 
 fn read_stdin() -> std::io::Result<String> {

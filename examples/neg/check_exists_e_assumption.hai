@@ -1,5 +1,0 @@
-{- The assumption given to `exists_e` didn't introduce a witness. -}
-theorem bad
-  assume e: exists x. P x
-  assume q: Q
-  bad: Q by exists_e e q q

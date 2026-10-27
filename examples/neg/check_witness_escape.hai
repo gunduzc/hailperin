@@ -1,5 +1,0 @@
-{- The line reached mentions the witness. -}
-theorem bad
-  assume e: exists x. P x
-  assume p: P w
-  bad: P w by exists_e e p p

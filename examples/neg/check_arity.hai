@@ -1,4 +1,0 @@
-{- A predicate is used with two different numbers of arguments. -}
-theorem bad
-  assume h: P x
-  bad: P x y by h

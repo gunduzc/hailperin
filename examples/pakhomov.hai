@@ -1,0 +1,158 @@
+-- Pakhomov's H and H<omega (A weak set theory that proves its own consistency, 2019).
+-- H has extensionality, full separation and a rank function V, and nothing else: no pair,
+-- no union, no successor. Its models are the levels of the cumulative hierarchy, finite
+-- ones included, so no finite fragment of what is built on it can be inconsistent. The
+-- numerals come one closed member at a time, as in the paper. The theory escapes Godel's
+-- second theorem because it never says a successor exists, which is the one line that
+-- would make it interpret Q.
+--
+-- V is a function symbol in the paper. Here it is the relation Rank x v, "v is V(x)", and
+-- a function symbol needs two things: existence, which is the axiom `RankExists`, and
+-- uniqueness, which is `rank_unique` below, a theorem, because `RankLevel` characterises
+-- Rank x v by the members of v and equality is extensional. Congruence in x follows the
+-- same way. Existence holds at every level of the hierarchy, since the rank of a set
+-- never exceeds the set's own level, so the finite models survive it.
+
+predicate In x y
+predicate Rank x v
+define Iff (A) (B) = (A -> B) and (B -> A)
+define Eq x y = forall z. Iff (In z x) (In z y)
+define Sub x y = forall z. In z x -> In z y
+define Empty x = forall z. not (In z x)
+define Successor x s = forall z. Iff (In z s) (In z x or Eq z x)
+
+-- y is a subset of the rank of some member of x: the members of V(x).
+define Below x y = exists z. In z x and exists w. Rank z w and Sub y w
+define Level x v = forall y. Iff (In y v) (Below x y)
+
+define Ext        = forall x y. Eq x y -> forall z. In x z -> In y z
+define RankExists = forall x. exists v. Rank x v
+define RankLevel  = forall x v. Iff (Rank x v) (Level x v)
+
+define H = Ext and RankExists and RankLevel
+
+-- H's one schema: full separation.
+define Separation (P z) = forall a. exists s. forall z. Iff (In z s) (In z a and P z)
+
+define Nmb0 x = Empty x
+define Nmb1 x = exists y. Nmb0 y and Successor y x
+define Nmb2 x = exists y. Nmb1 y and Successor y x
+define Nmb3 x = exists y. Nmb2 y and Successor y x
+
+define Nmb0Exists = exists x. Nmb0 x
+define Nmb1Exists = exists x. Nmb1 x
+define Nmb2Exists = exists x. Nmb2 x
+define Nmb3Exists = exists x. Nmb3 x
+
+define Hw = H and Nmb0Exists and Nmb1Exists and Nmb2Exists and Nmb3Exists
+
+-- A set has at most one rank, up to equality.
+theorem rank_unique:
+  assume ax: H
+  level: RankLevel                        by and_e ax
+  lemma all:
+    variable x v w
+    assume a: Rank x v
+    assume b: Rank x w
+    la:  Iff (Rank x v) (Level x v)       by forall_e level x v
+    fa:  Rank x v -> Level x v            by and_e la
+    lva: Level x v                        by imp_e fa a
+    lb:  Iff (Rank x w) (Level x w)       by forall_e level x w
+    fb:  Rank x w -> Level x w            by and_e lb
+    lvb: Level x w                        by imp_e fb b
+    lemma eq:
+      variable y
+      iv: Iff (In y v) (Below x y)        by forall_e lva y
+      iw: Iff (In y w) (Below x y)        by forall_e lvb y
+      lemma f:
+        assume yv: In y v
+        fv: In y v -> Below x y           by and_e iv
+        c:  Below x y                     by imp_e fv yv
+        bw: Below x y -> In y w           by and_e iw
+        yw: In y w                        by imp_e bw c
+        therefore In y v -> In y w
+      lemma g:
+        assume yw: In y w
+        fw: In y w -> Below x y           by and_e iw
+        c:  Below x y                     by imp_e fw yw
+        bv: Below x y -> In y v           by and_e iv
+        yv: In y v                        by imp_e bv c
+        therefore In y w -> In y v
+      i: Iff (In y v) (In y w)            by and_i f g
+      therefore Eq v w
+    therefore forall x v w. Rank x v -> Rank x w -> Eq v w
+  therefore H -> forall x v w. Rank x v -> Rank x w -> Eq v w
+
+-- The rank of the empty set is empty.
+theorem rank_of_empty:
+  assume ax: H
+  level: RankLevel                        by and_e ax
+  lemma all:
+    variable x v
+    assume e: Empty x
+    assume r: Rank x v
+    la: Iff (Rank x v) (Level x v)        by forall_e level x v
+    fa: Rank x v -> Level x v             by and_e la
+    lv: Level x v                         by imp_e fa r
+    lemma n:
+      variable y
+      assume yv: In y v
+      iy:  Iff (In y v) (Below x y)       by forall_e lv y
+      fwd: In y v -> Below x y            by and_e iy
+      ex:  Below x y                      by imp_e fwd yv
+      lemma c:
+        variable z
+        assume h: In z x and exists w. Rank z w and Sub y w
+        zx: In z x                        by and_e h
+        nz: not (In z x)                  by forall_e e z
+        f:  absurd                        by imp_e nz zx
+        therefore forall z. (In z x and exists w. Rank z w and Sub y w) -> absurd
+      k: absurd                           by exists_e ex c
+      therefore Empty v
+    therefore forall x v. Empty x -> Rank x v -> Empty v
+  therefore H -> forall x v. Empty x -> Rank x v -> Empty v
+
+theorem eq_refl:
+  lemma all:
+    variable x
+    lemma i:
+      variable z
+      lemma l:
+        assume h: In z x
+        therefore In z x -> In z x
+      k: Iff (In z x) (In z x)            by and_i l l
+      therefore Eq x x
+    therefore forall x. Eq x x
+  therefore forall x. Eq x x
+
+-- One is a member of two, from the numeral members alone.
+theorem one_in_two:
+  assume ax: Hw
+  n2: Nmb2Exists                          by and_e ax
+  lemma c:
+    variable x
+    assume h: Nmb2 x
+    lemma d:
+      variable y
+      assume g: Nmb1 y and Successor y x
+      ny:  Nmb1 y                         by and_e g
+      s:   Successor y x                  by and_e g
+      iy:  Iff (In y x) (In y y or Eq y y)
+                                          by forall_e s y
+      bwd: In y y or Eq y y -> In y x     by and_e iy
+      ryy: Eq y y                         by forall_e eq_refl y
+      o:   In y y or Eq y y               by or_i ryy
+      yx:  In y x                         by imp_e bwd o
+      k:   Nmb1 y and In y x              by and_i ny yx
+      ey:  exists y. Nmb1 y and In y x    by exists_i k
+      k2:  Nmb2 x and exists y. Nmb1 y and In y x
+                                          by and_i h ey
+      ex:  exists x. Nmb2 x and exists y. Nmb1 y and In y x
+                                          by exists_i k2
+      therefore forall y. (Nmb1 y and Successor y x) -> exists x. Nmb2 x and exists y. Nmb1 y and In y x
+    d1: exists x. Nmb2 x and exists y. Nmb1 y and In y x
+                                          by exists_e h d
+    therefore forall x. Nmb2 x -> exists x. Nmb2 x and exists y. Nmb1 y and In y x
+  k: exists x. Nmb2 x and exists y. Nmb1 y and In y x
+                                          by exists_e n2 c
+  therefore Hw -> exists x. Nmb2 x and exists y. Nmb1 y and In y x

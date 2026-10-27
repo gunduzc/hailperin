@@ -1,5 +1,0 @@
-{- The textbook "if everything is P, something is P": nothing is in scope to point at. -}
-theorem textbook
-  assume h: forall x. P x
-  e: exists x. P x by exists_i h
-  textbook: (forall x. P x) -> exists x. P x by imp_i h e

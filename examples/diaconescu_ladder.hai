@@ -1,0 +1,208 @@
+-- Diaconescu as one theorem: the same argument and choice, but the construction carries
+-- `A or not A` back up its ladder instead of packing the sets.
+
+import zfc
+
+-- The argument, flat: given the six sets and the choice function's two picks, A or not A.
+-- e = {}, o = {e}, u = {e, o}, x = {z in u | z = e or A}, y = {z in u | z = o or A}, s = {x, y}
+theorem diaconescu_core:
+  predicate A
+  variable e o u x y f a b
+  assume he: Empty e
+  assume ho: Pairing o e e
+  assume hu: Pairing u e o
+  assume hx: SepBy A x u e
+  assume hy: SepBy A y u o
+  assume ha: Picks f x a
+  assume hb: Picks f y b
+  -- a = e or A; b = o or A
+  ax:  In a x                             by and_e ha
+  d9:  In a u and EqOr A e a              by imp_e sepby_out hx ax
+  ca:  EqOr A e a                         by and_e d9
+  iby: In b y                             by and_e hb
+  d10: In b u and EqOr A o b              by imp_e sepby_out hy iby
+  cb:  EqOr A o b                         by and_e d10
+  lemma yes:
+    assume h: A
+    y1: A or not A                        by or_i h
+    therefore A -> A or not A
+  -- a = e and b = o give not A: under A, x = y, so a = b, so e = o, so e in e
+  lemma no:
+    assume ae: Eq a e
+    assume bo: Eq b o
+    assume h:  A
+    lemma xy:
+      variable z
+      lemma xy1:
+        assume zx: In z x
+        d11: In z u and EqOr A e z        by imp_e sepby_out hx zx
+        zu:  In z u                       by and_e d11
+        d12: EqOr A o z                   by or_i h
+        zy:  In z y                       by imp_e sepby_in hy zu d12
+        therefore In z x -> In z y
+      lemma xy2:
+        assume zy: In z y
+        d13: In z u and EqOr A o z        by imp_e sepby_out hy zy
+        zu:  In z u                       by and_e d13
+        d14: EqOr A e z                   by or_i h
+        zx:  In z x                       by imp_e sepby_in hx zu d14
+        therefore In z y -> In z x
+      xyz: Iff (In z x) (In z y)          by and_i xy1 xy2
+      therefore Eq x y
+    ha2: Maps f x a and forall v1. Maps f x v1 -> Eq a v1
+                                          by and_e ha
+    mfa: Maps f x a                       by and_e ha2
+    mya: Maps f y a                       by imp_e maps_move xy mfa
+    hb2: Maps f y b and forall v1. Maps f y v1 -> Eq b v1
+                                          by and_e hb
+    ub:  forall v1. Maps f y v1 -> Eq b v1
+                                          by and_e hb2
+    ba:  Eq b a                           by imp_e ub mya
+    ob:  Eq o b                           by imp_e eq_sym bo
+    be:  Eq b e                           by imp_e eq_trans ba ae
+    oe:  Eq o e                           by imp_e eq_trans ob be
+    eo:  In e o                           by imp_e pairing_in1 ho
+    ee:  In e e                           by imp_e eq_in oe eo
+    hee: not (In e e)                     by forall_e he e
+    f1:  absurd                           by imp_e hee ee
+    therefore Eq a e -> Eq b o -> not A
+  -- combine the cases
+  lemma case_ae:
+    assume ae: Eq a e
+    no1: Eq b o -> not A                  by imp_e no ae
+    lemma case_bo:
+      assume bo: Eq b o
+      na: not A                           by imp_e no1 bo
+      n1: A or not A                      by or_i na
+      therefore Eq b o -> A or not A
+    r1: A or not A                        by or_e cb case_bo yes
+    therefore Eq a e -> A or not A
+  r: A or not A                           by or_e ca case_ae yes
+  therefore forall e o u x y f a b. Empty e -> Pairing o e e -> Pairing u e o -> SepBy A x u e
+              -> SepBy A y u o -> Picks f x a -> Picks f y b -> A or not A
+
+-- Given the six sets, choose: a function on s, its pick from x, its pick from y.
+theorem diaconescu_choose:
+  predicate A
+  variable e o u x y s
+  assume choice: Choice
+  assume he: Empty e
+  assume ho: Pairing o e e
+  assume hu: Pairing u e o
+  assume hx: SepBy A x u e
+  assume hy: SepBy A y u o
+  assume hs: Pairing s x y
+  -- e, o in u; e in x; o in y; x, y in s
+  eu:  In e u                             by imp_e pairing_in1 hu
+  ou:  In o u                             by imp_e pairing_in2 hu
+  ree: Eq e e                             by forall_e eq_refl e
+  roo: Eq o o                             by forall_e eq_refl o
+  ce:  EqOr A e e                         by or_i ree
+  co:  EqOr A o o                         by or_i roo
+  ein: In e x                             by imp_e sepby_in hx eu ce
+  oin: In o y                             by imp_e sepby_in hy ou co
+  xs:  In x s                             by imp_e pairing_in1 hs
+  ys:  In y s                             by imp_e pairing_in2 hs
+  -- every member of s is inhabited
+  lemma inh:
+    variable w
+    assume ws: In w s
+    hsw:  Iff (In w s) (Eq w x or Eq w y) by forall_e hs w
+    hsw1: In w s -> Eq w x or Eq w y      by and_e hsw
+    wxy:  Eq w x or Eq w y                by imp_e hsw1 ws
+    lemma i1:
+      assume q: Eq w x
+      ew: In e w                          by imp_e eq_in_back q ein
+      ie: exists v. In v w                by exists_i ew
+      therefore Eq w x -> exists v. In v w
+    lemma i2:
+      assume q: Eq w y
+      ow: In o w                          by imp_e eq_in_back q oin
+      io: exists v. In v w                by exists_i ow
+      therefore Eq w y -> exists v. In v w
+    iw: exists v. In v w                  by or_e wxy i1 i2
+    therefore forall w. In w s -> exists v. In v w
+  ch:  (forall w. In w s -> exists v. In v w) -> exists f. Chooses f s
+                                          by forall_e choice s
+  chf: exists f. Chooses f s              by imp_e ch inh
+  lemma wf:
+    variable f
+    assume hf: Chooses f s
+    exa: exists v. Picks f x v            by imp_e hf xs
+    exb: exists v. Picks f y v            by imp_e hf ys
+    lemma wa:
+      variable a
+      assume ha: Picks f x a
+      lemma wb:
+        variable b
+        assume hb: Picks f y b
+        k: A or not A                     by imp_e diaconescu_core he ho hu hx hy ha hb
+        therefore forall b. Picks f y b -> A or not A
+      r5: A or not A                      by exists_e exb wb
+      therefore forall a. Picks f x a -> A or not A
+    r8: A or not A                        by exists_e exa wa
+    therefore forall f. Chooses f s -> A or not A
+  r: A or not A                           by exists_e chf wf
+  therefore forall e o u x y s. Choice -> Empty e -> Pairing o e e -> Pairing u e o -> SepBy A x u e
+              -> SepBy A y u o -> Pairing s x y -> A or not A
+
+-- Build the six sets, one witness at a time, and conclude.
+theorem diaconescu:
+  predicate A
+  assume sets:   Sets
+  assume choice: Choice
+  assume sep:    forall e. Separation (EqOr A e)
+  empty: EmptyExists                      by and_e sets
+  pair:  PairExists                       by and_e sets
+  lemma we:
+    variable e
+    assume he: Empty e
+    po: exists o. Pairing o e e           by forall_e pair e e
+    lemma wo:
+      variable o
+      assume ho: Pairing o e e
+      pu: exists u. Pairing u e o         by forall_e pair e o
+      lemma wu:
+        variable u
+        assume hu: Pairing u e o
+        sx: exists x. SepBy A x u e       by forall_e sep e u
+        lemma wx:
+          variable x
+          assume hx: SepBy A x u e
+          sy: exists y. SepBy A y u o     by forall_e sep o u
+          lemma wy:
+            variable y
+            assume hy: SepBy A y u o
+            ps: exists s. Pairing s x y   by forall_e pair x y
+            lemma ws:
+              variable s
+              assume hs: Pairing s x y
+              k: A or not A               by imp_e diaconescu_choose choice he ho hu hx hy hs
+              therefore forall s. Pairing s x y -> A or not A
+            r14: A or not A               by exists_e ps ws
+            therefore forall y. SepBy A y u o -> A or not A
+          r17: A or not A                 by exists_e sy wy
+          therefore forall x. SepBy A x u e -> A or not A
+        r20: A or not A                   by exists_e sx wx
+        therefore forall u. Pairing u e o -> A or not A
+      r23: A or not A                     by exists_e pu wu
+      therefore forall o. Pairing o e e -> A or not A
+    r26: A or not A                       by exists_e po wo
+    therefore forall e. Empty e -> A or not A
+  r: A or not A                           by exists_e empty we
+  therefore Sets -> Choice -> (forall e. Separation (EqOr A e)) -> A or not A
+
+-- `empty_or_not` without excluded middle as an assumption, via Diaconescu.
+theorem empty_or_not_from_choice:
+  assume sets:   Sets
+  assume choice: Choice
+  assume sep:    forall a e. Separation (EqOr (Inhabited a) e)
+  lemma em:
+    variable a
+    sep_a: forall e. Separation (EqOr (Inhabited a) e)
+                                          by forall_e sep a
+    k: Inhabited a or not (Inhabited a)   by imp_e diaconescu sets choice sep_a
+    therefore forall a. Inhabited a or not (Inhabited a)
+  r: forall a. Empty a or Inhabited a     by imp_e empty_or_not em
+  therefore Sets -> Choice -> (forall a e. Separation (EqOr (Inhabited a) e))
+              -> forall a. Empty a or Inhabited a

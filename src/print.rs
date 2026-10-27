@@ -1,6 +1,56 @@
-//! Formulas in the file's own syntax, for messages. `imp A absurd` prints as `not A`.
+//! Formulas in the file's own syntax, for messages. `imp A absurd` prints as `not A`, and an
+//! instance of a definition over individuals prints as the definition's name.
 
-use crate::kernel::formula::{Formula, Node};
+use crate::kernel::formula::{Formula, Name, Node};
+use std::cell::RefCell;
+use std::collections::{BTreeSet, HashMap};
+
+/// A definition that messages print by name: `name params = body`, the parameters individuals.
+pub struct Fold {
+    pub name: String,
+    pub params: Vec<Name>,
+    pub body: Formula,
+}
+
+thread_local! {
+    /// The definitions of the check under way, in the order they were made.
+    static FOLDS: RefCell<Vec<Fold>> = const { RefCell::new(Vec::new()) };
+}
+
+/// Forgets the definitions folded so far, for a new check.
+pub fn clear_folds() {
+    FOLDS.with(|f| f.borrow_mut().clear());
+}
+
+/// Prints instances of this definition by its name from now on.
+pub fn add_fold(fold: Fold) {
+    FOLDS.with(|f| f.borrow_mut().push(fold));
+}
+
+/// `f` as an instance of a definition, the latest that fits: its name and arguments.
+fn folded(f: &Formula) -> Option<String> {
+    if matches!(f.node(), Node::Atom(..) | Node::Absurd) {
+        return None;
+    }
+    FOLDS.with(|folds| {
+        for fold in folds.borrow().iter().rev() {
+            let metas: BTreeSet<Name> = fold.params.iter().cloned().collect();
+            let mut sol = HashMap::new();
+            if !crate::check::match_vars(&fold.body, f, &metas, &mut Vec::new(), &mut sol) {
+                continue;
+            }
+            if let Some(args) = fold.params.iter().map(|p| sol.get(p)).collect::<Option<Vec<_>>>() {
+                let mut s = fold.name.clone();
+                for a in args {
+                    s.push(' ');
+                    s.push_str(a);
+                }
+                return Some(s);
+            }
+        }
+        None
+    })
+}
 
 /// Precedence levels: 0 formula (`->`, quantifiers), 1 `or`, 2 `and`, 3 `not`, 4 atoms.
 pub fn show(f: &Formula) -> String {
@@ -19,6 +69,10 @@ fn write(f: &Formula, level: u8, out: &mut String) {
             inner(out);
         }
     };
+    if let Some(s) = folded(f) {
+        out.push_str(&s);
+        return;
+    }
     match f.node() {
         Node::Absurd => out.push_str("absurd"),
         Node::Atom(p, args) => {
@@ -55,6 +109,10 @@ fn write(f: &Formula, level: u8, out: &mut String) {
             out.push_str(kw);
             let mut cur = f;
             loop {
+                // A quantifier that folds into a definition starts that definition's text.
+                if !std::ptr::eq(cur, f) && folded(cur).is_some() {
+                    break;
+                }
                 match cur.node() {
                     Node::All(x, body) if is_all => {
                         out.push(' ');

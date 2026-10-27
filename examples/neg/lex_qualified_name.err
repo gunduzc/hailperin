@@ -1,1 +1,0 @@
-failure: line 2: `A.` names a theory member, which belongs after `by`, not in a formula

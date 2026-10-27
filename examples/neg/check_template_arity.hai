@@ -1,5 +1,0 @@
-{- A schema member applied to a predicate of the wrong arity. -}
-theory T
-  ind P: (forall x. P x) -> exists x. P x
-theorem bad in T
-  bad: (forall x y. R x y) -> exists x y. R x y by T.ind R

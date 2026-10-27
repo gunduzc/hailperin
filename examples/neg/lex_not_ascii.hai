@@ -1,4 +1,0 @@
-{- café -}
-theorem t
-  assume a: A
-  t: A -> A by imp_i a a

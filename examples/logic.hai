@@ -1,0 +1,254 @@
+-- Logic alone, no theory: propositional and quantifier basics, the empty domain after
+-- Hailperin (1953), and what Hailperin and Quine (1954) prove about it. Nothing below assumes
+-- anything exists.
+
+import classical
+
+define Iff (A) (B) = (A -> B) and (B -> A)
+
+theorem and_comm:
+  predicate A
+  predicate B
+  assume ab: A and B
+  a:  A                                   by and_e ab
+  b:  B                                   by and_e ab
+  ba: B and A                             by and_i b a
+  therefore A and B -> B and A
+
+theorem trans:
+  predicate A
+  predicate B
+  predicate C
+  assume ab: A -> B
+  assume bc: B -> C
+  assume a: A
+  b: B                                    by imp_e ab a
+  c: C                                    by imp_e bc b
+  therefore (A -> B) -> (B -> C) -> A -> C
+
+-- Chaining two implications under a forall.
+theorem trans_under:
+  predicate A x
+  predicate B x
+  predicate C x
+  assume ab: forall x. A x -> B x
+  assume bc: forall x. B x -> C x
+  lemma each:
+    variable x
+    assume a: A x
+    b: B x                                by imp_e ab a
+    c: C x                                by imp_e bc b
+    therefore forall x. A x -> C x
+  therefore (forall x. A x -> B x) -> (forall x. B x -> C x) -> forall x. A x -> C x
+
+-- Whatever is Socrates is mortal, by the lemma.
+theorem syllogism:
+  predicate Man x
+  predicate Mortal x
+  predicate Socrates x
+  assume men: forall x. Man x -> Mortal x
+  assume soc: forall x. Socrates x -> Man x
+  k: forall x. Socrates x -> Mortal x     by imp_e trans_under soc men
+  therefore (forall x. Man x -> Mortal x) -> (forall x. Socrates x -> Man x) -> forall x. Socrates x -> Mortal x
+
+-- If every P gives Q and some P exists, then Q.
+theorem use_exists:
+  predicate P x
+  predicate Q
+  assume f: forall x. P x -> Q
+  assume e: exists x. P x
+  lemma c:
+    variable w
+    assume p: P w
+    q: Q                                  by imp_e f p
+    therefore forall w. P w -> Q
+  k: Q                                    by exists_e e c
+  therefore (forall x. P x -> Q) -> (exists x. P x) -> Q
+
+theorem id:
+  predicate A
+  assume a: A
+  therefore A -> A
+
+-- Double negation introduction is intuitionistic.
+theorem dni:
+  predicate A
+  assume a: A
+  assume na: not A
+  f: absurd                               by imp_e na a
+  therefore A -> not (not A)
+
+-- Swapping two quantifiers.
+theorem swap:
+  predicate R x y
+  assume h: forall x y. R x y
+  lemma each:
+    variable y x
+    r: R x y                              by forall_e h x y
+    therefore forall y x. R x y
+  therefore (forall x y. R x y) -> forall y x. R x y
+
+-- Excluded middle isn't provable here, but its double negation is: refuting `A or not A`
+-- refutes `A`, which gives `not A`, which gives `A or not A`.
+theorem dnem:
+  predicate A
+  assume n: not (A or not A)
+  lemma na:
+    assume a: A
+    o: A or not A                         by or_i a
+    f: absurd                             by imp_e n o
+    therefore not A
+  o: A or not A                           by or_i na
+  f: absurd                               by imp_e n o
+  therefore not (not (A or not A))
+
+define True = absurd -> absurd
+
+-- A vacuous `forall x. absurd` is absurd conjoined zero times when nothing exists, so it's
+-- true. Mostowski (1951) read it as `absurd`, which makes this distribution fail.
+theorem dist_vacuous:
+  predicate P x
+  assume h: forall x. not (P x)
+  assume p: forall x. P x
+  lemma all:
+    variable x
+    nx: not (P x)                         by forall_e h x
+    px: P x                               by forall_e p x
+    f:  absurd                            by imp_e nx px
+    therefore forall x. absurd
+  therefore (forall x. not (P x)) -> (forall x. P x) -> forall x. absurd
+
+-- Hailperin's axiom QE6, "the domain isn't empty", turns his system into the usual logic.
+-- Here it's a hypothesis, and weaker than a witness.
+define NonEmpty = not (forall x. absurd)           -- Hailperin's QE6, as a formula
+define Something = exists x. True
+
+theorem nonempty_from_something:
+  assume s: Something
+  assume h: forall x. absurd
+  lemma c:
+    variable y
+    assume t: True
+    f: absurd                             by forall_e h y
+    therefore forall y. True -> absurd
+  k: absurd                               by exists_e s c
+  therefore Something -> NonEmpty
+
+-- The converse only up to double negation: QE6 gives nothing to `exists_e`.
+theorem not_not_something:
+  assume ne: NonEmpty
+  assume n: not Something
+  lemma all:
+    variable y
+    lemma t:
+      assume f: absurd
+      therefore True
+    s: Something                          by exists_i t
+    f: absurd                             by imp_e n s
+    therefore forall y. absurd
+  f: absurd                               by imp_e ne all
+  therefore NonEmpty -> not (not Something)
+
+-- QE1, the swap of two quantifiers. An axiom for Hailperin, a theorem for Quine after Berry's
+-- redefinition of closure. Here the lemma opens `y` before `x`, which is the swap.
+theorem qe1:
+  predicate R x y
+  assume h: forall x y. R x y
+  lemma s:
+    variable y x
+    r: R x y                              by forall_e h x y
+    therefore forall y x. R x y
+  therefore (forall x y. R x y) -> forall y x. R x y
+
+-- QE5, importation: a quantifier moves past an antecedent that doesn't mention its variable.
+-- Hailperin's axiom, dropped by Quine. Opening `x` outside `a` is this move.
+theorem qe5:
+  predicate A
+  predicate P x
+  assume h: A -> forall x. P x
+  lemma all:
+    variable x
+    assume a: A
+    k:  forall x. P x                     by imp_e h a
+    px: P x                               by forall_e k x
+    therefore forall x. A -> P x
+  therefore (A -> forall x. P x) -> forall x. A -> P x
+
+-- Hailperin's Lemma 4: when nothing exists, every universal statement holds. Mostowski read
+-- a vacuous `forall x. A` as `A`, which breaks this. Intuitionistic.
+theorem hailperin_lemma4:
+  predicate P x
+  assume e: forall x. absurd
+  lemma all:
+    variable x
+    f:  absurd                            by forall_e e x
+    px: P x                               by absurd_e f
+    therefore forall x. P x
+  therefore (forall x. absurd) -> forall x. P x
+
+-- And every existential statement fails, which is Quine's test for the empty domain: mark
+-- universals true and existentials false.
+theorem empty_no_exists:
+  predicate P x
+  assume e: forall x. absurd
+  assume s: exists x. P x
+  lemma c:
+    variable w
+    assume p: P w
+    f: absurd                             by forall_e e w
+    therefore forall w. P w -> absurd
+  k: absurd                               by exists_e s c
+  therefore (forall x. absurd) -> not (exists x. P x)
+
+-- Hailperin's Lemma 2: with something in the domain, a vacuous `forall` can be dropped.
+-- This is the one step of ordinary logic that needs QE6, Theorem 1's Case 2, and it needs
+-- excluded middle as well.
+theorem hailperin_lemma2:
+  predicate A
+  assume em: ExcludedMiddle A
+  assume ne: NonEmpty
+  assume h: forall x. A
+  lemma yes:
+    assume a: A
+    therefore A -> A
+  lemma no:
+    assume na: not A
+    lemma all:
+      variable x
+      ax: A                               by forall_e h x
+      f:  absurd                          by imp_e na ax
+      therefore forall x. absurd
+    f2: absurd                            by imp_e ne all
+    a:  A                                 by absurd_e f2
+    therefore not A -> A
+  a: A                                    by or_e em yes no
+  therefore ExcludedMiddle A -> NonEmpty -> (forall x. A) -> A
+
+-- Quine's remark that Hailperin understated his case: `A` and `A and (P x -> P x)` are
+-- equivalent, so if `forall` respects equivalence, a vacuous `forall x. A` has to mean
+-- `forall x. A and (P x -> P x)`, which is true when nothing exists. The equivalence.
+theorem quine_extensionality:
+  predicate A
+  predicate P x
+  lemma fwd:
+    assume h: forall x. A
+    lemma all:
+      variable x
+      a: A                                by forall_e h x
+      lemma pp:
+        assume p: P x
+        therefore P x -> P x
+      both: A and (P x -> P x)            by and_i a pp
+      therefore forall x. A and (P x -> P x)
+    therefore (forall x. A) -> forall x. A and (P x -> P x)
+  lemma bwd:
+    assume h: forall x. A and (P x -> P x)
+    lemma all:
+      variable x
+      both: A and (P x -> P x)            by forall_e h x
+      a:    A                             by and_e both
+      therefore forall x. A
+    therefore (forall x. A and (P x -> P x)) -> forall x. A
+  k: Iff (forall x. A) (forall x. A and (P x -> P x))
+                                          by and_i fwd bwd
+  therefore Iff (forall x. A) (forall x. A and (P x -> P x))

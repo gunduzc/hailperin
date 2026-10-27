@@ -1,4 +1,5 @@
-//! The grammar in `SPEC.md`, read with two tokens of lookahead. Nothing here knows what a
+//! The grammar in `SPEC.md`, read with two tokens of lookahead: after a justification's
+//! arguments, a lowercase name is the next label if a colon follows it. Nothing here knows what a
 //! formula means: the checker reads the trees this produces.
 
 use crate::lexer::{Kw, Sym, Tok, Token};
@@ -45,36 +46,37 @@ impl TArg {
     }
 }
 
-/// What a justification cites: a rule, a line, a theorem, or a theory member.
-#[derive(Clone, Debug)]
-pub enum Ref {
-    Name(String),
-    Member { theory: String, member: String },
-}
-
-/// An argument after the rule: a line or variable by name, a theory member, or an instance
+/// An argument after the rule: a line, variable or theorem by name, or a theorem's instance
 /// in parentheses with templates.
 #[derive(Clone, Debug)]
 pub enum Arg {
     Ident(String, usize),
-    Ref(Ref, usize),
-    Instance { head: Ref, targs: Vec<TArg>, line: usize },
+    Instance { head: String, targs: Vec<TArg>, line: usize },
 }
 
 impl Arg {
     pub fn line(&self) -> usize {
         match self {
-            Arg::Ident(_, l) | Arg::Ref(_, l) | Arg::Instance { line: l, .. } => *l,
+            Arg::Ident(_, l) | Arg::Instance { line: l, .. } => *l,
         }
     }
 }
 
+/// `by rule args`.
 #[derive(Clone, Debug)]
 pub struct Just {
-    pub head: Ref,
-    /// Templates right after the head, for a theory member or a theorem.
-    pub targs: Vec<TArg>,
+    pub rule: String,
     pub args: Vec<Arg>,
+    pub line: usize,
+}
+
+/// A declared parameter: a predicate with placeholders fixing its arity, `(P x y)`, or a
+/// lowercase individual of a definition. A theorem's `predicate P x y` is the same without
+/// parentheses.
+#[derive(Clone, Debug)]
+pub struct Param {
+    pub name: String,
+    pub holes: Vec<String>,
     pub line: usize,
 }
 
@@ -99,28 +101,31 @@ pub enum Step {
     Lemma { name: String, block: Block, line: usize },
 }
 
-/// Assumptions, steps, then the result: the line labeled with the block's own name.
+/// `therefore F`: the closing line of a block. It closes the line right above it.
 #[derive(Clone, Debug)]
-pub struct Block {
-    pub assumes: Vec<Assume>,
-    pub steps: Vec<Step>,
-    pub result: Line,
+pub struct Therefore {
+    pub formula: FExpr,
+    pub line: usize,
 }
 
+/// A theorem's or lemma's block: its declarations in order, its steps, and its closing line.
 #[derive(Clone, Debug)]
-pub enum Member {
-    Include { theory: String, line: usize },
-    Axiom { label: String, params: Vec<String>, formula: FExpr, line: usize },
+pub struct Block {
+    pub variables: Vec<(String, usize)>,
+    pub predicates: Vec<Param>,
+    pub assumes: Vec<Assume>,
+    pub steps: Vec<Step>,
+    pub therefore: Therefore,
 }
 
 #[derive(Clone, Debug)]
 pub enum Item {
-    Define { name: String, params: Vec<String>, body: FExpr, line: usize },
-    Theory { name: String, members: Vec<Member>, line: usize },
-    Theorem { name: String, theories: Vec<String>, block: Block, line: usize },
+    Predicate { name: String, holes: Vec<String>, line: usize },
+    Define { name: String, params: Vec<Param>, body: FExpr, line: usize },
+    Theorem { name: String, block: Block, line: usize },
 }
 
-/// `import NAME`: the file `NAME.hai` next to this one.
+/// `import PATH`: the file `PATH.hai`, relative to this one.
 #[derive(Clone, Debug)]
 pub struct Import {
     pub name: String,
@@ -139,7 +144,11 @@ pub fn parse(toks: &[Token]) -> Result<File, Error> {
     while p.peek() == Some(&Tok::Kw(Kw::Import)) {
         let line = p.line();
         p.pos += 1;
-        imports.push(Import { name: p.lower("a file name")?, line });
+        let Some(Tok::Path(name)) = p.peek() else {
+            return Err(p.err("expected a path after `import`"));
+        };
+        imports.push(Import { name: name.clone(), line });
+        p.pos += 1;
     }
     let mut items = Vec::new();
     while p.pos < toks.len() {
@@ -153,7 +162,10 @@ struct Parser<'a> {
     pos: usize,
 }
 
-const ITEM_KEYWORDS: [Kw; 4] = [Kw::Theorem, Kw::Theory, Kw::Define, Kw::Import];
+const ITEM_KEYWORDS: [Kw; 4] = [Kw::Theorem, Kw::Define, Kw::Import, Kw::Predicate];
+
+/// The sections of a block, in the order they must come.
+const SECTIONS: [(Kw, &str); 3] = [(Kw::Predicate, "predicate"), (Kw::Variable, "variable"), (Kw::Assume, "assume")];
 
 impl Parser<'_> {
     fn peek(&self) -> Option<&Tok> {
@@ -221,115 +233,185 @@ impl Parser<'_> {
         }
     }
 
-    /// `label :`, or `label Name... :` for a theory member with parameters.
+    /// `label :`.
+    /// The `:` after a theorem's or lemma's name: every name that can be cited has one.
+    fn name_colon(&mut self, kind: &str, name: &str) -> Result<(), Error> {
+        if self.eat(Sym::Colon) {
+            Ok(())
+        } else {
+            Err(self.err(format!("a {kind}'s name is followed by a colon, like every name that can be cited: `{kind} {name}:`")))
+        }
+    }
+
     fn at_label(&self) -> bool {
-        if !matches!(self.peek(), Some(Tok::Lower(_))) {
-            return false;
+        matches!(self.peek(), Some(Tok::Lower(_))) && self.peek2() == Some(&Tok::Sym(Sym::Colon))
+    }
+
+    /// Lowercase placeholders after a declared name, fixing its arity.
+    fn holes(&mut self) -> Result<Vec<String>, Error> {
+        let mut holes = Vec::new();
+        while let Some(Tok::Lower(h)) = self.peek() {
+            if self.at_label() {
+                break;
+            }
+            if holes.contains(h) {
+                return Err(self.err(format!("placeholder `{h}` appears twice")));
+            }
+            holes.push(h.clone());
+            self.pos += 1;
         }
-        let mut j = self.pos + 1;
-        while matches!(self.toks.get(j).map(|t| &t.tok), Some(Tok::Upper(_))) {
-            j += 1;
+        Ok(holes)
+    }
+
+    /// A parameter of a definition or a schema member: `(P x y)`, `(A)`, or a lowercase
+    /// individual.
+    fn param(&mut self) -> Result<Option<Param>, Error> {
+        let line = self.line();
+        match self.peek() {
+            Some(Tok::Sym(Sym::LParen)) => {
+                self.pos += 1;
+                let name = self.upper("a parameter's name after `(`")?;
+                let holes = self.holes()?;
+                self.expect(Sym::RParen, "`)` after the parameter's placeholders")?;
+                Ok(Some(Param { name, holes, line }))
+            }
+            Some(Tok::Lower(n)) => {
+                let name = n.clone();
+                self.pos += 1;
+                Ok(Some(Param { name, holes: Vec::new(), line }))
+            }
+            Some(Tok::Upper(n)) => Err(self.err(format!("a predicate parameter is written with its placeholders in parentheses: `({n} x)`"))),
+            _ => Ok(None),
         }
-        matches!(self.toks.get(j).map(|t| &t.tok), Some(Tok::Sym(Sym::Colon)))
     }
 
     fn item(&mut self) -> Result<Item, Error> {
         let line = self.line();
         match self.peek() {
+            Some(Tok::Kw(Kw::Predicate)) => {
+                self.pos += 1;
+                let name = self.upper("a predicate's name")?;
+                let holes = self.holes()?;
+                Ok(Item::Predicate { name, holes, line })
+            }
             Some(Tok::Kw(Kw::Define)) => {
                 self.pos += 1;
                 let name = self.upper("a definition's name")?;
                 let mut params = Vec::new();
-                loop {
-                    match self.peek() {
-                        Some(Tok::Upper(n) | Tok::Lower(n)) => {
-                            params.push(n.clone());
-                            self.pos += 1;
-                        }
-                        _ => break,
-                    }
+                while let Some(p) = self.param()? {
+                    params.push(p);
                 }
                 self.expect(Sym::Equals, "`=` after the definition's parameters")?;
                 let body = self.formula()?;
                 Ok(Item::Define { name, params, body, line })
             }
-            Some(Tok::Kw(Kw::Theory)) => {
-                self.pos += 1;
-                let name = self.upper("a theory's name")?;
-                let mut members = Vec::new();
-                while !self.at_item_keyword() {
-                    members.push(self.member()?);
-                }
-                Ok(Item::Theory { name, members, line })
-            }
             Some(Tok::Kw(Kw::Theorem)) => {
                 self.pos += 1;
                 let name = self.lower("a theorem's name")?;
-                let mut theories = Vec::new();
-                if self.eat(Kw::In) {
-                    theories.push(self.upper("a theory's name after `in`")?);
-                    while let Some(Tok::Upper(_)) = self.peek() {
-                        theories.push(self.upper("")?);
-                    }
-                }
+                self.name_colon("theorem", &name)?;
                 let block = self.block(&name)?;
-                Ok(Item::Theorem { name, theories, block, line })
+                Ok(Item::Theorem { name, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
-            _ => Err(self.err("expected `theorem`, `theory` or `define`")),
+            Some(Tok::Lower(w)) if w == "theory" => {
+                Err(self.err("there are no theories: define the axioms, and a theorem assumes what it uses"))
+            }
+            _ => Err(self.err("expected `theorem`, `define` or `predicate`")),
         }
     }
 
-    fn member(&mut self) -> Result<Member, Error> {
-        let line = self.line();
-        if self.eat(Kw::Include) {
-            return Ok(Member::Include { theory: self.upper("a theory's name after `include`")?, line });
-        }
-        let label = self.lower("an axiom's label")?;
-        let mut params = Vec::new();
-        while let Some(Tok::Upper(_)) = self.peek() {
-            params.push(self.upper("")?);
-        }
-        self.expect(Sym::Colon, "`:` after the axiom's label")?;
-        let formula = self.formula()?;
-        Ok(Member::Axiom { label, params, formula, line })
-    }
-
-    /// `assume*`, steps, then the line labeled `name`.
+    /// Declarations in order, steps, then `therefore`.
     fn block(&mut self, name: &str) -> Result<Block, Error> {
+        let mut variables = Vec::new();
+        let mut predicates = Vec::new();
         let mut assumes = Vec::new();
-        while self.peek() == Some(&Tok::Kw(Kw::Assume)) {
+        let mut section = 0;
+        loop {
             let line = self.line();
+            let Some(&Tok::Kw(k)) = self.peek() else { break };
+            let Some(want) = SECTIONS.iter().position(|(s, _)| *s == k) else { break };
+            if want < section {
+                let (_, after) = SECTIONS[section];
+                return Err(self.err(format!("`{}` lines come before `{after}` lines in a block", SECTIONS[want].1)));
+            }
+            section = want;
             self.pos += 1;
-            let label = self.lower("the assumption's label")?;
-            self.expect(Sym::Colon, "`:` after the assumption's label")?;
-            let formula = self.formula()?;
-            assumes.push(Assume { label, formula, line });
+            match k {
+                Kw::Variable => {
+                    let first = variables.len();
+                    while let Some(Tok::Lower(x)) = self.peek() {
+                        if self.at_label() {
+                            break;
+                        }
+                        variables.push((x.clone(), self.line()));
+                        self.pos += 1;
+                    }
+                    if variables.len() == first {
+                        return Err(self.err("`variable` needs at least one name"));
+                    }
+                }
+                Kw::Predicate => {
+                    let pname = self.upper("a predicate's name after `predicate`")?;
+                    let holes = self.holes()?;
+                    predicates.push(Param { name: pname, holes, line });
+                }
+                Kw::Assume => {
+                    let label = self.lower("the assumption's label")?;
+                    if let Some(Tok::Sym(Sym::LParen)) = self.peek() {
+                        return Err(self.err("an assumption takes no parameters: declare a theorem's predicates with `predicate`"));
+                    }
+                    self.expect(Sym::Colon, "`:` after the assumption's label")?;
+                    let formula = self.formula()?;
+                    assumes.push(Assume { label, formula, line });
+                }
+                _ => unreachable!(),
+            }
         }
-        let mut steps = Vec::new();
+        let mut steps: Vec<Step> = Vec::new();
         loop {
             let line = self.line();
             match self.peek() {
                 Some(Tok::Kw(Kw::Lemma)) => {
                     self.pos += 1;
                     let lemma = self.lower("the lemma's name")?;
+                    self.name_colon("lemma", &lemma)?;
                     let block = self.block(&lemma)?;
                     steps.push(Step::Lemma { name: lemma, block, line });
                 }
-                Some(Tok::Kw(Kw::Assume)) => return Err(self.err("assumptions come first in a block")),
-                _ if self.at_label() => {
-                    let l = self.step_line()?;
-                    if l.label == name {
-                        return Ok(Block { assumes, steps, result: l });
+                Some(Tok::Kw(Kw::Therefore)) => {
+                    self.pos += 1;
+                    let formula = self.formula()?;
+                    if self.peek() == Some(&Tok::Kw(Kw::By)) {
+                        return Err(self.err("`therefore` takes no `by`: it closes the line right above it"));
                     }
-                    steps.push(Step::Line(l));
+                    let therefore = Therefore { formula, line };
+                    return Ok(Block { variables, predicates, assumes, steps, therefore });
                 }
+                Some(Tok::Kw(k)) if SECTIONS.iter().any(|(s, _)| s == k) => {
+                    return Err(self.err("declarations come before the steps of a block"));
+                }
+                _ if self.at_label() => steps.push(Step::Line(self.step_line()?)),
                 _ if self.at_item_keyword() => {
-                    return Err(self.err(format!("the block `{name}` has no result: it ends with the line labeled `{name}`")))
+                    return Err(self.err(format!("the block `{name}` has no `therefore`")));
                 }
-                Some(Tok::Lower(n)) => return Err(self.err(format!("expected a label: `{n}:`"))),
-                _ => return Err(self.err("expected a labeled line")),
+                _ => return Err(self.step_error(&steps)),
             }
+        }
+    }
+
+    /// The error for a token where a step should start. A lowercase name read as an argument of
+    /// the previous line is probably a label without its colon.
+    fn step_error(&self, steps: &[Step]) -> Error {
+        if let Some(Step::Line(prev)) = steps.last() {
+            if let Some(Arg::Ident(n, l)) = prev.just.args.last() {
+                if *l < self.line() || matches!(self.peek(), Some(Tok::Upper(_) | Tok::Sym(Sym::LParen) | Tok::Kw(Kw::Forall | Kw::Exists | Kw::Not | Kw::Absurd))) {
+                    return Error::new(*l, format!("`{n}` was read as an argument of the line above. If it is a label, it needs a colon: `{n}:`"));
+                }
+            }
+        }
+        match self.peek() {
+            Some(Tok::Lower(n)) => self.err(format!("expected a label: `{n}:`")),
+            _ => self.err("expected a labeled line, a `lemma`, or `therefore`"),
         }
     }
 
@@ -343,24 +425,21 @@ impl Parser<'_> {
         Ok(Line { label, formula, just, line })
     }
 
-    fn reference(&mut self) -> Result<Ref, Error> {
+    /// A name after `by`, or after `(`: a rule, line, variable or theorem, all lowercase.
+    fn name_after_by(&mut self) -> Result<String, Error> {
         match self.peek() {
-            Some(Tok::Upper(theory)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
-                let theory = theory.clone();
-                self.pos += 2;
-                let member = self.lower("a member's label after `.`")?;
-                Ok(Ref::Member { theory, member })
+            Some(Tok::Lower(_)) => self.lower(""),
+            Some(Tok::Upper(n)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
+                Err(self.err(format!("`{n}.` names a theory member, and there are no theories: assume the axiom and cite its label")))
             }
-            Some(Tok::Lower(_)) => Ok(Ref::Name(self.lower("")?)),
-            Some(Tok::Upper(n)) => Err(self.err(format!("`{n}` is capitalized, so it isn't a rule, line or theorem"))),
-            _ => Err(self.err("expected a rule, line, theorem or theory member")),
+            Some(Tok::Upper(n)) => Err(self.err(format!("`{n}` is capitalized, so it isn't a rule, line or theorem: templates go in an instance, `(t {n})`"))),
+            _ => Err(self.err("expected a rule, line, variable or theorem")),
         }
     }
 
     fn just(&mut self) -> Result<Just, Error> {
         let line = self.line();
-        let head = self.reference()?;
-        let mut targs = Vec::new();
+        let rule = self.name_after_by()?;
         let mut args = Vec::new();
         loop {
             match self.peek() {
@@ -370,49 +449,32 @@ impl Parser<'_> {
                     self.pos += 1;
                 }
                 Some(Tok::Upper(_)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
-                    let l = self.line();
-                    args.push(Arg::Ref(self.reference()?, l));
-                }
-                // Templates for the head come first, as bare names or in parentheses.
-                Some(Tok::Upper(n)) if args.is_empty() => {
-                    targs.push(TArg::Name(n.clone(), self.line()));
-                    self.pos += 1;
+                    self.name_after_by()?;
                 }
                 Some(Tok::Sym(Sym::LParen)) => {
                     let l = self.line();
                     self.pos += 1;
                     match self.peek() {
-                        Some(Tok::Upper(_)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
-                            let head = self.reference()?;
-                            let ts = self.targs()?;
-                            self.expect(Sym::RParen, "`)`")?;
-                            args.push(Arg::Instance { head, targs: ts, line: l });
-                        }
                         Some(Tok::Lower(n)) if crate::check::RULES.contains(&n.as_str()) => {
                             return Err(self.err(format!("one rule per line: give `{n}` a line of its own")));
                         }
                         Some(Tok::Lower(_)) => {
                             // `(thm T1 T2)`: a theorem instance as an argument.
-                            let head = self.reference()?;
+                            let head = self.name_after_by()?;
                             let ts = self.targs()?;
                             self.expect(Sym::RParen, "`)`")?;
                             args.push(Arg::Instance { head, targs: ts, line: l });
                         }
-                        _ if args.is_empty() => {
-                            let f = self.formula()?;
-                            self.expect(Sym::RParen, "`)`")?;
-                            targs.push(TArg::Paren(Box::new(f)));
-                        }
-                        _ => return Err(self.err("templates come right after the rule, before the lines")),
+                        _ => return Err(self.err("in parentheses after `by` comes a theorem's instance: `(t T)`")),
                     }
                 }
                 _ => break,
             }
         }
-        Ok(Just { head, targs, args, line })
+        Ok(Just { rule, args, line })
     }
 
-    /// Templates after a theory member or theorem, inside an instance.
+    /// Templates after a theorem, inside an instance.
     fn targs(&mut self) -> Result<Vec<TArg>, Error> {
         let mut out = Vec::new();
         loop {
@@ -517,7 +579,7 @@ impl Parser<'_> {
                 let name = self.upper("")?;
                 let args = self.targs()?;
                 if self.peek() == Some(&Tok::Sym(Sym::Dot)) {
-                    return Err(self.err(format!("`{name}.` names a theory member, which belongs after `by`, not in a formula")));
+                    return Err(self.err(format!("`{name}.` is not a formula: `.` only ends a quantifier's variables")));
                 }
                 Ok(FExpr::Atom { name, args, line })
             }
@@ -580,22 +642,25 @@ mod tests {
 
     #[test]
     fn items() {
-        let items = parsed("define Iff A B = (A -> B) and (B -> A)\ntheory T\n  include S\n  ax: forall x. P x\n  ind P: P -> forall x. P x\ntheorem t in T S\n  assume a: A\n  t: A -> A by imp_i a a");
-        assert!(matches!(&items[0], Item::Define { params, .. } if params == &["A", "B"]));
-        let Item::Theory { members, .. } = &items[1] else { panic!() };
-        assert!(matches!(&members[0], Member::Include { theory, .. } if theory == "S"));
-        assert!(matches!(&members[2], Member::Axiom { params, .. } if params == &["P"]));
-        let Item::Theorem { theories, block, .. } = &items[2] else { panic!() };
-        assert_eq!(theories, &["T", "S"]);
-        assert_eq!(block.assumes.len(), 1);
-
-        assert_eq!(block.result.label, "t");
+        let src = "predicate P x\ndefine Iff (A) (B) = (A -> B) and (B -> A)\ndefine Ind (Q x) = Q x -> forall x. Q x\n\
+                   theorem t:\n  predicate R y\n  variable x\n  assume i: Ind R\n  assume a: A\n  therefore A -> A";
+        let items = parsed(src);
+        assert!(matches!(&items[0], Item::Predicate { name, holes, .. } if name == "P" && holes == &["x"]));
+        let Item::Define { params, .. } = &items[1] else { panic!() };
+        assert_eq!(params.iter().map(|p| p.name.as_str()).collect::<Vec<_>>(), ["A", "B"]);
+        let Item::Define { params, .. } = &items[2] else { panic!() };
+        assert!(params[0].name == "Q" && params[0].holes == ["x"]);
+        let Item::Theorem { block, .. } = &items[3] else { panic!() };
+        assert_eq!(block.variables[0].0, "x");
+        assert_eq!(block.predicates[0].holes, ["y"]);
+        assert_eq!(block.assumes.len(), 2);
+        assert_eq!(show(&block.therefore.formula), "(imp A A)");
     }
 
     #[test]
     fn blocks_and_justifications() {
-        let src = "theorem t\n assume h: A or B\n lemma l\n  assume a: A\n  r: B or A by or_i2 a\n  l: A -> B or A by imp_i a r\n \
-                   k: B by forall_e PA.pz w x\n m: C by imp_e (PA.ind ZeroLeft) k l\n n: D by f (Unicorn) u h\n t: A by n";
+        let src = "theorem t:\n assume h: A or B\n lemma l:\n  assume a: A\n  r: B or A by or_i a\n  therefore A -> B or A\n \
+                   k: B by forall_e pz w x\n m: C by imp_e ind k l\n n: D by imp_e (f (Unicorn)) u h\n therefore A";
         let items = parsed(src);
         let Item::Theorem { block, .. } = &items[0] else { panic!() };
         assert_eq!(block.steps.len(), 4);
@@ -603,31 +668,46 @@ mod tests {
         assert_eq!(name, "l");
         assert_eq!(inner.steps.len(), 1);
         let Step::Line(k) = &block.steps[1] else { panic!() };
-        assert!(matches!(&k.just.args[0], Arg::Ref(Ref::Member { theory, member }, _) if theory == "PA" && member == "pz"));
+        assert_eq!(k.just.rule, "forall_e");
+        assert!(matches!(&k.just.args[0], Arg::Ident(n, _) if n == "pz"));
         assert_eq!(k.just.args.len(), 3);
         let Step::Line(m) = &block.steps[2] else { panic!() };
-        assert!(matches!(&m.just.args[0], Arg::Instance { targs, .. } if targs.len() == 1));
+        assert_eq!(m.just.args.len(), 3);
         let Step::Line(n) = &block.steps[3] else { panic!() };
-        assert_eq!(n.just.targs.len(), 1);
-        assert_eq!(n.just.args.len(), 2);
+        assert!(matches!(&n.just.args[0], Arg::Instance { head, targs, .. } if head == "f" && targs.len() == 1));
+        assert_eq!(n.just.args.len(), 3);
     }
 
     #[test]
     fn errors() {
-        let e = parse(&lex("theorem t\n a: A by x\n assume b: B").unwrap()).unwrap_err();
-        assert_eq!((e.line, e.msg.as_str()), (3, "assumptions come first in a block"));
-        let e = parse(&lex("theorem t\n a: A by x\ntheorem u").unwrap()).unwrap_err();
-        assert_eq!(e.msg, "the block `t` has no result: it ends with the line labeled `t`");
+        let e = parse(&lex("theorem t:\n assume b: B\n variable x\n therefore B").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "`variable` lines come before `assume` lines in a block"));
+        let e = parse(&lex("theorem t:\n variable x\n predicate P y\n therefore B").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "`predicate` lines come before `variable` lines in a block"));
+        let e = parse(&lex("theorem t:\n a: A by reit x\n assume b: B\n therefore A").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "declarations come before the steps of a block"));
+        let e = parse(&lex("theorem t:\n a: A by reit x\ntheorem u:").unwrap()).unwrap_err();
+        assert_eq!(e.msg, "the block `t` has no `therefore`");
+        let e = parse(&lex("theorem t:\n a: A by reit x\n therefore A by a").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "`therefore` takes no `by`: it closes the line right above it"));
+        let e = parse(&lex("theorem t\n a: A by reit x\n therefore A").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (2, "a theorem's name is followed by a colon, like every name that can be cited: `theorem t:`"));
+        let e = parse(&lex("theorem t:\n lemma l\n  a: A by reit x\n  therefore A\n therefore A").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "a lemma's name is followed by a colon, like every name that can be cited: `lemma l:`"));
+        let e = parse(&lex("theorem t:\n a: A by reit x\n p Person x by reit a\n therefore A").unwrap()).unwrap_err();
+        assert_eq!((e.line, e.msg.as_str()), (3, "`p` was read as an argument of the line above. If it is a label, it needs a colon: `p:`"));
         let e = parse(&lex("define X = x").unwrap()).unwrap_err();
         assert_eq!(e.msg, "`x` is lowercase, so it isn't a statement or predicate");
         let e = parse(&lex("define X\nimport a").unwrap()).unwrap_err();
         assert!(e.msg.contains("expected `=`"));
+        let e = parse(&lex("theory T\n assume ax: A").unwrap()).unwrap_err();
+        assert_eq!(e.msg, "there are no theories: define the axioms, and a theorem assumes what it uses");
     }
 
     #[test]
     fn whitespace_independent() {
-        let a = parsed("theorem t assume a: A t: A by a");
-        let b = parsed("theorem t\n  assume a:\n    A\n  t:\n    A\n      by a");
+        let a = parsed("theorem t: assume a: A therefore A");
+        let b = parsed("theorem t\n  :\n  assume a:\n    A\n  therefore\n    A");
         assert_eq!(format!("{a:?}").replace(char::is_numeric, ""), format!("{b:?}").replace(char::is_numeric, ""));
     }
 }

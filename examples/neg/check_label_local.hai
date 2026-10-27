@@ -1,7 +1,0 @@
-{- A lemma's labels are local to it. -}
-theorem bad
-  lemma l
-    assume a: A
-    k: A by a
-    l: A -> A by imp_i a k
-  bad: A -> A by k

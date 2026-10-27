@@ -29,21 +29,22 @@ And I thought that was *super fun*. Technically, anything that qualified as Socr
 Here's how it would work in this small checker:
 
 ```
-theorem socrates_is_mortal
+predicate Socrates x
+predicate Person x
+predicate Mortal x
+
+theorem socrates_is_mortal:
   assume sp: forall x. Socrates x -> Person x
   assume pm: forall x. Person x -> Mortal x
-  lemma all
+  lemma sm:
+    variable x
     assume s: Socrates x
-    sp1: Socrates x -> Person x          by forall_e sp x
-    pm1: Person x -> Mortal x            by forall_e pm x
-    p:   Person x                        by imp_e sp1 s
-    m:   Mortal x                        by imp_e pm1 p
-    sm:  Socrates x -> Mortal x          by imp_i s m
-    all: forall x. Socrates x -> Mortal x     by forall_i x sm
-  socrates_is_mortal:
-    (forall x. Socrates x -> Person x)
-      -> (forall x. Person x -> Mortal x)
-      -> forall x. Socrates x -> Mortal x     by imp_i sp pm all
+    p: Person x                           by imp_e sp s
+    m: Mortal x                           by imp_e pm p
+    therefore forall x. Socrates x -> Mortal x
+  therefore (forall x. Socrates x -> Person x)
+              -> (forall x. Person x -> Mortal x)
+              -> forall x. Socrates x -> Mortal x
 ```
 
 The result is this repository.
@@ -64,7 +65,7 @@ I hope you enjoy Hailperin. I certainly did.
 
 ## Flagship proofs
 
-- Diaconescu's theorem: choice implies excluded middle, over an intuitionistic core of ZF ([zfc.hai](examples/zfc.hai), `diaconescu`)
+- Diaconescu's theorem: choice implies excluded middle, over an intuitionistic core of ZF ([diaconescu.hai](examples/diaconescu.hai))
 - Foundation implies excluded middle ([zfc.hai](examples/zfc.hai), `em_from_foundation`)
 - Tarski's undefinability of truth, from the diagonal lemma as a hypothesis ([tarski.hai](examples/tarski.hai))
 - Russell's paradox: there is no set of all sets ([zfc.hai](examples/zfc.hai), `russell`)
@@ -77,8 +78,8 @@ I hope you enjoy Hailperin. I certainly did.
 ```
 cargo run --release -- examples/socrates.hai            # prints `success`
 cargo run --release -- - < file.hai                      # reads standard input
-cargo run --release -- fmt examples/socrates.hai        # one indentation level per block
-cargo run --release -- explain examples/socrates.hai    # each line's scope, and what each theorem rests on
+cargo run --release -- fmt examples/socrates.hai        # the canonical layout (--indent, --by, --scope)
+cargo run --release -- explain examples/socrates.hai    # each line's scope and formula
 cargo test
 ```
 

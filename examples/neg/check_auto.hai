@@ -1,4 +1,0 @@
-{- `auto` is held for a tool that fills lines in. Until it runs, the line is unfilled. -}
-theorem id
-  assume a: A
-  id: A -> A by auto

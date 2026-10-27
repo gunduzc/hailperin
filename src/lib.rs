@@ -51,7 +51,7 @@ pub fn verify(src: &str) -> Result<Vec<(String, kernel::formula::Formula)>, Erro
 }
 
 /// Checks a file and returns, for each line of each theorem, its variables in scope, its
-/// open assumptions and its formula, and for each theorem the premises it rests on.
+/// open assumptions and its formula.
 pub fn explain_in(src: &str, dir: &Path, path: Option<&Path>) -> Result<Vec<String>, Error> {
     let mut l = loader(path)?;
     l.checker.explain = true;
@@ -60,6 +60,7 @@ pub fn explain_in(src: &str, dir: &Path, path: Option<&Path>) -> Result<Vec<Stri
 }
 
 fn loader(path: Option<&Path>) -> Result<Loader, Error> {
+    crate::print::clear_folds();
     let mut l = Loader { checker: check::Checker::default(), done: BTreeSet::new(), open: Vec::new() };
     if let Some(p) = path {
         let p = p.canonicalize().map_err(|e| Error::new(1, format!("can't read this file: {e}")))?;

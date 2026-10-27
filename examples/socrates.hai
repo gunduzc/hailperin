@@ -1,17 +1,18 @@
-{- Whatever is Socrates is mortal. Nothing is assumed to exist. -}
+-- Whatever is Socrates is mortal. Nothing is assumed to exist.
 
-theorem socrates_is_mortal
+predicate Socrates x
+predicate Person x
+predicate Mortal x
+
+theorem socrates_is_mortal:
   assume sp: forall x. Socrates x -> Person x
   assume pm: forall x. Person x -> Mortal x
-  lemma all
+  lemma sm:
+    variable x
     assume s: Socrates x
-    sp1: Socrates x -> Person x          by forall_e sp x
-    pm1: Person x -> Mortal x            by forall_e pm x
-    p:   Person x                        by imp_e sp1 s
-    m:   Mortal x                        by imp_e pm1 p
-    sm:  Socrates x -> Mortal x          by imp_i s m
-    all: forall x. Socrates x -> Mortal x     by forall_i x sm
-  socrates_is_mortal:
-    (forall x. Socrates x -> Person x)
-      -> (forall x. Person x -> Mortal x)
-      -> forall x. Socrates x -> Mortal x     by imp_i sp pm all
+    p: Person x                           by imp_e sp s
+    m: Mortal x                           by imp_e pm p
+    therefore forall x. Socrates x -> Mortal x
+  therefore (forall x. Socrates x -> Person x)
+              -> (forall x. Person x -> Mortal x)
+              -> forall x. Socrates x -> Mortal x

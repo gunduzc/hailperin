@@ -1,1 +1,0 @@
-failure: line 2: T: `x` is free: bind it with `forall` or `exists`

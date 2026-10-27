@@ -1,51 +1,62 @@
-{- Cantor: no single-valued relation from a set to its subsets reaches every subset. The
-   diagonal set escapes. All it takes is one separation instance; equality is extensional
-   equality, defined. Compare russell.hai, which is the same diagonal with no sets at all. -}
+-- Cantor: no single-valued relation from a set to its subsets reaches every subset. The
+-- diagonal set escapes. All it takes is one separation instance; equality is extensional
+-- equality, defined. Compare russell.hai, which is the same diagonal with no sets at all.
 
-define Iff A B = (A -> B) and (B -> A)
+predicate In x y
+define Iff (A) (B) = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
-define Diag F z = forall y. F z y -> not (In z y)          {- z is in no set F sends it to -}
+define Diag (F x y) z = forall y. F z y -> not (In z y)     -- z is in no set F sends it to
 
-theory Separation
-  sep P: forall a. exists s. forall z. Iff (In z s) (In z a and P z)
+define Separation (P z) = forall a. exists s. forall z. Iff (In z s) (In z a and P z)
 
-theorem cantor in Separation
+theorem cantor:
+  predicate F x y
+  assume sep_diag: Separation (Diag F)
   assume fun: forall x y y1. F x y -> F x y1 -> Eq y y1
-  sep: exists d. forall z. Iff (In z d) (In z a and Diag F z)       by forall_e (Separation.sep (Diag F)) a
-  lemma escapes
-    assume hd: forall z. Iff (In z d) (In z a and Diag F z)
-    lemma nohit
-      assume xa:  In x a
-      assume fxd: F x d
-      hdx: Iff (In x d) (In x a and Diag F x)                        by forall_e hd x
-      fwd: In x d -> In x a and Diag F x                             by and_e1 hdx
-      bwd: In x a and Diag F x -> In x d                             by and_e2 hdx
-      lemma notin
-        assume xd: In x d
-        c:   In x a and Diag F x                                     by imp_e fwd xd
-        dg:  Diag F x                                                by and_e2 c
-        nxd: not (In x d)                                            by dg fxd
-        f:   absurd                                                  by imp_e nxd xd
-        notin: not (In x d)                                          by imp_i xd f
-      lemma diag
-        assume fxy: F x y
-        assume xy:  In x y
-        e:   Eq y d                                                  by fun fxy fxd
-        ex:  Iff (In x y) (In x d)                                   by forall_e e x
-        ex1: In x y -> In x d                                        by and_e1 ex
-        xd:  In x d                                                  by imp_e ex1 xy
-        f:   absurd                                                  by imp_e notin xd
-        ny:  not (In x y)                                            by imp_i xy f
-        g:   F x y -> not (In x y)                                   by imp_i fxy ny
-        diag: Diag F x                                               by forall_i y g
-      c2:  In x a and Diag F x                                       by and_i xa diag
-      xd2: In x d                                                    by imp_e bwd c2
-      f2:  absurd                                                    by imp_e notin xd2
-      nf:  not (F x d)                                               by imp_i fxd f2
-      g2:  In x a -> not (F x d)                                     by imp_i xa nf
-      nohit: forall x. In x a -> not (F x d)                         by forall_i x g2
-    ex: exists d. forall x. In x a -> not (F x d)                    by exists_i nohit
-    escapes: exists d. forall x. In x a -> not (F x d)               by exists_e sep hd ex
-  all: forall a. exists d. forall x. In x a -> not (F x d)           by forall_i a escapes
-  cantor: (forall x y y1. F x y -> F x y1 -> Eq y y1)
-            -> forall a. exists d. forall x. In x a -> not (F x d)   by imp_i fun all
+  lemma all:
+    variable a
+    sep: exists d. forall z. Iff (In z d) (In z a and Diag F z)
+                                          by forall_e sep_diag a
+    lemma escapes:
+      variable d
+      assume hd: forall z. Iff (In z d) (In z a and Diag F z)
+      lemma nohit:
+        variable x
+        assume xa:  In x a
+        assume fxd: F x d
+        hdx: Iff (In x d) (In x a and Diag F x)
+                                          by forall_e hd x
+        fwd: In x d -> In x a and Diag F x
+                                          by and_e hdx
+        bwd: In x a and Diag F x -> In x d
+                                          by and_e hdx
+        lemma notin:
+          assume xd: In x d
+          c:   In x a and Diag F x        by imp_e fwd xd
+          dg:  Diag F x                   by and_e c
+          nxd: not (In x d)               by imp_e dg fxd
+          f:   absurd                     by imp_e nxd xd
+          therefore not (In x d)
+        lemma diag:
+          variable y
+          assume fxy: F x y
+          assume xy:  In x y
+          e:   Eq y d                     by imp_e fun fxy fxd
+          ex:  Iff (In x y) (In x d)      by forall_e e x
+          ex1: In x y -> In x d           by and_e ex
+          xd:  In x d                     by imp_e ex1 xy
+          f:   absurd                     by imp_e notin xd
+          therefore Diag F x
+        c2:  In x a and Diag F x          by and_i xa diag
+        xd2: In x d                       by imp_e bwd c2
+        f2:  absurd                       by imp_e notin xd2
+        therefore forall x. In x a -> not (F x d)
+      ex: exists d. forall x. In x a -> not (F x d)
+                                          by exists_i nohit
+      therefore forall d. (forall z. Iff (In z d) (In z a and Diag F z))
+                            -> exists d. forall x. In x a -> not (F x d)
+    k: exists d. forall x. In x a -> not (F x d)
+                                          by exists_e sep escapes
+    therefore forall a. exists d. forall x. In x a -> not (F x d)
+  therefore Separation (Diag F) -> (forall x y y1. F x y -> F x y1 -> Eq y y1)
+              -> forall a. exists d. forall x. In x a -> not (F x d)

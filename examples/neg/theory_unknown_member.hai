@@ -1,4 +1,0 @@
-theory T
-  ax: forall x. P x
-theorem bad in T
-  bad: forall x. P x by T.bx

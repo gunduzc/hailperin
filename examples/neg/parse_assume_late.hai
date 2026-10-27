@@ -1,5 +1,0 @@
-theorem t
-  assume a: A
-  k: A by a
-  assume b: B
-  t: A -> A by imp_i a k

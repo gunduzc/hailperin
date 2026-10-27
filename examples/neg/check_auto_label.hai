@@ -1,3 +1,0 @@
-theorem t
-  assume auto: A
-  t: A -> A by imp_i auto auto

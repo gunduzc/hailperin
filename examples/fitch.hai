@@ -1,0 +1,68 @@
+-- Fitch's paradox of knowability: if every truth could be known, no truth is unknown.
+-- Propositions and worlds are individuals. True p w says p holds at w.
+-- The secret is p and not known: a truth that nobody knows.
+
+predicate True p w
+predicate And p q r                       -- r is p and q
+predicate Not p q                         -- q is not p
+predicate Kn p q                          -- q is "p is known"
+predicate R w v                           -- v is possible from w
+
+-- Every axiom holds at every world, so Fitch's necessitation step comes for free.
+define AndOut   = forall p q r w. And p q r -> True r w -> True p w and True q w
+define NotOut   = forall p q w. Not p q -> True q w -> not (True p w)
+-- only truths are known
+define Fact     = forall p known w. Kn p known -> True known w -> True p w
+-- knowing p and q means knowing p
+define Split    = forall p q r r_known p_known w. And p q r -> Kn r r_known -> Kn p p_known
+                    -> True r_known w -> True p_known w
+-- every truth could be known
+define Knowable = forall p known w. Kn p known -> True p w -> exists v. R w v and True known v
+
+define Fitch = AndOut and NotOut and Fact and Split and Knowable
+
+-- The secret is known nowhere: knowing it means knowing p, yet it says p is unknown.
+theorem unknowable:
+  variable p known unknown secret secret_known v
+  assume ax:              Fitch
+  assume known_is:        Kn p known
+  assume unknown_is:      Not known unknown
+  assume secret_is:       And p unknown secret
+  assume secret_known_is: Kn secret secret_known
+  assume secret_known_v:  True secret_known v
+  fact:    Fact                           by and_e ax
+  and_out: AndOut                         by and_e ax
+  not_out: NotOut                         by and_e ax
+  split:   Split                          by and_e ax
+  secret_v:      True secret v            by imp_e fact secret_known_is secret_known_v
+  both_v:        True p v and True unknown v
+                                          by imp_e and_out secret_is secret_v
+  unknown_v:     True unknown v           by and_e both_v
+  not_known_v:   not (True known v)       by imp_e not_out unknown_is unknown_v
+  known_v:       True known v             by imp_e split secret_is secret_known_is known_is secret_known_v
+  bad:           absurd                   by imp_e not_known_v known_v
+  therefore forall p known unknown secret secret_known v. Fitch -> Kn p known -> Not known unknown
+              -> And p unknown secret -> Kn secret secret_known -> True secret_known v -> absurd
+
+-- The secret is true nowhere: where it is true, knowability makes it known somewhere.
+-- Intuitionistic: not (p and not known), not p -> known.
+theorem fitch:
+  variable p known unknown secret secret_known w
+  assume ax:              Fitch
+  assume known_is:        Kn p known
+  assume unknown_is:      Not known unknown
+  assume secret_is:       And p unknown secret
+  assume secret_known_is: Kn secret secret_known
+  assume secret_w:        True secret w
+  knowable: Knowable                      by and_e ax
+  somewhere: exists v. R w v and True secret_known v
+                                          by imp_e knowable secret_known_is secret_w
+  lemma at_v:
+    variable v
+    assume rv: R w v and True secret_known v
+    secret_known_v: True secret_known v   by and_e rv
+    bad:            absurd                by imp_e unknowable ax known_is unknown_is secret_is secret_known_is secret_known_v
+    therefore forall v. R w v and True secret_known v -> absurd
+  bad: absurd                             by exists_e somewhere at_v
+  therefore forall p known unknown secret secret_known w. Fitch -> Kn p known -> Not known unknown
+              -> And p unknown secret -> Kn secret secret_known -> True secret w -> absurd

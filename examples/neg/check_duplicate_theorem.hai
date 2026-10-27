@@ -1,6 +1,0 @@
-theorem twice
-  assume a: A
-  twice: A -> A by imp_i a a
-theorem twice
-  assume a: A
-  twice: A -> A by imp_i a a

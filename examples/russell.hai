@@ -1,21 +1,24 @@
-{- Russell: no set has exactly the sets that aren't members of themselves. Pure logic, no
-   axioms. `In` is any binary relation, and nothing is assumed to exist. -}
+-- Russell: no set has exactly the sets that aren't members of themselves. Pure logic, no
+-- axioms. `In` is any binary relation, and nothing is assumed to exist.
 
-define Iff A B = (A -> B) and (B -> A)
+predicate In x y
+define Iff (A) (B) = (A -> B) and (B -> A)
 
-theorem russell
+theorem russell:
   assume h: exists r. forall x. Iff (In x r) (not (In x x))
-  lemma c
+  lemma c:
+    variable r
     assume hr: forall x. Iff (In x r) (not (In x x))
-    rr:  Iff (In r r) (not (In r r))                                by forall_e hr r
-    fwd: In r r -> not (In r r)                                     by and_e1 rr
-    bwd: not (In r r) -> In r r                                     by and_e2 rr
-    lemma nr
-      assume x: In r r
-      n:  not (In r r)                                              by imp_e fwd x
-      f:  absurd                                                    by imp_e n x
-      nr: not (In r r)                                              by imp_i x f
-    r1: In r r                                                      by imp_e bwd nr
-    f:  absurd                                                      by imp_e nr r1
-    c:  absurd                                                      by exists_e h hr f
-  russell: not (exists r. forall x. Iff (In x r) (not (In x x)))    by imp_i h c
+    rr:  Iff (In r r) (not (In r r))      by forall_e hr r
+    fwd: In r r -> not (In r r)           by and_e rr
+    bwd: not (In r r) -> In r r           by and_e rr
+    lemma nr:
+      assume in_rr: In r r
+      n: not (In r r)                     by imp_e fwd in_rr
+      f: absurd                           by imp_e n in_rr
+      therefore not (In r r)
+    r1: In r r                            by imp_e bwd nr
+    f:  absurd                            by imp_e nr r1
+    therefore forall r. not (forall x. Iff (In x r) (not (In x x)))
+  k: absurd                               by exists_e h c
+  therefore not (exists r. forall x. Iff (In x r) (not (In x x)))

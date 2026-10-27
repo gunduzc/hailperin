@@ -1,0 +1,97 @@
+-- Lists over FS0, nil-terminated and nested to the right. A list is the least collection
+-- containing the atom and closed under consing. That collection is not first-order
+-- definable over a free algebra, so List is a primitive with a base, a step and a least
+-- axiom. Membership is the second closure predicate, defined the same way.
+
+import fs0
+
+predicate List x
+predicate Mem a x
+
+define Ln = forall n. Nil n -> List n
+define Lc = forall h t p. List t -> Pair h t p -> List p
+define El = forall x x1. Eq x x1 -> List x -> List x1
+-- membership: a is the head of the list, or a member of its tail
+define Mh = forall a t p. Pair a t p -> Mem a p
+define Mt = forall a h t p. Pair h t p -> Mem a t -> Mem a p
+define Em = forall a b x y. Eq a b -> Eq x y -> Mem a x -> Mem b y
+
+define LIST = FS0 and Ln and Lc and El and Mh and Mt and Em
+
+define ListLeast (P x) = (forall n. Nil n -> P n)
+                         -> (forall h t p. P t -> Pair h t p -> P p)
+                         -> forall x. List x -> P x
+
+define MemLeast (P a x) = (forall a t p. Pair a t p -> P a p)
+                          -> (forall a h t p. Pair h t p -> Mem a t -> P a t -> P a p)
+                          -> forall a x. Mem a x -> P a x
+
+-- A list is the atom, or a pair whose tail is a list.
+define ListInv x = List x and (Nil x or exists h t. Pair h t x and List t)
+
+theorem list_inv_all:
+  assume list:  LIST
+  assume least: ListLeast ListInv
+  ln: Ln                                  by and_e list
+  lc: Lc                                  by and_e list
+  lemma base:
+    variable x
+    assume nx: Nil x
+    lx: List x                            by imp_e ln nx
+    o:  Nil x or exists h t. Pair h t x and List t
+                                          by or_i nx
+    k:  ListInv x                         by and_i lx o
+    therefore forall x. Nil x -> ListInv x
+  lemma step:
+    variable h t p
+    assume ih:  ListInv t
+    assume pht: Pair h t p
+    lt: List t                            by and_e ih
+    lp: List p                            by imp_e lc lt pht
+    c:  Pair h t p and List t             by and_i pht lt
+    e:  exists h t. Pair h t p and List t by exists_i c
+    o:  Nil p or exists h t. Pair h t p and List t
+                                          by or_i e
+    k:  ListInv p                         by and_i lp o
+    therefore forall h t p. ListInv t -> Pair h t p -> ListInv p
+  r: forall x. List x -> ListInv x        by imp_e least base step
+  therefore LIST -> ListLeast ListInv -> forall x. List x -> ListInv x
+
+theorem list_inv:
+  assume list:  LIST
+  assume least: ListLeast ListInv
+  lemma all:
+    variable x
+    assume lx: List x
+    i: ListInv x                          by imp_e list_inv_all list least lx
+    r: Nil x or exists h t. Pair h t x and List t
+                                          by and_e i
+    therefore forall x. List x -> Nil x or exists h t. Pair h t x and List t
+  therefore LIST -> ListLeast ListInv -> forall x. List x -> Nil x or exists h t. Pair h t x and List t
+
+-- A member of a list sits in a pair.
+define MemPair u l = Mem u l and exists h t. Pair h t l
+
+theorem mem_pair:
+  assume list:  LIST
+  assume least: MemLeast MemPair
+  mh: Mh                                  by and_e list
+  mt: Mt                                  by and_e list
+  lemma base:
+    variable a t p
+    assume pat: Pair a t p
+    m:  Mem a p                           by imp_e mh pat
+    e:  exists h t. Pair h t p            by exists_i pat
+    k:  MemPair a p                       by and_i m e
+    therefore forall a t p. Pair a t p -> MemPair a p
+  lemma step:
+    variable a h t p
+    assume pht: Pair h t p
+    assume m:   Mem a t
+    assume ih:  MemPair a t
+    mp: Mem a p                           by imp_e mt pht m
+    e:  exists h t. Pair h t p            by exists_i pht
+    k:  MemPair a p                       by and_i mp e
+    therefore forall a h t p. Pair h t p -> Mem a t -> MemPair a t -> MemPair a p
+  r: forall a x. Mem a x -> MemPair a x   by imp_e least base step
+  therefore LIST -> MemLeast MemPair -> forall a x. Mem a x -> MemPair a x

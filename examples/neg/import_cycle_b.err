@@ -1,1 +1,0 @@
-failure: import_cycle_a.hai: line 1: import cycle: import_cycle_b -> import_cycle_a -> import_cycle_b

@@ -1,53 +1,59 @@
-{- Classical logic is a theory: excluded middle, one instance at a time. -}
+-- Classical logic is a schema: excluded middle, assumed one instance at a time.
 
-theory Classical
-  em A: A or not A
+define ExcludedMiddle (A) = A or not A
 
-{- Peirce's law, from excluded middle for A. -}
-theorem peirce in Classical
+-- Peirce's law, from excluded middle for A.
+theorem peirce:
+  predicate A
+  predicate B
+  assume em: ExcludedMiddle A
   assume f: (A -> B) -> A
-  lemma yes
+  lemma yes:
     assume a: A
-    yes: A -> A                           by imp_i a a
-  lemma no
+    therefore A -> A
+  lemma no:
     assume na: not A
-    lemma ab
+    lemma ab:
       assume a: A
       x: absurd                           by imp_e na a
       b: B                                by absurd_e x
-      ab: A -> B                          by imp_i a b
+      therefore A -> B
     a: A                                  by imp_e f ab
-    no: not A -> A                        by imp_i na a
-  a: A                                    by or_e (Classical.em A) yes no
-  peirce: ((A -> B) -> A) -> A            by imp_i f a
+    therefore not A -> A
+  a: A                                    by or_e em yes no
+  therefore ExcludedMiddle A -> ((A -> B) -> A) -> A
 
-{- Double negation elimination. -}
-theorem dne in Classical
+-- Double negation elimination.
+theorem dne:
+  predicate A
+  assume em: ExcludedMiddle A
   assume nna: not (not A)
-  lemma yes
+  lemma yes:
     assume a: A
-    yes: A -> A                           by imp_i a a
-  lemma no
+    therefore A -> A
+  lemma no:
     assume na: not A
     f: absurd                             by imp_e nna na
     a: A                                  by absurd_e f
-    no: not A -> A                        by imp_i na a
-  a: A                                    by or_e (Classical.em A) yes no
-  dne: not (not A) -> A                   by imp_i nna a
+    therefore not A -> A
+  a: A                                    by or_e em yes no
+  therefore ExcludedMiddle A -> not (not A) -> A
 
-{- Contraposition, the classical direction. -}
-theorem contrapositive in Classical
+-- Contraposition, the classical direction.
+theorem contrapositive:
+  predicate A
+  predicate B
+  assume em: ExcludedMiddle B
   assume h: not B -> not A
   assume a: A
-  lemma yes
+  lemma yes:
     assume b: B
-    yes: B -> B                           by imp_i b b
-  lemma no
+    therefore B -> B
+  lemma no:
     assume nb: not B
     na: not A                             by imp_e h nb
     f:  absurd                            by imp_e na a
     b:  B                                 by absurd_e f
-    no: not B -> B                        by imp_i nb b
-  b: B                                    by or_e (Classical.em B) yes no
-  contrapositive: (not B -> not A) -> A -> B
-                                          by imp_i h a b
+    therefore not B -> B
+  b: B                                    by or_e em yes no
+  therefore ExcludedMiddle B -> (not B -> not A) -> A -> B

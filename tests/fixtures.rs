@@ -1,5 +1,5 @@
-//! Runs the binary on every example. `examples/*.hai` must pass, printing only `success`;
-//! `examples/neg/*.hai` must fail, printing exactly its sibling `.err`.
+//! Runs the binary on every example: `examples/*.hai` must pass, printing only `success`.
+//! What must fail is in `rejections.rs`, as source text.
 
 use std::fs;
 use std::io::Read;
@@ -92,11 +92,6 @@ fn check_dir(dir: &str, pinned: Option<&str>, code: i32) {
 #[test]
 fn every_example_passes() {
     check_dir("examples", None, 0);
-}
-
-#[test]
-fn every_negative_fails_as_pinned() {
-    check_dir("examples/neg", Some("err"), 1);
 }
 
 /// `fmt` output checks like the original, and formatting it again changes nothing.

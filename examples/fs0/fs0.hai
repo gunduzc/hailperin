@@ -1,0 +1,92 @@
+-- Finite S-expressions: one atom, one constructor, full induction. This is Feferman's FS0
+-- without its inductive closure operator, so on its own it is weak. Closure predicates
+-- (formula, proof, substitution) join later, each with a base, a step and a least axiom.
+-- Equality is a predicate with its own axioms, as in Q.
+
+predicate Nil n
+predicate Pair x y p
+predicate Eq x y
+
+-- the atom and the pairing relation exist and are functional
+define Ne   = exists n. Nil n
+define Nu   = forall a b. Nil a -> Nil b -> Eq a b
+define Pe   = forall x y. exists p. Pair x y p
+define Pu   = forall x y a b. Pair x y a -> Pair x y b -> Eq a b
+-- a pair determines its parts, and no pair is the atom
+define Pj   = forall x y a b p q. Pair x y p -> Pair a b q -> Eq p q -> Eq x a and Eq y b
+define Pn   = forall x y p n. Pair x y p -> Nil n -> Eq p n -> absurd
+-- equality
+define Refl = forall x. Eq x x
+define Ee   = forall x y x1 y1. Eq x x1 -> Eq y y1 -> Eq x y -> Eq x1 y1
+define En   = forall x x1. Eq x x1 -> Nil x -> Nil x1
+define Ep   = forall x y p x1 y1 p1. Eq x x1 -> Eq y y1 -> Eq p p1 -> Pair x y p -> Pair x1 y1 p1
+
+define FS0 = Ne and Nu and Pe and Pu and Pj and Pn and Refl and Ee and En and Ep
+
+-- every object is built from the atom by pairing
+define Induction (P x) = (forall n. Nil n -> P n)
+                         -> (forall x y p. P x -> P y -> Pair x y p -> P p)
+                         -> forall x. P x
+
+-- Equality is symmetric.
+theorem eq_sym:
+  assume fs0: FS0
+  refl: Refl                              by and_e fs0
+  ee:   Ee                                by and_e fs0
+  lemma all:
+    variable x y
+    assume h: Eq x y
+    r: Eq x x                             by forall_e refl x
+    s: Eq y x                             by imp_e ee h r r
+    therefore forall x y. Eq x y -> Eq y x
+  therefore FS0 -> forall x y. Eq x y -> Eq y x
+
+-- Equality is transitive.
+theorem eq_trans:
+  assume fs0: FS0
+  refl: Refl                              by and_e fs0
+  ee:   Ee                                by and_e fs0
+  lemma all:
+    variable x y z
+    assume h: Eq x y
+    assume k: Eq y z
+    g: Eq y x                             by imp_e eq_sym fs0 h
+    r: Eq y y                             by forall_e refl y
+    t: Eq x z                             by imp_e ee g k r
+    therefore forall x y z. Eq x y -> Eq y z -> Eq x z
+  therefore FS0 -> forall x y z. Eq x y -> Eq y z -> Eq x z
+
+-- Two pairs that are the same object have the same parts.
+theorem pair_parts:
+  assume fs0: FS0
+  refl: Refl                              by and_e fs0
+  pj:   Pj                                by and_e fs0
+  lemma all:
+    variable x y a b p
+    assume p1: Pair x y p
+    assume p2: Pair a b p
+    r: Eq p p                             by forall_e refl p
+    c: Eq x a and Eq y b                  by imp_e pj p1 p2 r
+    therefore forall x y a b p. Pair x y p -> Pair a b p -> Eq x a and Eq y b
+  therefore FS0 -> forall x y a b p. Pair x y p -> Pair a b p -> Eq x a and Eq y b
+
+-- Everything is the atom or a pair, by induction.
+define NilOrPair x = Nil x or exists a b. Pair a b x
+
+theorem nil_or_pair:
+  assume ind: Induction NilOrPair
+  lemma base:
+    variable x
+    assume nx: Nil x
+    k: NilOrPair x                        by or_i nx
+    therefore forall x. Nil x -> NilOrPair x
+  lemma step:
+    variable x y p
+    assume ihx: NilOrPair x
+    assume ihy: NilOrPair y
+    assume pxy: Pair x y p
+    e:  exists a b. Pair a b p            by exists_i pxy
+    k:  NilOrPair p                       by or_i e
+    therefore forall x y p. NilOrPair x -> NilOrPair y -> Pair x y p -> NilOrPair p
+  r: forall x. NilOrPair x                by imp_e ind base step
+  therefore Induction NilOrPair -> forall x. NilOrPair x
