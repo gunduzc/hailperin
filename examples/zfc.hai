@@ -6,7 +6,7 @@
 import classical
 
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Sub x y = forall z. In z x -> In z y
 define Empty x = forall z. not (In z x)
@@ -408,8 +408,8 @@ theorem pairing_in2:
   therefore forall p a b. Pairing p a b -> In b p
 
 -- Diaconescu: choice implies excluded middle, for any statement A.
-define EqOr (A) e z = Eq z e or A
-define SepBy (A) s u e = forall z. Iff (In z s) (In z u and EqOr A e z)   -- s = {z in u | z = e or A}
+define EqOr A e z = Eq z e or A
+define SepBy A s u e = forall z. Iff (In z s) (In z u and EqOr A e z)   -- s = {z in u | z = e or A}
 
 theorem sepby_in:
   predicate A
@@ -468,7 +468,7 @@ theorem em_from_foundation:
           eo:  In e o                     by imp_e pairing_in1 ho
           roo: Eq o o                     by forall_e eq_refl o
           co:  EqOr A o o                 by or_i roo
-          oc:  In o c                     by imp_e sepby_in hc ou co
+          oc:  In o c                     by imp_e sepby_in A hc ou co
           ne:  exists x. In x c           by exists_i oc
           lemma yes:
             assume h: A
@@ -485,7 +485,7 @@ theorem em_from_foundation:
             yc: In y c                    by and_e hy
             nz: not (exists z. In z y and In z c)
                                           by and_e hy
-            d:  In y u and EqOr A o y     by imp_e sepby_out hc yc
+            d:  In y u and EqOr A o y     by imp_e sepby_out A hc yc
             cy: EqOr A o y                by and_e d
             -- y = o is impossible under A: then e would be in both y and c
             lemma yo:
@@ -494,7 +494,7 @@ theorem em_from_foundation:
                 assume h: A
                 ey:   In e y              by imp_e eq_in_back q eo
                 d3:   EqOr A o e          by or_i h
-                ec:   In e c              by imp_e sepby_in hc eu d3
+                ec:   In e c              by imp_e sepby_in A hc eu d3
                 both: In e y and In e c   by and_i ey ec
                 ex:   exists z. In z y and In z c
                                           by exists_i both

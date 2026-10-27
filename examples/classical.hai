@@ -1,6 +1,6 @@
 -- Classical logic is a schema: excluded middle, assumed one instance at a time.
 
-define ExcludedMiddle (A) = A or not A
+define ExcludedMiddle A = A or not A
 
 -- Peirce's law, from excluded middle for A.
 theorem peirce:

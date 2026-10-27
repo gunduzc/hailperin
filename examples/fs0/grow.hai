@@ -1,0 +1,329 @@
+-- Growing the chain inside a proof. Ctx n z h says z is the pool variable z_n, the chain
+-- through it is among the hypotheses h, and every variable free in h is even or a pool
+-- variable up to z_n. Then z_(n+1) is fresh, and Q's Se gives exists z_(n+1). Succ z_n z_(n+1),
+-- so a formula with no pool variable free, proved with one more chain link, is proved from h.
+
+import cover
+
+define FvOK n h = forall m. Suc n m -> forall u b. Mem b h -> Fr u b -> Even u or exists j. Pool j u and Lt j m
+define Ctx n z h = Pool n z and FvOK n h and exists c. Chain n z c and (forall b. Mem b c -> Mem b h)
+define NoPool f = forall u i. Pool i u -> not (Fr u f)
+
+-- The next pool variable is free in no hypothesis.
+theorem ctx_fresh:
+  variable n h m z1
+  assume nat:  NAT
+  assume dbl:  DBL
+  assume lt:   LT
+  assume dinv: DblLeast DblInv
+  assume dinj: DblLeast DblInj
+  assume dodd: DblLeast DblOdd
+  assume dnat: DblLeast DblNat
+  assume linv: LtLeast LtInv
+  assume leq:  LtLeast LtEq
+  assume ltr:  LtLeast LtTrans
+  assume lirr: NatLeast LtIrr
+  assume fv:   FvOK n h
+  assume sm:   Suc n m
+  assume pz1:  Pool m z1
+  fs0:  FS0                               by and_e nat
+  refl: Refl                              by and_e fs0
+  dns:  forall i k. Dbl i k -> DblNat i k
+                                          by imp_e dbl_nat nat dnat
+  eqs: forall n1 m1. Lt n1 m1 -> LtEq n1 m1     by imp_e lt_eq fs0 lt leq
+  irr: forall n1. Nat n1 -> LtIrr n1         by imp_e lt_irrefl fs0 lt linv leq ltr lirr
+  rz:  Eq z1 z1                           by forall_e refl z1
+  rm:  Eq m m                             by forall_e refl m
+  lemma natm:
+    variable k
+    assume hk: Dbl m k and Suc k z1
+    dk: Dbl m k                           by and_e hk
+    dn: DblNat m k                        by imp_e dns dk
+    r:  Nat m                             by and_e dn
+    therefore forall k. (Dbl m k and Suc k z1) -> Nat m
+  nm: Nat m                               by exists_e pz1 natm
+  im: LtIrr m                             by imp_e irr nm
+  lemma nf:
+    variable b
+    assume mb: Mem b h
+    lemma no:
+      assume fb: Fr z1 b
+      o: Even z1 or exists j. Pool j z1 and Lt j m
+                                          by imp_e fv sm mb fb
+      lemma even:
+        assume ev: Even z1
+        f: absurd                         by imp_e even_pool fs0 dbl dinv dodd ev pz1 rz
+        therefore Even z1 -> absurd
+      lemma pool:
+        assume ex: exists j. Pool j z1 and Lt j m
+        lemma wit:
+          variable j
+          assume hj: Pool j z1 and Lt j m
+          pj1: Pool j z1                  by and_e hj
+          ljm: Lt j m                     by and_e hj
+          ejm: Eq j m                     by imp_e pool_inj fs0 dbl dinv dinj pj1 pz1 rz
+          qq:  LtEq j m                   by imp_e eqs ljm
+          lmm: Lt m m                     by imp_e qq ejm rm
+          f:   absurd                     by imp_e im lmm
+          therefore forall j. (Pool j z1 and Lt j m) -> absurd
+        f: absurd                         by exists_e ex wit
+        therefore (exists j. Pool j z1 and Lt j m) -> absurd
+      f: absurd                           by or_e o even pool
+      therefore not (Fr z1 b)
+    therefore forall b. Mem b h -> not (Fr z1 b)
+  therefore forall n h m z1. NAT -> DBL -> LT -> DblLeast DblInv -> DblLeast DblInj -> DblLeast DblOdd
+              -> DblLeast DblNat -> LtLeast LtInv -> LtLeast LtEq -> LtLeast LtTrans -> NatLeast LtIrr -> FvOK n h
+              -> Suc n m -> Pool m z1 -> NoFree z1 h
+
+-- Everything about pool variables and their order, once.
+define PoolCtx = DBL and LT and DblLeast DblInv and DblLeast DblInj and DblLeast DblOdd and DblLeast DblNat
+                 and LtLeast LtInv and LtLeast LtEq and LtLeast LtTrans and NatLeast LtIrr and NatLeast SucNe
+
+-- One more chain link costs nothing, for a formula with no pool variable free.
+theorem ctx_grow:
+  variable n z h m z1 f
+  assume q:    QCtx
+  assume pc:   PoolCtx
+  assume list: LIST
+  assume dtp:  PrfLeast QAx DTP
+  assume mc:   MemLeast MemCons
+  assume ctx:  Ctx n z h
+  assume sm:   Suc n m
+  assume pz1:  Pool m z1
+  assume k:    forall s h1. SuccAt z z1 s -> Pair s h h1 -> PrH h1 f
+  assume ff:   Form f
+  assume ef:   NoPool f
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  logax: LOGAX                            by and_e q
+  prf:   PRF QAx                          by and_e q
+  nat:   NAT                              by and_e form
+  fex:   Fex                              by and_e form
+  pe:    Pe                               by and_e fs0
+  dbl:   DBL                              by and_e pc
+  lt:    LT                               by and_e pc
+  dinv:  DblLeast DblInv                  by and_e pc
+  dinj:  DblLeast DblInj                  by and_e pc
+  dodd:  DblLeast DblOdd                  by and_e pc
+  dnat:  DblLeast DblNat                  by and_e pc
+  linv:  LtLeast LtInv                    by and_e pc
+  leq:   LtLeast LtEq                     by and_e pc
+  ltr:   LtLeast LtTrans                  by and_e pc
+  lirr:  NatLeast LtIrr                   by and_e pc
+  lsne:  NatLeast SucNe                   by and_e pc
+  pz:    Pool n z                         by and_e ctx
+  fv:    FvOK n h                         by and_e ctx
+  nz:    Nat z                            by imp_e pool_nat nat dnat pz
+  nz1:   Nat z1                           by imp_e pool_nat nat dnat pz1
+  leaf:  (forall h1 a. Form a -> LogAx a -> PrH h1 a) and (forall h2 a. Form a -> QAx a -> PrH h2 a)
+         and (forall h3 a. Form a -> Mem a h3 -> PrH h3 a)
+                                          by imp_e prh_leaf QAx fs0 prf
+  axh:   forall h1 a. Form a -> QAx a -> PrH h1 a
+                                          by and_e leaf
+  tags: Tags                              by imp_e tag_exists fs0
+  t6:   exists t. T6 t                    by and_e tags
+  dns:   forall i k1. Dbl i k1 -> DblNat i k1
+                                          by imp_e dbl_nat nat dnat
+  lemma natn:
+    variable j
+    assume hj: Dbl n j and Suc j z
+    dj: Dbl n j                           by and_e hj
+    dn: DblNat n j                        by imp_e dns dj
+    r:  Nat n                             by and_e dn
+    therefore forall j. (Dbl n j and Suc j z) -> Nat n
+  nn:  Nat n                              by exists_e pz natn
+  sne: forall x. Nat x -> SucNe x         by imp_e suc_ne fs0 lsne
+  sn:  SucNe n                            by imp_e sne nn
+  nnm: not (Eq n m)                       by imp_e sn sm
+  lemma dz:
+    assume e: Eq z z1
+    enm: Eq n m                           by imp_e pool_inj fs0 dbl dinv dinj pz pz1 e
+    g:   absurd                           by imp_e nnm enm
+    therefore not (Eq z z1)
+  nfh: NoFree z1 h                        by imp_e ctx_fresh nat dbl lt dinv dinj dodd dnat linv leq ltr lirr fv sm pz1
+  nff: not (Fr z1 f)                      by imp_e ef pz1
+  es:  exists x. SuccAt z z1 x            by imp_e succat_exists fs0
+  lemma w1:
+    variable s
+    assume xs: SuccAt z z1 s
+    fs:  Form s                           by imp_e succat_form form nz nz1 xs
+    ec1: exists x. Node2 T6 z1 s x        by imp_e node2_exists T6 fs0 t6
+    lemma w2:
+      variable c1
+      assume evs: Node2 T6 z1 s c1
+      fc1: Form c1                        by imp_e fex nz1 fs evs
+      sec: Nat z and Nat z1 and not (Eq z z1) and ExCode z1 s c1 and SuccAt z z1 s
+                                          by and_i nz nz1 dz evs xs
+      se:  SeCode c1                      by exists_i sec
+      qa:  QAx c1                         by or_i se
+      pc1: PrH h c1                       by imp_e axh fc1 qa
+      eh1: exists p. Pair s h p           by forall_e pe s h
+      lemma w4:
+        variable h1
+        assume ph1: Pair s h h1
+        p1: PrH h1 f                      by imp_e k xs ph1
+        r:  PrH h f                       by imp_e prh_exe QAx fs0 form logax list prf dtp mc nz1 fs ff nff nfh evs pc1 ph1 p1
+        therefore forall h1. Pair s h h1 -> PrH h f
+      r: PrH h f                          by exists_e eh1 w4
+      therefore forall c1. Node2 T6 z1 s c1 -> PrH h f
+    r: PrH h f                            by exists_e ec1 w2
+    therefore forall s. SuccAt z z1 s -> PrH h f
+  r: PrH h f                              by exists_e es w1
+  therefore forall n z h m z1 f. QCtx -> PoolCtx -> LIST -> PrfLeast QAx DTP -> MemLeast MemCons -> Ctx n z h
+              -> Suc n m -> Pool m z1 -> (forall s h1. SuccAt z z1 s -> Pair s h h1 -> PrH h1 f) -> Form f -> NoPool f
+              -> PrH h f
+
+-- And after the link, the context holds one step further.
+theorem ctx_ext:
+  variable n z h m z1 s h1
+  assume fs0:   FS0
+  assume free:  FREE
+  assume list:  LIST
+  assume lt:    LT
+  assume chain: CHAIN
+  assume ll:    FrLLeast FrLInv
+  assume lf:    FrLeast FrInv
+  assume mc:    MemLeast MemCons
+  assume ctx:   Ctx n z h
+  assume sm:    Suc n m
+  assume pz1:   Pool m z1
+  assume sa:    SuccAt z z1 s
+  assume ph1:   Pair s h h1
+  refl: Refl                              by and_e fs0
+  pe:   Pe                                by and_e fs0
+  qfr:  Qfr                               by and_e free
+  mh:   Mh                                by and_e list
+  mt:   Mt                                by and_e list
+  lt0:  Lt0                               by and_e lt
+  lt1:  Lt1                               by and_e lt
+  cs:   Cs                                by and_e chain
+  pz:   Pool n z                          by and_e ctx
+  fv:   FvOK n h                          by and_e ctx
+  ech:  exists c. Chain n z c and (forall b. Mem b c -> Mem b h)
+                                          by and_e ctx
+  lemma fv1:
+    variable m2
+    assume sm2: Suc m m2
+    lnm:  Lt n m                          by imp_e lt0 sm
+    lnm2: Lt n m2                         by imp_e lt1 lnm sm2
+    lmm2: Lt m m2                         by imp_e lt0 sm2
+    lemma each:
+      variable u b
+      assume mb: Mem b h1
+      assume fb: Fr u b
+      mcb: MemCons b h1                   by imp_e mem_cons list mc mb
+      o:   Eq b s or Mem b h              by imp_e mcb ph1
+      lemma head:
+        assume ebs: Eq b s
+        ru: Eq u u                        by forall_e refl u
+        fs: Fr u s                        by imp_e qfr ru ebs fb
+        lemma wit:
+          variable p l
+          assume hs: T1 p and List2 z z1 l and Node2 T1 p l s
+          nd: Node2 T1 p l s              by and_e hs
+          li: List2 z z1 l                by and_e hs
+          fl: FrL u l                     by imp_e fr_at fs0 free lf fs nd
+          o2: Eq u z or Eq u z1           by imp_e frl_list2 fs0 free ll fl li
+          lemma low:
+            assume e: Eq u z
+            e1: Eq z u                    by imp_e eq_sym fs0 e
+            pu: Pool n u                  by imp_e pool_eq fs0 pz e1
+            c:  Pool n u and Lt n m2      by and_i pu lnm2
+            x:  exists j. Pool j u and Lt j m2
+                                          by exists_i c
+            r:  Even u or exists j. Pool j u and Lt j m2
+                                          by or_i x
+            therefore Eq u z -> Even u or exists j. Pool j u and Lt j m2
+          lemma high:
+            assume e: Eq u z1
+            e1: Eq z1 u                   by imp_e eq_sym fs0 e
+            pu: Pool m u                  by imp_e pool_eq fs0 pz1 e1
+            c:  Pool m u and Lt m m2      by and_i pu lmm2
+            x:  exists j. Pool j u and Lt j m2
+                                          by exists_i c
+            r:  Even u or exists j. Pool j u and Lt j m2
+                                          by or_i x
+            therefore Eq u z1 -> Even u or exists j. Pool j u and Lt j m2
+          r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_e o2 low high
+          therefore forall p l. (T1 p and List2 z z1 l and Node2 T1 p l s)
+                      -> Even u or exists j. Pool j u and Lt j m2
+        r: Even u or exists j. Pool j u and Lt j m2
+                                          by exists_e sa wit
+        therefore Eq b s -> Even u or exists j. Pool j u and Lt j m2
+      lemma tail:
+        assume mh1: Mem b h
+        o1: Even u or exists j. Pool j u and Lt j m
+                                          by imp_e fv sm mh1 fb
+        lemma ev:
+          assume e: Even u
+          r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_i e
+          therefore Even u -> Even u or exists j. Pool j u and Lt j m2
+        lemma pl:
+          assume ex: exists j. Pool j u and Lt j m
+          lemma wit:
+            variable j
+            assume hj: Pool j u and Lt j m
+            pu:   Pool j u                by and_e hj
+            ljm:  Lt j m                  by and_e hj
+            ljm2: Lt j m2                 by imp_e lt1 ljm sm2
+            c:    Pool j u and Lt j m2    by and_i pu ljm2
+            x:    exists j1. Pool j1 u and Lt j1 m2
+                                          by exists_i c
+            r:    Even u or exists j1. Pool j1 u and Lt j1 m2
+                                          by or_i x
+            therefore forall j. (Pool j u and Lt j m) -> Even u or exists j1. Pool j1 u and Lt j1 m2
+          r: Even u or exists j. Pool j u and Lt j m2
+                                          by exists_e ex wit
+          therefore (exists j. Pool j u and Lt j m) -> Even u or exists j. Pool j u and Lt j m2
+        r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_e o1 ev pl
+        therefore Mem b h -> Even u or exists j. Pool j u and Lt j m2
+      r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_e o head tail
+      therefore forall u b. Mem b h1 -> Fr u b -> Even u or exists j. Pool j u and Lt j m2
+    therefore forall m2. Suc m m2 -> forall u b. Mem b h1 -> Fr u b -> Even u or exists j. Pool j u and Lt j m2
+  lemma ch1:
+    variable c
+    assume hc: Chain n z c and (forall b. Mem b c -> Mem b h)
+    cc:  Chain n z c                      by and_e hc
+    sub: forall b. Mem b c -> Mem b h     by and_e hc
+    ec1: exists p. Pair s c p             by forall_e pe s c
+    lemma wc:
+      variable c1
+      assume pc1: Pair s c c1
+      ch: Chain m z1 c1                   by imp_e cs cc sm pz1 sa pc1
+      lemma sub1:
+        variable b
+        assume mb: Mem b c1
+        mcb: MemCons b c1                 by imp_e mem_cons list mc mb
+        o:   Eq b s or Mem b c            by imp_e mcb pc1
+        ms:  Mem s h1                     by imp_e mh ph1
+        lemma isb:
+          assume e: Eq b s
+          rh: Eq h1 h1                    by forall_e refl h1
+          es: Eq s b                      by imp_e eq_sym fs0 e
+          em: Em                          by and_e list
+          r:  Mem b h1                    by imp_e em es rh ms
+          therefore Eq b s -> Mem b h1
+        lemma inc:
+          assume mbc: Mem b c
+          mbh: Mem b h                    by imp_e sub mbc
+          r:   Mem b h1                   by imp_e mt ph1 mbh
+          therefore Mem b c -> Mem b h1
+        r: Mem b h1                       by or_e o isb inc
+        therefore forall b. Mem b c1 -> Mem b h1
+      k: Chain m z1 c1 and (forall b. Mem b c1 -> Mem b h1)
+                                          by and_i ch sub1
+      r: exists c2. Chain m z1 c2 and (forall b. Mem b c2 -> Mem b h1)
+                                          by exists_i k
+      therefore forall c1. Pair s c c1 -> exists c2. Chain m z1 c2 and (forall b. Mem b c2 -> Mem b h1)
+    r: exists c1. Chain m z1 c1 and (forall b. Mem b c1 -> Mem b h1)
+                                          by exists_e ec1 wc
+    therefore forall c. (Chain n z c and (forall b. Mem b c -> Mem b h)) -> exists c1. Chain m z1 c1 and (forall b. Mem b c1 -> Mem b h1)
+  ech1: exists c. Chain m z1 c and (forall b. Mem b c -> Mem b h1)
+                                          by exists_e ech ch1
+  r: Ctx m z1 h1                          by and_i pz1 fv1 ech1
+  therefore forall n z h m z1 s h1. FS0 -> FREE -> LIST -> LT -> CHAIN -> FrLLeast FrLInv -> FrLeast FrInv
+              -> MemLeast MemCons -> Ctx n z h -> Suc n m -> Pool m z1 -> SuccAt z z1 s -> Pair s h h1 -> Ctx m z1 h1

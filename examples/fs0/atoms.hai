@@ -1,0 +1,359 @@
+-- Atoms inside Q: equality is symmetric and transitive, and a successor atom moves along
+-- equalities. Each is one axiom of Q used at the variables at hand, with Refl where an
+-- antecedent is an equality of a variable with itself.
+
+import quse
+import pool
+
+-- What every use of Q's axioms needs, once.
+define QCtx = FS0 and FORM and LOGAX and PRF QAx and PrfLeast QAx PFormP and (forall x. Form x -> SubId x)
+
+-- The tags are numerals.
+theorem next_nat:
+  predicate P s
+  variable t
+  assume nat: NAT
+  assume all: forall s. P s -> Nat s
+  assume nt:  Next P t
+  lemma wit:
+    variable s
+    assume h: P s and Suc s t
+    ps: P s                               by and_e h
+    ns: Nat s                             by imp_e all ps
+    st: Suc s t                           by and_e h
+    r:  Nat t                             by imp_e nat_suc nat ns st
+    therefore forall s. (P s and Suc s t) -> Nat t
+  r: Nat t                                by exists_e nt wit
+  therefore forall t. NAT -> (forall s. P s -> Nat s) -> Next P t -> Nat t
+
+theorem tags_nat:
+  assume nat: NAT
+  zn: Zn                                  by and_e nat
+  n0: forall t. T0 t -> Nat t             by reit zn
+  lemma l1:
+    variable t
+    assume h: T1 t
+    r: Nat t                              by imp_e next_nat T0 nat n0 h
+    therefore forall t. T1 t -> Nat t
+  lemma l2:
+    variable t
+    assume h: T2 t
+    r: Nat t                              by imp_e next_nat T1 nat l1 h
+    therefore forall t. T2 t -> Nat t
+  lemma l3:
+    variable t
+    assume h: T3 t
+    r: Nat t                              by imp_e next_nat T2 nat l2 h
+    therefore forall t. T3 t -> Nat t
+  lemma l4:
+    variable t
+    assume h: T4 t
+    r: Nat t                              by imp_e next_nat T3 nat l3 h
+    therefore forall t. T4 t -> Nat t
+  r: (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+     and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
+                                          by and_i n0 l1 l2 l3 l4
+  therefore NAT -> (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+              and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
+
+-- Equality atoms exist, and are formulas.
+theorem eqat_exists:
+  variable v w
+  assume fs0: FS0
+  tags: Tags                              by imp_e tag_exists fs0
+  t1:   exists t. T1 t                    by and_e tags
+  t4:   exists t. T4 t                    by and_e tags
+  el:   exists l. List2 v w l             by imp_e list2_exists fs0
+  lemma w1:
+    variable p
+    assume tp: T4 p
+    lemma w2:
+      variable l
+      assume l2: List2 v w l
+      ex: exists x. Node2 T1 p l x        by imp_e node2_exists T1 fs0 t1
+      lemma w3:
+        variable x
+        assume nd: Node2 T1 p l x
+        c: T4 p and List2 v w l and Node2 T1 p l x
+                                          by and_i tp l2 nd
+        s: EqAt v w x                     by exists_i c
+        e: exists x1. EqAt v w x1           by exists_i s
+        therefore forall x. Node2 T1 p l x -> exists x1. EqAt v w x1
+      r: exists x. EqAt v w x             by exists_e ex w3
+      therefore forall l. List2 v w l -> exists x. EqAt v w x
+    r: exists x. EqAt v w x               by exists_e el w2
+    therefore forall p. T4 p -> exists x. EqAt v w x
+  r: exists x. EqAt v w x                 by exists_e t4 w1
+  therefore forall v w. FS0 -> exists x. EqAt v w x
+
+theorem eqat_form:
+  variable v w x
+  assume form: FORM
+  assume nv:   Nat v
+  assume nw:   Nat w
+  assume ea:   EqAt v w x
+  nat: NAT                                by and_e form
+  fat: Fat                                by and_e form
+  tn:  (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+       and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
+                                          by imp_e tags_nat nat
+  t4n: forall t. T4 t -> Nat t            by and_e tn
+  lemma wit:
+    variable p l
+    assume h: T4 p and List2 v w l and Node2 T1 p l x
+    tp: T4 p                              by and_e h
+    np: Nat p                             by imp_e t4n tp
+    l2: List2 v w l                       by and_e h
+    vl: Vs l                              by imp_e list2_vs form nv nw l2
+    nd: Node2 T1 p l x                    by and_e h
+    r:  Form x                            by imp_e fat np vl nd
+    therefore forall p l. (T4 p and List2 v w l and Node2 T1 p l x) -> Form x
+  r: Form x                               by exists_e ea wit
+  therefore forall v w x. FORM -> Nat v -> Nat w -> EqAt v w x -> Form x
+
+-- Zero, Plus and Times atoms are formulas too.
+theorem list3_vs:
+  variable v w u l
+  assume form: FORM
+  assume nv:   Nat v
+  assume nw:   Nat w
+  assume nu:   Nat u
+  assume l3:   List3 v w u l
+  vc: Vc                                  by and_e form
+  lemma wit:
+    variable t
+    assume h: List2 w u t and Pair v t l
+    l2: List2 w u t                       by and_e h
+    vt: Vs t                              by imp_e list2_vs form nw nu l2
+    pl: Pair v t l                        by and_e h
+    vl: Vs l                              by imp_e vc nv vt pl
+    therefore forall t. (List2 w u t and Pair v t l) -> Vs l
+  r: Vs l                                 by exists_e l3 wit
+  therefore forall v w u l. FORM -> Nat v -> Nat w -> Nat u -> List3 v w u l -> Vs l
+
+theorem zeroat_form:
+  variable v x
+  assume form: FORM
+  assume nv:   Nat v
+  assume za:   ZeroAt v x
+  zn:  Zn                                 by and_e form
+  fat: Fat                                by and_e form
+  lemma wit:
+    variable p l
+    assume h: T0 p and List1 v l and Node2 T1 p l x
+    tp: T0 p                              by and_e h
+    np: Nat p                             by imp_e zn tp
+    l1: List1 v l                         by and_e h
+    vl: Vs l                              by imp_e list1_vs form nv l1
+    nd: Node2 T1 p l x                    by and_e h
+    r:  Form x                            by imp_e fat np vl nd
+    therefore forall p l. (T0 p and List1 v l and Node2 T1 p l x) -> Form x
+  r: Form x                               by exists_e za wit
+  therefore forall v x. FORM -> Nat v -> ZeroAt v x -> Form x
+
+theorem plusat_form:
+  variable v w u x
+  assume form: FORM
+  assume nv:   Nat v
+  assume nw:   Nat w
+  assume nu:   Nat u
+  assume pa:   PlusAt v w u x
+  nat: NAT                                by and_e form
+  fat: Fat                                by and_e form
+  tn:  (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+       and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
+                                          by imp_e tags_nat nat
+  tk:  forall t. T2 t -> Nat t            by and_e tn
+  lemma wit:
+    variable p l
+    assume h: T2 p and List3 v w u l and Node2 T1 p l x
+    tp: T2 p                              by and_e h
+    np: Nat p                             by imp_e tk tp
+    l3: List3 v w u l                     by and_e h
+    vl: Vs l                              by imp_e list3_vs form nv nw nu l3
+    nd: Node2 T1 p l x                    by and_e h
+    r:  Form x                            by imp_e fat np vl nd
+    therefore forall p l. (T2 p and List3 v w u l and Node2 T1 p l x) -> Form x
+  r: Form x                               by exists_e pa wit
+  therefore forall v w u x. FORM -> Nat v -> Nat w -> Nat u -> PlusAt v w u x -> Form x
+
+theorem timesat_form:
+  variable v w u x
+  assume form: FORM
+  assume nv:   Nat v
+  assume nw:   Nat w
+  assume nu:   Nat u
+  assume pa:   TimesAt v w u x
+  nat: NAT                                by and_e form
+  fat: Fat                                by and_e form
+  tn:  (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+       and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
+                                          by imp_e tags_nat nat
+  tk:  forall t. T3 t -> Nat t            by and_e tn
+  lemma wit:
+    variable p l
+    assume h: T3 p and List3 v w u l and Node2 T1 p l x
+    tp: T3 p                              by and_e h
+    np: Nat p                             by imp_e tk tp
+    l3: List3 v w u l                     by and_e h
+    vl: Vs l                              by imp_e list3_vs form nv nw nu l3
+    nd: Node2 T1 p l x                    by and_e h
+    r:  Form x                            by imp_e fat np vl nd
+    therefore forall p l. (T3 p and List3 v w u l and Node2 T1 p l x) -> Form x
+  r: Form x                               by exists_e pa wit
+  therefore forall v w u x. FORM -> Nat v -> Nat w -> Nat u -> TimesAt v w u x -> Form x
+
+-- Q proves b = a from a = b, and v = w from z = v and z = w: Ee, with Refl for z = z.
+theorem q_eq_sym:
+  variable h a b c d
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume eab: EqAt a b c
+  assume pc:  PrH h c
+  assume eba: EqAt b a d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e eqat_form form nb na eba
+  ea:    exists x. EqAt a a x             by imp_e eqat_exists fs0
+  lemma wit:
+    variable r
+    assume eaa: EqAt a a r
+    fr: Form r                            by imp_e eqat_form form na na eaa
+    pr: PrH h r                           by imp_e q_refl fs0 prf na eaa fr
+    k:  PrH h d                           by imp_e q_ee fs0 form prf pfl na na nb na eba eaa eaa eab pc pr pr fd
+    therefore forall r. EqAt a a r -> PrH h d
+  k: PrH h d                              by exists_e ea wit
+  therefore forall h a b c d. QCtx -> Nat a -> Nat b -> EqAt a b c -> PrH h c -> EqAt b a d -> PrH h d
+
+theorem q_eq_trans:
+  variable h z v w c1 c2 d
+  assume q:   QCtx
+  assume nz:  Nat z
+  assume nv:  Nat v
+  assume nw:  Nat w
+  assume ezv: EqAt z v c1
+  assume p1:  PrH h c1
+  assume ezw: EqAt z w c2
+  assume p2:  PrH h c2
+  assume evw: EqAt v w d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e eqat_form form nv nw evw
+  ez:    exists x. EqAt z z x             by imp_e eqat_exists fs0
+  lemma wit:
+    variable r
+    assume ezz: EqAt z z r
+    fr: Form r                            by imp_e eqat_form form nz nz ezz
+    pr: PrH h r                           by imp_e q_refl fs0 prf nz ezz fr
+    k:  PrH h d                           by imp_e q_ee fs0 form prf pfl nz nz nv nw evw ezz ezw ezv p1 p2 pr fd
+    therefore forall r. EqAt z z r -> PrH h d
+  k: PrH h d                              by exists_e ez wit
+  therefore forall h z v w c1 c2 d. QCtx -> Nat z -> Nat v -> Nat w -> EqAt z v c1 -> PrH h c1 -> EqAt z w c2
+              -> PrH h c2 -> EqAt v w d -> PrH h d
+
+-- A successor atom moves along equalities: Es.
+theorem q_succ_tr:
+  variable h z z1 v w c1 c2 c3 d
+  assume q:   QCtx
+  assume nz:  Nat z
+  assume nz1: Nat z1
+  assume nv:  Nat v
+  assume nw:  Nat w
+  assume ezv: EqAt z v c1
+  assume p1:  PrH h c1
+  assume ezw: EqAt z1 w c2
+  assume p2:  PrH h c2
+  assume szz: SuccAt z z1 c3
+  assume p3:  PrH h c3
+  assume svw: SuccAt v w d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e succat_form form nv nw svw
+  k:     PrH h d                          by imp_e q_es fs0 form prf pfl nz nz1 nv nw svw szz ezw ezv p1 p2 p3 fd
+  therefore forall h z z1 v w c1 c2 c3 d. QCtx -> Nat z -> Nat z1 -> Nat v -> Nat w -> EqAt z v c1 -> PrH h c1
+              -> EqAt z1 w c2 -> PrH h c2 -> SuccAt z z1 c3 -> PrH h c3 -> SuccAt v w d -> PrH h d
+
+-- Zero, Plus and Times atoms move along equalities: Ez, Ep and Et.
+theorem q_zero_tr:
+  variable h z v c1 c2 d
+  assume q:   QCtx
+  assume nz:  Nat z
+  assume nv:  Nat v
+  assume ezv: EqAt z v c1
+  assume p1:  PrH h c1
+  assume zz:  ZeroAt z c2
+  assume p2:  PrH h c2
+  assume zv:  ZeroAt v d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e zeroat_form form nv zv
+  k:     PrH h d                          by imp_e q_ez fs0 form prf pfl nz nv zv zz ezv p1 p2 fd
+  therefore forall h z v c1 c2 d. QCtx -> Nat z -> Nat v -> EqAt z v c1 -> PrH h c1 -> ZeroAt z c2 -> PrH h c2
+              -> ZeroAt v d -> PrH h d
+
+theorem q_plus_tr:
+  variable h a b c a1 b1 c1 e1 e2 e3 e4 d
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume nc:  Nat c
+  assume na1: Nat a1
+  assume nb1: Nat b1
+  assume nc1: Nat c1
+  assume ea:  EqAt a a1 e1
+  assume p1:  PrH h e1
+  assume eb:  EqAt b b1 e2
+  assume p2:  PrH h e2
+  assume ec:  EqAt c c1 e3
+  assume p3:  PrH h e3
+  assume pt:  PlusAt a b c e4
+  assume p4:  PrH h e4
+  assume pd:  PlusAt a1 b1 c1 d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e plusat_form form na1 nb1 nc1 pd
+  k:     PrH h d                          by imp_e q_ep fs0 form prf pfl na nb nc na1 nb1 nc1 pd pt ec eb ea p1 p2
+                                             p3 p4 fd
+  therefore forall h a b c a1 b1 c1 e1 e2 e3 e4 d. QCtx -> Nat a -> Nat b -> Nat c -> Nat a1 -> Nat b1 -> Nat c1
+              -> EqAt a a1 e1 -> PrH h e1 -> EqAt b b1 e2 -> PrH h e2 -> EqAt c c1 e3 -> PrH h e3 -> PlusAt a b c e4
+              -> PrH h e4 -> PlusAt a1 b1 c1 d -> PrH h d
+
+theorem q_times_tr:
+  variable h a b c a1 b1 c1 e1 e2 e3 e4 d
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume nc:  Nat c
+  assume na1: Nat a1
+  assume nb1: Nat b1
+  assume nc1: Nat c1
+  assume ea:  EqAt a a1 e1
+  assume p1:  PrH h e1
+  assume eb:  EqAt b b1 e2
+  assume p2:  PrH h e2
+  assume ec:  EqAt c c1 e3
+  assume p3:  PrH h e3
+  assume pt:  TimesAt a b c e4
+  assume p4:  PrH h e4
+  assume pd:  TimesAt a1 b1 c1 d
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  fd:    Form d                           by imp_e timesat_form form na1 nb1 nc1 pd
+  k:     PrH h d                          by imp_e q_et fs0 form prf pfl na nb nc na1 nb1 nc1 pd pt ec eb ea p1 p2
+                                             p3 p4 fd
+  therefore forall h a b c a1 b1 c1 e1 e2 e3 e4 d. QCtx -> Nat a -> Nat b -> Nat c -> Nat a1 -> Nat b1 -> Nat c1
+              -> EqAt a a1 e1 -> PrH h e1 -> EqAt b b1 e2 -> PrH h e2 -> EqAt c c1 e3 -> PrH h e3 -> TimesAt a b c e4
+              -> PrH h e4 -> TimesAt a1 b1 c1 d -> PrH h d

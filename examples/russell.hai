@@ -2,7 +2,7 @@
 -- axioms. `In` is any binary relation, and nothing is assumed to exist.
 
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 
 theorem russell:
   assume h: exists r. forall x. Iff (In x r) (not (In x x))

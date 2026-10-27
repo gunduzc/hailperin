@@ -15,7 +15,7 @@
 
 predicate In x y
 predicate Rank x v
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Sub x y = forall z. In z x -> In z y
 define Empty x = forall z. not (In z x)
@@ -144,15 +144,15 @@ theorem one_in_two:
       o:   In y y or Eq y y               by or_i ryy
       yx:  In y x                         by imp_e bwd o
       k:   Nmb1 y and In y x              by and_i ny yx
-      ey:  exists y. Nmb1 y and In y x    by exists_i k
-      k2:  Nmb2 x and exists y. Nmb1 y and In y x
+      ey:  exists y1. Nmb1 y1 and In y1 x    by exists_i k
+      k2:  Nmb2 x and exists y1. Nmb1 y1 and In y1 x
                                           by and_i h ey
-      ex:  exists x. Nmb2 x and exists y. Nmb1 y and In y x
+      ex:  exists x1. Nmb2 x1 and exists y1. Nmb1 y1 and In y1 x1
                                           by exists_i k2
-      therefore forall y. (Nmb1 y and Successor y x) -> exists x. Nmb2 x and exists y. Nmb1 y and In y x
-    d1: exists x. Nmb2 x and exists y. Nmb1 y and In y x
+      therefore forall y. (Nmb1 y and Successor y x) -> exists x1. Nmb2 x1 and exists y1. Nmb1 y1 and In y1 x1
+    d1: exists x1. Nmb2 x1 and exists y. Nmb1 y and In y x1
                                           by exists_e h d
-    therefore forall x. Nmb2 x -> exists x. Nmb2 x and exists y. Nmb1 y and In y x
+    therefore forall x. Nmb2 x -> exists x1. Nmb2 x1 and exists y. Nmb1 y and In y x1
   k: exists x. Nmb2 x and exists y. Nmb1 y and In y x
                                           by exists_e n2 c
   therefore Hw -> exists x. Nmb2 x and exists y. Nmb1 y and In y x

@@ -2,7 +2,7 @@
 -- the Metamath and Lean developments of NF.
 
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Sub x y = forall z. In z x -> In z y
 define Single s a = forall w. Iff (In w s) (Eq w a)                         -- s = {a}

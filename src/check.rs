@@ -1,8 +1,7 @@
 //! Checks a file: definitions, theories and theorems, in order.
 //!
 //! Nothing here is trusted. Every theorem comes from the kernel; this module only decides
-//! which kernel functions to call, by reading formulas, choosing axiom instances and
-//! inferring predicate arguments.
+//! which kernel functions to call, by reading formulas and choosing axiom instances.
 //!
 //! Inside a block, the checker keeps a stack of the variables and assumptions in scope. A
 //! line is a closed theorem: its formula under one `->` per assumption and one `forall` per
@@ -50,7 +49,13 @@ enum Global {
 
 #[derive(Default)]
 pub struct Checker {
-    globals: HashMap<String, Global>,
+    /// Every global, with the file it is from. One namespace, so names never clash.
+    globals: HashMap<String, (usize, Global)>,
+    /// The files checked so far, by number, as messages name them.
+    files: Vec<String>,
+    /// The file being checked, and the files it sees: its imports, theirs, and itself, in the
+    /// order it would load them alone.
+    sees: Vec<usize>,
     /// Rules for reasoning under layers, stated per shape and variable names (see `shape_rule`).
     rules: RefCell<HashMap<(Rule, String), Rc<Lemma>>>,
     /// Their proofs, made once per shape.
@@ -123,6 +128,11 @@ impl Cx {
         vars(&self.stack[..depth])
     }
 
+    /// The labels in scope.
+    fn labels(&self) -> Vec<String> {
+        self.lines.iter().map(|l| l.label.clone()).collect()
+    }
+
     /// The entries at `layers`.
     fn ents(&self, layers: &[usize]) -> Vec<Entry> {
         layers.iter().map(|&i| self.stack[i].clone()).collect()
@@ -140,6 +150,12 @@ struct Scope<'a> {
     in_scope: Vec<Name>,
     /// Whether the formula is inside a proof, where `variable` can declare a name.
     in_proof: bool,
+    /// How many of `bound` are a definition's individual parameters, at its start.
+    fixed: usize,
+    /// Labels in scope, which a quantifier may not reuse.
+    labels: Vec<String>,
+    /// The variables a `therefore` closes, which its quantifiers restate.
+    closing: Vec<Name>,
 }
 
 fn vars(entries: &[Entry]) -> Vec<Name> {
@@ -250,14 +266,10 @@ fn placeholders(n: usize, taken: &BTreeSet<Name>) -> Vec<Name> {
     out
 }
 
-/// A template shown as `P x = body`, with its holes named.
-fn show_reading(p: &str, t: &Template) -> String {
-    let body = t.body();
-    let holes = t.holes();
-    let names = placeholders(holes.len(), &body.free_vars().iter().cloned().collect());
-    let s: Vec<(Name, Name)> = holes.iter().cloned().zip(names.iter().cloned()).collect();
-    let head: Vec<&str> = std::iter::once(p).chain(names.iter().map(|n| &**n)).collect();
-    format!("{} = {}", head.join(" "), show(&body.subst_vars(&s)))
+/// A parameter with placeholders for its places, in backticks: `P x`.
+fn shown_param(p: &str, n: usize) -> String {
+    let holes = placeholders(n, &BTreeSet::new());
+    format!("`{}`", std::iter::once(p).chain(holes.iter().map(|x| &**x)).collect::<Vec<_>>().join(" "))
 }
 
 /// The error for an uppercase name nothing declares.
@@ -280,7 +292,7 @@ impl Checker {
         match item {
             Item::Predicate { name, holes, line } => {
                 self.new_global(name, *line)?;
-                self.globals.insert(name.clone(), Global::Prim(holes.len()));
+                self.globals.insert(name.clone(), (self.file(), Global::Prim(holes.len())));
                 Ok(None)
             }
             Item::Define { name, params, body, line } => {
@@ -290,16 +302,16 @@ impl Checker {
                 let individuals = def.params.iter().all(|(_, k)| matches!(k, Kind::Individual));
                 if individuals && !matches!(def.body.node(), Node::Atom(..)) {
                     let params = def.params.iter().map(|(p, _)| Name::from(p.as_str())).collect();
-                    crate::print::add_fold(crate::print::Fold { name: name.clone(), params, body: def.body.clone() });
+                    crate::print::add_fold(self.file(), crate::print::Fold { name: name.clone(), params, body: def.body.clone() });
                 }
-                self.globals.insert(name.clone(), Global::Def(Rc::new(def)));
+                self.globals.insert(name.clone(), (self.file(), Global::Def(Rc::new(def))));
                 Ok(None)
             }
             Item::Theorem { name, block, line } => {
                 self.new_global(name, *line)?;
                 let info = self.theorem(name, block, *line).map_err(|e| Error::new(e.line, format!("{name}: {}", e.msg)))?;
                 let concl = info.lemma.concl().clone();
-                self.globals.insert(name.clone(), Global::Theorem(info));
+                self.globals.insert(name.clone(), (self.file(), Global::Theorem(info)));
                 Ok(Some((name.clone(), concl)))
             }
         }
@@ -309,10 +321,50 @@ impl Checker {
         if RULES.contains(&name) {
             return Err(Error::new(line, format!("`{name}` is a rule, so it can't be a theorem's name")));
         }
-        if self.globals.contains_key(name) {
-            return Err(Error::new(line, format!("`{name}` is already defined")));
+        if let Some(what) = self.taken(name) {
+            return Err(Error::new(line, format!("`{name}` {what}")));
         }
         Ok(())
+    }
+
+    /// What a name already is, if anything.
+    fn taken(&self, name: &str) -> Option<&'static str> {
+        if RULES.contains(&name) {
+            return Some("is a rule");
+        }
+        self.globals.get(name).map(|(_, g)| match g {
+            Global::Prim(_) => "is already declared",
+            Global::Def(_) => "is already defined",
+            Global::Theorem(_) => "is already a theorem",
+        })
+    }
+
+    /// Starts a file: its number, from `add_file`, and the files it sees.
+    pub fn enter(&mut self, sees: Vec<usize>) {
+        crate::print::set_sees(&sees);
+        self.sees = sees;
+    }
+
+    /// A number for a file, named as messages name it.
+    pub fn add_file(&mut self, name: String) -> usize {
+        self.files.push(name);
+        self.files.len() - 1
+    }
+
+    /// The file being checked.
+    fn file(&self) -> usize {
+        self.sees.last().copied().unwrap_or(0)
+    }
+
+    /// A global the file being checked sees.
+    fn global(&self, name: &str) -> Option<&Global> {
+        self.globals.get(name).filter(|(f, _)| self.sees.contains(f)).map(|(_, g)| g)
+    }
+
+    /// For a global from a file the one being checked doesn't import, the error saying so.
+    fn unseen(&self, name: &str, line: usize) -> Option<Error> {
+        let (f, _) = self.globals.get(name)?;
+        (!self.sees.contains(f)).then(|| Error::new(line, format!("`{name}` is from {}, which this file doesn't import", self.files[*f])))
     }
 
     // ---- definitions ----
@@ -331,7 +383,8 @@ impl Checker {
                 bound.push(Name::from(p.name.as_str()));
             }
         }
-        let mut scope = Scope { params: &preds, bound, in_scope: Vec::new(), in_proof: false };
+        let fixed = bound.len();
+        let mut scope = Scope { params: &preds, bound, in_scope: Vec::new(), in_proof: false, fixed, labels: Vec::new(), closing: Vec::new() };
         let body = self.formula(body, &mut scope)?;
         Ok(Def { params: kinds, body })
     }
@@ -345,8 +398,8 @@ impl Checker {
             if !seen.insert(&p.name) {
                 return Err(Error::new(p.line, format!("parameter `{}` appears twice", p.name)));
             }
-            if RULES.contains(&p.name.as_str()) || self.globals.contains_key(&p.name) {
-                return Err(Error::new(p.line, format!("`{}` is already defined, so it can't be a parameter", p.name)));
+            if let Some(what) = self.taken(&p.name) {
+                return Err(Error::new(p.line, format!("`{}` {what}, so it can't be a parameter", p.name)));
             }
             if upper(&p.name) {
                 preds.push((p.name.clone(), p.holes.len()));
@@ -378,7 +431,7 @@ impl Checker {
         let start_depth = cx.stack.len();
         let start_lines = cx.lines.len();
         cx.blocks.push(start_lines);
-        let res = self.block_body(b, cx, name, start_depth, theorem);
+        let res = self.block_body(b, cx, name, start_depth);
         cx.blocks.pop();
         if !theorem {
             let gone: Vec<(String, String)> = cx.lines[start_lines..].iter().map(|l| (l.label.clone(), name.to_string())).collect();
@@ -389,7 +442,7 @@ impl Checker {
         res
     }
 
-    fn block_body(&self, b: &Block, cx: &mut Cx, name: &str, start_depth: usize, theorem: bool) -> Result<(Open, Formula), Error> {
+    fn block_body(&self, b: &Block, cx: &mut Cx, name: &str, start_depth: usize) -> Result<(Open, Formula), Error> {
         for (x, line) in &b.variables {
             if cx.var_index(x).is_some() {
                 return Err(Error::new(*line, format!("`{x}` is already a variable in scope")));
@@ -400,21 +453,16 @@ impl Checker {
             if RULES.contains(&x.as_str()) {
                 return Err(Error::new(*line, format!("`{x}` is a rule, so it can't be a variable")));
             }
-            if self.globals.contains_key(x) {
+            if self.global(x).is_some() {
                 return Err(Error::new(*line, format!("`{x}` is a theorem, so it can't be a variable")));
             }
             cx.stack.push(Entry::Var(x.as_str().into()));
         }
         for p in &b.predicates {
             for h in &p.holes {
-                if cx.var_index(h).is_some() || cx.lookup(h).is_some() || self.globals.contains_key(h) {
+                if cx.var_index(h).is_some() || cx.lookup(h).is_some() || self.global(h).is_some() {
                     return Err(Error::new(p.line, format!("`{h}` is a name here, so it can't be a placeholder of `{}`", p.name)));
                 }
-            }
-        }
-        if !theorem {
-            if let Some(p) = b.predicates.first() {
-                return Err(Error::new(p.line, "a theorem's predicates are declared in the theorem, not in a lemma"));
             }
         }
         for a in &b.assumes {
@@ -460,7 +508,7 @@ impl Checker {
             let var = matches!(cx.stack[i], Entry::Var(_));
             o = self.close_at(cx, &o, i, var).map_err(|m| Error::new(line, m))?;
         }
-        let want = self.proof_formula(&t.formula, cx)?;
+        let want = self.closing_formula(&t.formula, cx, start_depth)?;
         let got = self.body(cx, &o).map_err(|m| Error::new(line, m))?;
         if got != want {
             // What the block opened, by name: variables, and assumptions by their labels.
@@ -509,7 +557,7 @@ impl Checker {
         if cx.var_index(label).is_some() {
             return Err(Error::new(line, format!("`{label}` is a variable in scope, so it can't be a label")));
         }
-        if self.globals.contains_key(label) {
+        if self.global(label).is_some() {
             return Err(Error::new(line, format!("`{label}` is a theorem, so it can't be a label")));
         }
         if cx.lines.iter().any(|l| l.label == label) {
@@ -518,10 +566,20 @@ impl Checker {
         Ok(())
     }
 
-    /// Reads a formula inside a proof. Its free variables must be in scope.
-    fn proof_formula(&self, e: &FExpr, cx: &mut Cx) -> Result<Formula, Error> {
-        let in_scope = cx.vars(cx.stack.len());
-        let mut scope = Scope { params: &cx.params, bound: Vec::new(), in_scope, in_proof: true };
+    /// Reads the formula of a line or assumption, inside a proof: its free variables must be
+    /// in scope, and its own label is in scope for it.
+    fn labeled_formula(&self, e: &FExpr, cx: &Cx, label: &str) -> Result<Formula, Error> {
+        let mut labels = cx.labels();
+        labels.push(label.to_string());
+        let mut scope = Scope { params: &cx.params, bound: Vec::new(), in_scope: cx.vars(cx.stack.len()), in_proof: true, fixed: 0, labels, closing: Vec::new() };
+        self.formula(e, &mut scope)
+    }
+
+    /// Reads a formula whose quantifiers may restate the variables from `depth` of the stack
+    /// up, which a `therefore` closes.
+    fn closing_formula(&self, e: &FExpr, cx: &Cx, depth: usize) -> Result<Formula, Error> {
+        let closing = cx.vars(cx.stack.len()).split_off(cx.vars(depth).len());
+        let mut scope = Scope { params: &cx.params, bound: Vec::new(), in_scope: cx.vars(cx.stack.len()), in_proof: true, fixed: 0, labels: cx.labels(), closing };
         self.formula(e, &mut scope)
     }
 
@@ -529,7 +587,7 @@ impl Checker {
     /// antecedent folded.
     fn assume(&self, a: &Assume, cx: &mut Cx) -> Result<(), Error> {
         self.claim_label(cx, &a.label, a.line)?;
-        let f = self.proof_formula(&a.formula, cx)?;
+        let f = self.labeled_formula(&a.formula, cx, &a.label)?;
         let d = cx.stack.len();
         let mut layers: Vec<usize> = f.free_vars().iter().filter_map(|x| cx.var_index(x)).collect();
         layers.sort_unstable();
@@ -545,7 +603,7 @@ impl Checker {
     /// A step or result: its justification, checked against its stated formula.
     fn line(&self, l: &Line, cx: &mut Cx) -> Result<(Open, Formula), Error> {
         self.claim_label(cx, &l.label, l.line)?;
-        let want = self.proof_formula(&l.formula, cx)?;
+        let want = self.labeled_formula(&l.formula, cx, &l.label)?;
         let o = self.justify(&l.just, cx, &want)?;
         let got = self.body(cx, &o).map_err(|m| Error::new(l.line, m))?;
         if got != want {
@@ -562,7 +620,10 @@ impl Checker {
     fn justify(&self, j: &Just, cx: &mut Cx, want: &Formula) -> Result<Open, Error> {
         let (h, line) = (&j.rule, j.line);
         if !RULES.contains(&h.as_str()) {
-            if cx.lookup(h).is_none() && !matches!(self.globals.get(h), Some(Global::Theorem(_))) {
+            if cx.lookup(h).is_none() && !matches!(self.global(h), Some(Global::Theorem(_))) {
+                if let Some(e) = self.unseen(h, line) {
+                    return Err(e);
+                }
                 return Err(Error::new(line, format!("`{h}` is not a rule, a line here, or a theorem{}", self.did_you_mean(h, cx))));
             }
             return Err(Error::new(line, format!("`by` names a rule first: `imp_e {h} ...` applies `{h}`, `reit {h}` restates it")));
@@ -574,10 +635,9 @@ impl Checker {
     }
 
     /// The fact at the head of `imp_e` or `reit`, applied to the arguments after it: a line, a
-    /// theorem, or a theorem's instance. A theorem's predicates are read off the lines and the
-    /// stated formula.
+    /// theorem, or a theorem's instance with its templates.
     fn apply_head(&self, head: &Arg, args: &[Arg], cx: &mut Cx, want: &Formula) -> Result<Open, Error> {
-        let theorem = |n: &str| match self.globals.get(n) {
+        let theorem = |n: &str| match self.global(n) {
             Some(Global::Theorem(info)) => Some(info),
             _ => None,
         };
@@ -613,7 +673,7 @@ impl Checker {
     /// theorems, or nothing when no name is close.
     fn did_you_mean(&self, n: &str, cx: &Cx) -> String {
         let lines = cx.lines.iter().map(|l| l.label.as_str());
-        let theorems = self.globals.iter().filter(|(_, g)| matches!(g, Global::Theorem(_))).map(|(t, _)| t.as_str());
+        let theorems = self.globals.iter().filter(|(_, (f, g))| self.sees.contains(f) && matches!(g, Global::Theorem(_))).map(|(t, _)| t.as_str());
         let mut near: Vec<&str> = RULES.iter().copied().chain(lines).chain(theorems).filter(|c| close(n, c)).collect();
         near.sort_unstable();
         near.dedup();
@@ -632,18 +692,19 @@ impl Checker {
                 if let Some(l) = cx.lookup(n) {
                     return Ok(l.open.clone());
                 }
-                match self.globals.get(n) {
+                match self.global(n) {
                     Some(Global::Theorem(info)) => self.call(n, info, &[], &[], cx, None, *line),
                     _ if cx.var_index(n).is_some() => Err(Error::new(*line, format!("`{n}` is a variable, and a line is needed here"))),
+                    _ if self.unseen(n, *line).is_some() => Err(self.unseen(n, *line).expect("just checked")),
                     _ => match cx.closed.iter().rev().find(|(l, _)| l == n) {
                         Some((_, lemma)) => Err(Error::new(*line, format!("`{n}` was a line of lemma `{lemma}`, which has closed"))),
                         None => Err(Error::new(*line, format!("`{n}` is not a line or a theorem here{}", self.did_you_mean(n, cx)))),
                     },
                 }
             }
-            Arg::Instance { head: n, targs, line } => match self.globals.get(n) {
+            Arg::Instance { head: n, targs, line } => match self.global(n) {
                 Some(Global::Theorem(info)) => self.call(n, info, targs, &[], cx, None, *line),
-                _ => Err(Error::new(*line, format!("`{n}` is not a theorem"))),
+                _ => Err(self.unseen(n, *line).unwrap_or_else(|| Error::new(*line, format!("`{n}` is not a theorem")))),
             },
         }
     }
@@ -1184,6 +1245,18 @@ impl Checker {
                     if RULES.contains(&x.as_str()) {
                         return Err(Error::new(*line, format!("`{x}` is a rule, not a variable")));
                     }
+                    // Nothing shadows: a bound variable's name is new where it is bound.
+                    let taken = match scope.bound.iter().position(|b| b == name) {
+                        Some(i) if i < scope.fixed => Some("is already a parameter of this definition"),
+                        Some(_) => Some("is already bound here"),
+                        None if scope.in_scope.contains(name) && !scope.closing.contains(name) => Some("is already a variable in scope"),
+                        None if scope.labels.iter().any(|l| l == x) => Some("is a label here, so it can't be a variable"),
+                        None if self.global(x).is_some() => Some("is a theorem, so it can't be a variable"),
+                        None => None,
+                    };
+                    if let Some(what) = taken {
+                        return Err(Error::new(*line, format!("`{x}` {what}")));
+                    }
                     scope.bound.push(name.clone());
                 }
                 let mut f = self.formula(body, scope)?;
@@ -1221,7 +1294,7 @@ impl Checker {
             let vars = args.iter().map(|a| self.individual(a, scope)).collect::<Result<Vec<_>, _>>()?;
             return Ok(atom(name, &vars));
         }
-        match self.globals.get(name) {
+        match self.global(name) {
             Some(Global::Prim(n)) => {
                 if args.len() != *n {
                     return Err(takes(name, *n, args.len(), line));
@@ -1234,22 +1307,22 @@ impl Checker {
                 if args.len() != def.params.len() {
                     return Err(takes(name, def.params.len(), args.len(), line));
                 }
-                self.expand(&def, args, &[], line, scope)
+                self.expand(&def, name, args, &[], line, scope)
             }
             Some(Global::Theorem(_)) => unreachable!("theorems are lowercase"),
-            None => Err(Error::new(line, not_declared(name, args.len()))),
+            None => Err(self.unseen(name, line).unwrap_or_else(|| Error::new(line, not_declared(name, args.len())))),
         }
     }
 
     /// A definition expanded with `args` for its first parameters and `holes` for the rest,
     /// which are individuals.
-    fn expand(&self, def: &Def, args: &[TArg], holes: &[Name], line: usize, scope: &mut Scope) -> Result<Formula, Error> {
+    fn expand(&self, def: &Def, name: &str, args: &[TArg], holes: &[Name], line: usize, scope: &mut Scope) -> Result<Formula, Error> {
         let mut vars: Vec<(Name, Name)> = Vec::new();
         let mut templates = Vec::new();
         for ((p, kind), a) in def.params.iter().zip(args) {
             match kind {
                 Kind::Individual => vars.push((p.as_str().into(), self.individual(a, scope)?)),
-                Kind::Pred(n) => templates.push((p.clone(), self.template(a, *n, scope)?)),
+                Kind::Pred(n) => templates.push((p.clone(), self.template(a, *n, (name, p), scope)?)),
             }
         }
         vars.extend(def.params[args.len()..].iter().map(|(p, _)| Name::from(p.as_str())).zip(holes.iter().cloned()));
@@ -1260,21 +1333,33 @@ impl Checker {
 
     /// A predicate argument of arity `n`: for `n = 0` any formula, otherwise a predicate
     /// name with some leading arguments.
-    fn template(&self, a: &TArg, n: usize, scope: &mut Scope) -> Result<Template, Error> {
+    /// `slot` is the definition or theorem the template is for, and its parameter.
+    fn template(&self, a: &TArg, n: usize, slot: (&str, &str), scope: &mut Scope) -> Result<Template, Error> {
+        let need = format!("`{}` needs {} for {}", slot.0, if n == 0 { "a statement".to_string() } else { format!("a {n}-place predicate") }, shown_param(slot.1, n));
         let (name, args, line): (&str, &[TArg], usize) = match a {
             TArg::Paren(f) => match &**f {
                 FExpr::Atom { name, args, line } => (name, args, *line),
                 other if n == 0 => return Ok(Template::statement(self.formula(other, scope)?)),
-                other => return Err(Error::new(other.line(), format!("a {n}-place predicate is needed, and this is a compound formula"))),
+                other => return Err(Error::new(other.line(), format!("{need}, and a compound formula has no places: define it, then pass the definition"))),
             },
             TArg::Name(name, line) => (name, &[], *line),
-            TArg::Var(v, line) => return Err(Error::new(*line, format!("`{v}` is lowercase, so it isn't a predicate"))),
+            TArg::Var(v, line) => return Err(Error::new(*line, format!("{need}, and `{v}` is lowercase, so it isn't a predicate"))),
         };
         let holes = hole_names(n);
         let wrong = |m: usize| {
-            Error::new(line, format!("`{name}` given {} argument(s) leaves {}, but a {n}-place predicate is needed", args.len(), m))
+            let given: Vec<&str> = std::iter::once(name).chain(args.iter().map(|a| match a {
+                TArg::Var(v, _) | TArg::Name(v, _) => v.as_str(),
+                TArg::Paren(_) => "(...)",
+            })).collect();
+            let places = match m {
+                0 => "no places".to_string(),
+                1 => "1 place".to_string(),
+                _ => format!("{m} places"),
+            };
+            let verb = if args.is_empty() { "has" } else { "leaves" };
+            Error::new(line, format!("{need}, and `{}` {verb} {places}", given.join(" ")))
         };
-        let prim = match self.globals.get(name) {
+        let prim = match self.global(name) {
             Some(Global::Prim(m)) => Some(*m),
             _ => None,
         };
@@ -1286,18 +1371,18 @@ impl Checker {
             vars.extend(holes.iter().cloned());
             atom(name, &vars)
         } else {
-            match self.globals.get(name) {
+            match self.global(name) {
                 Some(Global::Def(def)) => {
                     let def = def.clone();
                     let rest = &def.params[args.len().min(def.params.len())..];
                     if args.len() > def.params.len() || rest.len() != n || rest.iter().any(|(_, k)| *k != Kind::Individual) {
                         return Err(wrong(def.params.len().saturating_sub(args.len())));
                     }
-                    self.expand(&def, args, &holes, line, scope)?
+                    self.expand(&def, name, args, &holes, line, scope)?
                 }
                 Some(Global::Prim(_)) => unreachable!("handled above"),
                 Some(Global::Theorem(_)) => unreachable!(),
-                None => return Err(Error::new(line, not_declared(name, args.len() + n))),
+                None => return Err(self.unseen(name, line).unwrap_or_else(|| Error::new(line, not_declared(name, args.len() + n)))),
             }
         };
         Template::new(holes, body).map_err(|m| Error::new(line, m))
@@ -1534,110 +1619,31 @@ impl Checker {
     // ---- citing theorems ----
 
     /// `t templates lines`: the theorem's instance, with lines fed to its leading
-    /// antecedents. Parameters not given as templates are inferred from the lines, or from
-    /// the stated formula.
+    /// antecedents. Every predicate parameter is given a template, in declaration order.
     fn call(&self, h: &str, info: &TheoremInfo, targs: &[TArg], args: &[Arg], cx: &mut Cx, want: Option<&Formula>, line: usize) -> Result<Open, Error> {
         let err = |m: String| Error::new(line, m);
         let lemma = &info.lemma;
         let params = lemma.params();
-        if targs.len() > params.len() {
-            return Err(err(format!("`{h}` takes {} template(s)", params.len())));
+        if targs.len() != params.len() {
+            let shown: Vec<String> = params.iter().map(|(p, arity)| shown_param(p, *arity)).collect();
+            let only = if targs.len() > params.len() { "only " } else { "" };
+            return Err(err(match shown.as_slice() {
+                [] => format!("`{h}` takes no templates"),
+                [one] => format!("`{h}` takes {only}a template for {one}"),
+                [init @ .., last] => format!("`{h}` takes {only}templates for {} and {last}, in that order", init.join(", ")),
+            }));
         }
-        let mut sol: Vec<Option<Template>> = vec![None; params.len()];
+        let mut templates = Vec::new();
         {
-            let in_scope = cx.vars(cx.stack.len());
-            let mut scope = Scope { params: &cx.params, bound: Vec::new(), in_scope, in_proof: true };
-            for (i, a) in targs.iter().enumerate() {
-                sol[i] = Some(self.template(a, params[i].1, &mut scope)?);
+            let mut scope = Scope { params: &cx.params, bound: Vec::new(), in_scope: cx.vars(cx.stack.len()), in_proof: true, fixed: 0, labels: cx.labels(), closing: Vec::new() };
+            for (a, (p, arity)) in targs.iter().zip(params) {
+                templates.push(self.template(a, *arity, (h, p), &mut scope)?);
             }
         }
         let mut given = Vec::new();
         for a in args {
             given.push(self.arg_open(a, cx)?);
         }
-        // The antecedents the lines are fed to, under the quantifiers before each of them.
-        let mut ants = Vec::new();
-        let mut rest = lemma.concl();
-        let mut binders: Vec<Name> = Vec::new();
-        for _ in 0..given.len() {
-            while let Node::All(x, b) = rest.node() {
-                binders.push(x.clone());
-                rest = b;
-            }
-            match rest.node() {
-                Node::Imp(p, q) => {
-                    ants.push(p);
-                    rest = q;
-                }
-                _ => return Err(err(format!("`{h}` has {} antecedent(s), and {} line(s) were given", ants.len(), given.len()))),
-            }
-        }
-        // Parameters not given as templates are read off the lines and the stated formula:
-        // accepted when exactly one reading fits.
-        if sol.iter().any(Option::is_none) {
-            let index: HashMap<&str, usize> = params.iter().enumerate().map(|(i, (p, _))| (p.as_str(), i)).collect();
-            let real: BTreeSet<Name> = cx.vars(cx.stack.len()).into_iter().collect();
-            let outer = real.clone();
-            let mut targets: Vec<(&Formula, Formula)> = Vec::new();
-            for (p, o) in ants.iter().zip(&given) {
-                targets.push((p, self.body(cx, o).map_err(err)?));
-            }
-            if let Some(w) = want {
-                targets.push((rest, w.clone()));
-            }
-            // The theorem's leading binders stand for whatever variables the lines have there,
-            // so a solution may mention them as if they were in scope.
-            let bound: BTreeSet<Name> = binders.iter().cloned().collect();
-            let outer: BTreeSet<Name> = outer.union(&bound).cloned().collect();
-            let mut ties: Vec<(Name, Name)> = Vec::new();
-            for (pat, b) in &targets {
-                tie(pat, b, &index, &bound, &mut Vec::new(), &mut ties);
-            }
-            let mut sols = vec![sol.clone()];
-            for (pat, b) in &targets {
-                let mut next = Vec::new();
-                for s in &sols {
-                    next.extend(homs(pat, b, &index, &outer, &real, &bound, &ties, &mut Vec::new(), s.clone()));
-                }
-                // Two readings that agree on every template are one reading.
-                let mut unique: Vec<Vec<Option<Template>>> = Vec::new();
-                for s in next {
-                    let same = |t: &Vec<Option<Template>>| {
-                        t.iter().zip(&s).all(|(a, b)| match (a, b) {
-                            (Some(a), Some(b)) => a.body() == b.body(),
-                            (None, None) => true,
-                            _ => false,
-                        })
-                    };
-                    if !unique.iter().any(same) {
-                        unique.push(s);
-                    }
-                }
-                sols = unique;
-            }
-            let complete: Vec<&Vec<Option<Template>>> = sols.iter().filter(|s| s.iter().all(Option::is_some)).collect();
-            let missing: Vec<&str> = params.iter().zip(&sol).filter(|(_, t)| t.is_none()).map(|((p, _), _)| p.as_str()).collect();
-            match complete.len() {
-                1 => sol = complete[0].clone(),
-                0 => return Err(err(format!("can't work out {} for `{h}`: pass a template", missing.iter().map(|p| format!("`{p}`")).collect::<Vec<_>>().join(", ")))),
-                _ => {
-                    let readings: Vec<String> = complete
-                        .iter()
-                        .map(|s| {
-                            params
-                                .iter()
-                                .zip(s.iter())
-                                .filter(|((p, _), _)| missing.contains(&p.as_str()))
-                                .map(|((p, _), t)| show_reading(p, t.as_ref().unwrap()))
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        })
-                        .collect();
-                    return Err(err(format!("`{h}` has more than one reading here: {}. Pass a template", readings.join(" or "))));
-                }
-            }
-        }
-        let templates: Vec<Template> = sol.into_iter().map(|t| t.expect("every template was solved")).collect();
         // The instance is closed over the variables its templates mention, outermost first,
         // and instantiated back at them.
         let mut extras: Vec<(usize, Name)> = templates
@@ -1739,190 +1745,3 @@ pub(crate) fn match_vars(
     }
 }
 
-// ---- inferring a theorem's predicate arguments ----
-
-/// Every solution of matching an antecedent against a line's formula, extending `sol`: each
-/// predicate parameter applied to distinct bound variables gets a template. `env` pairs the
-/// antecedent's binders with the formula's; `outer` are variables in scope a template may
-/// mention. A parameter's argument may occur in the formula both through the hole and on its
-/// own, so there can be several readings; all are returned, and the caller insists on one.
-fn homs(
-    pat: &Formula,
-    tgt: &Formula,
-    params: &HashMap<&str, usize>,
-    outer: &BTreeSet<Name>,
-    real: &BTreeSet<Name>,
-    loose: &BTreeSet<Name>,
-    ties: &[(Name, Name)],
-    env: &mut Vec<(Name, Name)>,
-    sol: Vec<Option<Template>>,
-) -> Vec<Vec<Option<Template>>> {
-    // The formula's binder for the antecedent's bound variable, unless an inner binder of the
-    // formula reuses its name. A loose variable, one of the theorem's leading binders, is the
-    // variable it was tied to, or itself when nothing tied it.
-    let image = |x: &Name, env: &[(Name, Name)]| {
-        let Some(i) = env.iter().rposition(|(p, _)| p == x) else {
-            return loose.contains(x).then(|| ties.iter().find(|(a, _)| a == x).map_or(x.clone(), |(_, b)| b.clone()));
-        };
-        let t = &env[i].1;
-        (!env[i + 1..].iter().any(|(_, u)| u == t)).then(|| t.clone())
-    };
-    match (pat.node(), tgt.node()) {
-        (Node::Atom(p, pargs), _) if params.contains_key(&**p) => {
-            // A loose binder nothing has tied, occurring only here, may stand for any variable
-            // in scope that the formula mentions: one reading per choice, each of which must
-            // use its hole, since a reading that ignores it would leave the binder unsolved.
-            if let Some(x) = pargs.iter().find(|a| loose.contains(*a) && !env.iter().any(|(q, _)| q == *a) && !ties.iter().any(|(q, _)| q == *a)) {
-                let mut out = Vec::new();
-                let hole_of = pargs.iter().position(|a| a == x).unwrap();
-                for v in tgt.free_vars().iter().filter(|v| real.contains(*v)) {
-                    let mut ties2 = ties.to_vec();
-                    ties2.push((x.clone(), v.clone()));
-                    for s in homs(pat, tgt, params, outer, real, loose, &ties2, env, sol.clone()) {
-                        let i = params[&**p];
-                        let used = s[i].as_ref().is_some_and(|t| t.body().is_free(&hole_names(pargs.len())[hole_of]));
-                        if used {
-                            out.push(s);
-                        }
-                    }
-                }
-                return out;
-            }
-            let Some(args) = pargs.iter().map(|a| image(a, env)).collect::<Option<Vec<_>>>() else { return Vec::new() };
-            let i = params[&**p];
-            match &sol[i] {
-                Some(t) => {
-                    if t.apply(&args) == *tgt {
-                        vec![sol]
-                    } else {
-                        Vec::new()
-                    }
-                }
-                None => {
-                    let distinct: BTreeSet<&Name> = args.iter().collect();
-                    let ok = |v: &Name| args.contains(v) || (outer.contains(v) && !env.iter().any(|(_, t)| t == v));
-                    if distinct.len() != args.len() || !tgt.free_vars().iter().all(ok) {
-                        return Vec::new();
-                    }
-                    let holes = hole_names(args.len());
-                    // An argument may also stand for itself only if it is a variable in scope
-                    // outside the formula, not one the formula or the theorem binds.
-                    let keep: Vec<bool> = args.iter().map(|a| real.contains(a) && !env.iter().any(|(_, t)| t == a)).collect();
-                    let mut out = Vec::new();
-                    for body in abstractions(tgt, &args, &holes, &keep) {
-                        if let Ok(t) = Template::new(holes.clone(), body) {
-                            let mut s = sol.clone();
-                            s[i] = Some(t);
-                            out.push(s);
-                        }
-                    }
-                    out
-                }
-            }
-        }
-        (Node::Atom(p, xs), Node::Atom(q, ys)) => {
-            // A loose binder matches whatever variable stands against it.
-            let fits = |x: &Name, y: &Name| {
-                if loose.contains(x) && !env.iter().any(|(p, _)| p == x) && !ties.iter().any(|(a, _)| a == x) {
-                    return true;
-                }
-                image(x, env).as_ref() == Some(y)
-            };
-            if p == q && xs.len() == ys.len() && xs.iter().zip(ys).all(|(x, y)| fits(x, y)) {
-                vec![sol]
-            } else {
-                Vec::new()
-            }
-        }
-        (Node::Absurd, Node::Absurd) => vec![sol],
-        (Node::And(a, b), Node::And(c, d)) | (Node::Or(a, b), Node::Or(c, d)) | (Node::Imp(a, b), Node::Imp(c, d)) => {
-            let mut out = Vec::new();
-            for s in homs(a, c, params, outer, real, loose, ties, env, sol) {
-                out.extend(homs(b, d, params, outer, real, loose, ties, env, s));
-            }
-            out
-        }
-        (Node::All(x, a), Node::All(y, b)) | (Node::Ex(x, a), Node::Ex(y, b)) => {
-            env.push((x.clone(), y.clone()));
-            let out = homs(a, b, params, outer, real, loose, ties, env, sol);
-            env.pop();
-            out
-        }
-        _ => Vec::new(),
-    }
-}
-
-/// Ties the theorem's loose binders to the variables that stand against them in a target,
-/// by walking both formulas in parallel. Parameter atoms are skipped: they are what the
-/// readings are about. A binder tied two ways is left untied.
-fn tie(pat: &Formula, tgt: &Formula, params: &HashMap<&str, usize>, loose: &BTreeSet<Name>, env: &mut Vec<(Name, Name)>, ties: &mut Vec<(Name, Name)>) {
-    match (pat.node(), tgt.node()) {
-        (Node::Atom(p, _), _) if params.contains_key(&**p) => {}
-        (Node::Atom(p, xs), Node::Atom(q, ys)) if p == q && xs.len() == ys.len() => {
-            for (x, y) in xs.iter().zip(ys) {
-                if loose.contains(x) && !env.iter().any(|(a, _)| a == x) && !env.iter().any(|(_, b)| b == y) {
-                    match ties.iter().position(|(a, _)| a == x) {
-                        Some(i) if ties[i].1 != *y => {
-                            ties.remove(i);
-                        }
-                        Some(_) => {}
-                        None => ties.push((x.clone(), y.clone())),
-                    }
-                }
-            }
-        }
-        (Node::And(a, b), Node::And(c, d)) | (Node::Or(a, b), Node::Or(c, d)) | (Node::Imp(a, b), Node::Imp(c, d)) => {
-            tie(a, c, params, loose, env, ties);
-            tie(b, d, params, loose, env, ties);
-        }
-        (Node::All(x, a), Node::All(y, b)) | (Node::Ex(x, a), Node::Ex(y, b)) => {
-            env.push((x.clone(), y.clone()));
-            tie(a, b, params, loose, env, ties);
-            env.pop();
-        }
-        _ => {}
-    }
-}
-
-/// Every way to read `f` as a template body over `holes`: each free occurrence of an argument
-/// variable either becomes its hole or stays. The reading with every occurrence a hole comes
-/// first.
-fn abstractions(f: &Formula, args: &[Name], holes: &[Name], keep: &[bool]) -> Vec<Formula> {
-    fn go(f: &Formula, args: &[Name], holes: &[Name], keep: &[bool], bound: &mut Vec<Name>) -> Vec<Formula> {
-        match f.node() {
-            Node::Absurd => vec![f.clone()],
-            Node::Atom(p, xs) => {
-                let mut outs: Vec<Vec<Name>> = vec![Vec::new()];
-                for x in xs {
-                    let choices: Vec<Name> = match args.iter().position(|a| a == x) {
-                        Some(i) if !bound.contains(x) && keep[i] => vec![holes[i].clone(), x.clone()],
-                        Some(i) if !bound.contains(x) => vec![holes[i].clone()],
-                        _ => vec![x.clone()],
-                    };
-                    outs = outs.into_iter().flat_map(|v| choices.iter().map(move |c| v.iter().cloned().chain(std::iter::once(c.clone())).collect::<Vec<_>>())).collect();
-                }
-                outs.into_iter().map(|v| atom(p, &v)).collect()
-            }
-            Node::And(a, b) | Node::Or(a, b) | Node::Imp(a, b) => {
-                let mut out = Vec::new();
-                for l in go(a, args, holes, keep, bound) {
-                    for r in go(b, args, holes, keep, bound) {
-                        out.push(match f.node() {
-                            Node::And(..) => and(l.clone(), r),
-                            Node::Or(..) => or(l.clone(), r),
-                            _ => imp(l.clone(), r),
-                        });
-                    }
-                }
-                out
-            }
-            Node::All(x, a) | Node::Ex(x, a) => {
-                bound.push(x.clone());
-                let bodies = go(a, args, holes, keep, bound);
-                bound.pop();
-                bodies.into_iter().map(|b| if matches!(f.node(), Node::All(..)) { all(x, b) } else { ex(x, b) }).collect()
-            }
-        }
-    }
-    go(f, args, holes, keep, &mut Vec::new())
-}

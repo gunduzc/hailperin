@@ -1,0 +1,103 @@
+-- From hypotheses to names: a chain in h names its top variable, and a name carries over to
+-- a variable h proves equal to it. With names_down, every number up to the chain's length has
+-- a name, and each formula variable is named by its equation with a pool variable.
+
+import negatoms
+import chain
+
+-- Zero moves along a proved equality.
+theorem qz_tr:
+  variable h z v
+  assume q:  QCtx
+  assume nz: Nat z
+  assume nv: Nat v
+  assume qe: QEq h z v
+  assume qz: QZero h z
+  fs0: FS0                                by and_e q
+  lemma w1:
+    variable c1
+    assume h1: EqAt z v c1 and PrH h c1
+    e1: EqAt z v c1                       by and_e h1
+    p1: PrH h c1                          by and_e h1
+    lemma w2:
+      variable c2
+      assume h2: ZeroAt z c2 and PrH h c2
+      x2: ZeroAt z c2                     by and_e h2
+      p2: PrH h c2                        by and_e h2
+      ed: exists x. ZeroAt v x            by imp_e zeroat_exists fs0
+      lemma w3:
+        variable d
+        assume xd: ZeroAt v d
+        pd: PrH h d                       by imp_e q_zero_tr q nz nv e1 p1 x2 p2 xd
+        k:  ZeroAt v d and PrH h d        by and_i xd pd
+        r:  QZero h v                     by exists_i k
+        therefore forall d. ZeroAt v d -> QZero h v
+      r: QZero h v                        by exists_e ed w3
+      therefore forall c2. (ZeroAt z c2 and PrH h c2) -> QZero h v
+    r: QZero h v                          by exists_e qz w2
+    therefore forall c1. (EqAt z v c1 and PrH h c1) -> QZero h v
+  r: QZero h v                            by exists_e qe w1
+  therefore forall h z v. QCtx -> Nat z -> Nat v -> QEq h z v -> QZero h z -> QZero h v
+
+-- A name carries over to an equal variable.
+theorem names_var:
+  variable h z n v
+  assume q:     QCtx
+  assume names: NAMES
+  assume linv:  NamesLeast NamesInv
+  assume nz:    Names h z n
+  assume nv:    Nat v
+  assume qe:    QEq h z v
+  nm0: Nm0                                by and_e names
+  nm1: Nm1                                by and_e names
+  inv: forall h1 z1 j. Names h1 z1 j -> NamesInv h1 z1 j
+                                          by imp_e names_inv names linv
+  iz:  NamesInv h z n                     by imp_e inv nz
+  sh:  NamesShape h z n                   by and_e iz
+  nzv: Nat z                              by and_e sh
+  o:   (Nil n and QZero h z) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 z)
+                                          by and_e sh
+  lemma zero:
+    assume b: Nil n and QZero h z
+    nn: Nil n                             by and_e b
+    qz: QZero h z                         by and_e b
+    qv: QZero h v                         by imp_e qz_tr q nzv nv qe qz
+    r:  Names h v n                       by imp_e nm0 nv nn qv
+    therefore (Nil n and QZero h z) -> Names h v n
+  lemma succ:
+    assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 z
+    lemma wit:
+      variable z0 j0
+      assume hw: Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 z
+      n0:  Names h z0 j0                  by and_e hw
+      nz0: Nat z0                         by and_e hw
+      sj:  Suc j0 n                       by and_e hw
+      qs:  QSucc h z0 z                   by and_e hw
+      e0:  QEq h z0 z0                    by imp_e qe_refl q nz0
+      qs1: QSucc h z0 v                   by imp_e qs_tr q nz0 nzv nz0 nv e0 qe qs
+      r:   Names h v n                    by imp_e nm1 n0 nv sj qs1
+      therefore forall z0 j0. (Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 z) -> Names h v n
+    r: Names h v n                        by exists_e ex wit
+    therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 n and QSucc h z0 z) -> Names h v n
+  r: Names h v n                          by or_e o zero succ
+  therefore forall h z n v. QCtx -> NAMES -> NamesLeast NamesInv -> Names h z n -> Nat v -> QEq h z v -> Names h v n
+
+-- Pool variables are numerals.
+theorem pool_nat:
+  variable i z
+  assume nat:  NAT
+  assume dnat: DblLeast DblNat
+  assume pz:   Pool i z
+  dns: forall i1 k. Dbl i1 k -> DblNat i1 k  by imp_e dbl_nat nat dnat
+  lemma wit:
+    variable k
+    assume h: Dbl i k and Suc k z
+    dk: Dbl i k                           by and_e h
+    sk: Suc k z                           by and_e h
+    dn: DblNat i k                        by imp_e dns dk
+    nk: Nat k                             by and_e dn
+    r:  Nat z                             by imp_e nat_suc nat nk sk
+    therefore forall k. (Dbl i k and Suc k z) -> Nat z
+  r: Nat z                                by exists_e pz wit
+  therefore forall i z. NAT -> DblLeast DblNat -> Pool i z -> Nat z
+

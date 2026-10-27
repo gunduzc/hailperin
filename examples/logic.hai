@@ -4,7 +4,7 @@
 
 import classical
 
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 
 theorem and_comm:
   predicate A
@@ -48,7 +48,7 @@ theorem syllogism:
   predicate Socrates x
   assume men: forall x. Man x -> Mortal x
   assume soc: forall x. Socrates x -> Man x
-  k: forall x. Socrates x -> Mortal x     by imp_e trans_under soc men
+  k: forall x. Socrates x -> Mortal x     by imp_e trans_under Socrates Man Mortal soc men
   therefore (forall x. Man x -> Mortal x) -> (forall x. Socrates x -> Man x) -> forall x. Socrates x -> Mortal x
 
 -- If every P gives Q and some P exists, then Q.
@@ -169,7 +169,7 @@ theorem qe5:
   lemma all:
     variable x
     assume a: A
-    k:  forall x. P x                     by imp_e h a
+    k:  forall x1. P x1                     by imp_e h a
     px: P x                               by forall_e k x
     therefore forall x. A -> P x
   therefore (A -> forall x. P x) -> forall x. A -> P x

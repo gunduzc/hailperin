@@ -1,0 +1,61 @@
+-- Godel's second incompleteness theorem from the derivability conditions, abstractly. Pr is
+-- provability of a code, Imp a b c says c codes a -> b, and Box a b says b codes Pr a. The
+-- theorem holds for any such predicates, so the concrete provability of a theory over FS0
+-- only has to deliver D2, D3, and the two instances of D1 assumed below.
+
+-- D2: provability is closed under modus ponens.
+define D2 (Pr x) (Imp a b c) = forall a b c. Imp a b c -> Pr c -> Pr a -> Pr b
+
+-- D3: whatever is provable is provably provable.
+define D3 (Pr x) (Box a b) = forall a b. Box a b -> Pr a -> Pr b
+
+-- If the Godel sentence g is provable, so is absurd. The codes: b is Pr g, n is Pr g -> bot,
+-- the negation of b, and i1 is g -> n, which D1 gives from the fixed point G -> not Pr g.
+theorem godel_explodes:
+  predicate Pr x
+  predicate Imp x y z
+  predicate Box x y
+  variable g b n bot i1
+  assume d2:   D2 Pr Imp
+  assume d3:   D3 Pr Box
+  assume g_b:  Box g b
+  assume b_n:  Imp b bot n
+  assume g_i1: Imp g n i1
+  assume p_i1: Pr i1
+  lemma boom:
+    assume pg: Pr g
+    pb:   Pr b                            by imp_e d3 g_b pg
+    pn:   Pr n                            by imp_e d2 g_i1 p_i1 pg
+    pbot: Pr bot                          by imp_e d2 b_n pn pb
+    therefore Pr g -> Pr bot
+  therefore forall g b n bot i1. D2 Pr Imp -> D3 Pr Box -> Box g b -> Imp b bot n -> Imp g n i1 -> Pr i1
+              -> Pr g -> Pr bot
+
+-- Consistency is unprovable, if consistent: Con is not Pr bot, with code c. Its proof would
+-- give one of g, through i2, the code of Con -> G, which D1 gives from godel_explodes and
+-- the fixed point not Pr g -> G.
+theorem second_incompleteness:
+  predicate Pr x
+  predicate Imp x y z
+  predicate Box x y
+  variable g b n bot i1 box_bot c i2
+  assume d2:     D2 Pr Imp
+  assume d3:     D3 Pr Box
+  assume g_b:    Box g b
+  assume b_n:    Imp b bot n
+  assume g_i1:   Imp g n i1
+  assume p_i1:   Pr i1
+  assume bot_pb: Box bot box_bot
+  assume pb_c:   Imp box_bot bot c
+  assume c_i2:   Imp c g i2
+  assume p_i2:   Pr i2
+  assume con:    not (Pr bot)
+  lemma unprovable:
+    assume pc: Pr c
+    pg:   Pr g                            by imp_e d2 c_i2 p_i2 pc
+    pbot: Pr bot                          by imp_e godel_explodes Pr Imp Box d2 d3 g_b b_n g_i1 p_i1 pg
+    f:    absurd                          by imp_e con pbot
+    therefore not (Pr c)
+  therefore forall g b n bot i1 box_bot c i2. D2 Pr Imp -> D3 Pr Box -> Box g b -> Imp b bot n -> Imp g n i1
+              -> Pr i1 -> Box bot box_bot -> Imp box_bot bot c -> Imp c g i2 -> Pr i2
+              -> not (Pr bot) -> not (Pr c)

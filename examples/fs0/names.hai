@@ -1,0 +1,329 @@
+-- Naming numbers inside Q. QEq h a b says h proves a = b, for some code of it, and likewise
+-- for the other atoms. Names h z j says h proves that z is j: z is zero, or the successor of
+-- a name of j - 1. Two names of one number are provably equal.
+
+import atoms
+
+define QZero h z    = exists c. ZeroAt z c and PrH h c
+define QSucc h z w  = exists c. SuccAt z w c and PrH h c
+define QEq h a b    = exists c. EqAt a b c and PrH h c
+
+-- The atom lemmas, with the codes found here.
+theorem qe_refl:
+  variable h a
+  assume q:  QCtx
+  assume na: Nat a
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  ea:    exists x. EqAt a a x             by imp_e eqat_exists fs0
+  lemma wit:
+    variable r
+    assume eaa: EqAt a a r
+    fr: Form r                            by imp_e eqat_form form na na eaa
+    pr: PrH h r                           by imp_e q_refl fs0 prf na eaa fr
+    c:  EqAt a a r and PrH h r            by and_i eaa pr
+    e:  QEq h a a                         by exists_i c
+    therefore forall r. EqAt a a r -> QEq h a a
+  r: QEq h a a                            by exists_e ea wit
+  therefore forall h a. QCtx -> Nat a -> QEq h a a
+
+theorem qe_sym:
+  variable h a b
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume qab: QEq h a b
+  fs0: FS0                                by and_e q
+  lemma w1:
+    variable c
+    assume hc: EqAt a b c and PrH h c
+    eab: EqAt a b c                       by and_e hc
+    pc:  PrH h c                          by and_e hc
+    ed:  exists x. EqAt b a x             by imp_e eqat_exists fs0
+    lemma w2:
+      variable d
+      assume eba: EqAt b a d
+      pd: PrH h d                         by imp_e q_eq_sym q na nb eab pc eba
+      k:  EqAt b a d and PrH h d          by and_i eba pd
+      r:  QEq h b a                       by exists_i k
+      therefore forall d. EqAt b a d -> QEq h b a
+    r: QEq h b a                          by exists_e ed w2
+    therefore forall c. (EqAt a b c and PrH h c) -> QEq h b a
+  r: QEq h b a                            by exists_e qab w1
+  therefore forall h a b. QCtx -> Nat a -> Nat b -> QEq h a b -> QEq h b a
+
+theorem qs_tr:
+  variable h z z1 v w
+  assume q:   QCtx
+  assume nz:  Nat z
+  assume nz1: Nat z1
+  assume nv:  Nat v
+  assume nw:  Nat w
+  assume q1:  QEq h z v
+  assume q2:  QEq h z1 w
+  assume q3:  QSucc h z z1
+  fs0: FS0                                by and_e q
+  lemma w1:
+    variable c1
+    assume h1: EqAt z v c1 and PrH h c1
+    e1: EqAt z v c1                       by and_e h1
+    p1: PrH h c1                          by and_e h1
+    lemma w2:
+      variable c2
+      assume h2: EqAt z1 w c2 and PrH h c2
+      e2: EqAt z1 w c2                    by and_e h2
+      p2: PrH h c2                        by and_e h2
+      lemma w3:
+        variable c3
+        assume h3: SuccAt z z1 c3 and PrH h c3
+        s3: SuccAt z z1 c3                by and_e h3
+        p3: PrH h c3                      by and_e h3
+        ed: exists x. SuccAt v w x        by imp_e succat_exists fs0
+        lemma w4:
+          variable d
+          assume sd: SuccAt v w d
+          pd: PrH h d                     by imp_e q_succ_tr q nz nz1 nv nw e1 p1 e2 p2 s3 p3 sd
+          k:  SuccAt v w d and PrH h d    by and_i sd pd
+          r:  QSucc h v w                 by exists_i k
+          therefore forall d. SuccAt v w d -> QSucc h v w
+        r: QSucc h v w                    by exists_e ed w4
+        therefore forall c3. (SuccAt z z1 c3 and PrH h c3) -> QSucc h v w
+      r: QSucc h v w                      by exists_e q3 w3
+      therefore forall c2. (EqAt z1 w c2 and PrH h c2) -> QSucc h v w
+    r: QSucc h v w                        by exists_e q2 w2
+    therefore forall c1. (EqAt z v c1 and PrH h c1) -> QSucc h v w
+  r: QSucc h v w                          by exists_e q1 w1
+  therefore forall h z z1 v w. QCtx -> Nat z -> Nat z1 -> Nat v -> Nat w -> QEq h z v -> QEq h z1 w -> QSucc h z z1
+              -> QSucc h v w
+
+-- Su and Zu: a successor, and zero, are unique.
+theorem qs_fun:
+  variable h x a b
+  assume q:  QCtx
+  assume nx: Nat x
+  assume na: Nat a
+  assume nb: Nat b
+  assume sa: QSucc h x a
+  assume sb: QSucc h x b
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  lemma w1:
+    variable c1
+    assume h1: SuccAt x a c1 and PrH h c1
+    s1: SuccAt x a c1                     by and_e h1
+    p1: PrH h c1                          by and_e h1
+    lemma w2:
+      variable c2
+      assume h2: SuccAt x b c2 and PrH h c2
+      s2: SuccAt x b c2                   by and_e h2
+      p2: PrH h c2                        by and_e h2
+      ed: exists y. EqAt a b y            by imp_e eqat_exists fs0
+      lemma w3:
+        variable d
+        assume ed1: EqAt a b d
+        fd: Form d                        by imp_e eqat_form form na nb ed1
+        pd: PrH h d                       by imp_e q_su fs0 form prf pfl nx na nb ed1 s2 s1 p1 p2 fd
+        k:  EqAt a b d and PrH h d        by and_i ed1 pd
+        r:  QEq h a b                     by exists_i k
+        therefore forall d. EqAt a b d -> QEq h a b
+      r: QEq h a b                        by exists_e ed w3
+      therefore forall c2. (SuccAt x b c2 and PrH h c2) -> QEq h a b
+    r: QEq h a b                          by exists_e sb w2
+    therefore forall c1. (SuccAt x a c1 and PrH h c1) -> QEq h a b
+  r: QEq h a b                            by exists_e sa w1
+  therefore forall h x a b. QCtx -> Nat x -> Nat a -> Nat b -> QSucc h x a -> QSucc h x b -> QEq h a b
+
+theorem qz_fun:
+  variable h a b
+  assume q:  QCtx
+  assume na: Nat a
+  assume nb: Nat b
+  assume za: QZero h a
+  assume zb: QZero h b
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  lemma w1:
+    variable c1
+    assume h1: ZeroAt a c1 and PrH h c1
+    z1: ZeroAt a c1                       by and_e h1
+    p1: PrH h c1                          by and_e h1
+    lemma w2:
+      variable c2
+      assume h2: ZeroAt b c2 and PrH h c2
+      z2: ZeroAt b c2                     by and_e h2
+      p2: PrH h c2                        by and_e h2
+      ed: exists y. EqAt a b y            by imp_e eqat_exists fs0
+      lemma w3:
+        variable d
+        assume ed1: EqAt a b d
+        fd: Form d                        by imp_e eqat_form form na nb ed1
+        pd: PrH h d                       by imp_e q_zu fs0 form prf pfl na nb ed1 z2 z1 p1 p2 fd
+        k:  EqAt a b d and PrH h d        by and_i ed1 pd
+        r:  QEq h a b                     by exists_i k
+        therefore forall d. EqAt a b d -> QEq h a b
+      r: QEq h a b                        by exists_e ed w3
+      therefore forall c2. (ZeroAt b c2 and PrH h c2) -> QEq h a b
+    r: QEq h a b                          by exists_e zb w2
+    therefore forall c1. (ZeroAt a c1 and PrH h c1) -> QEq h a b
+  r: QEq h a b                            by exists_e za w1
+  therefore forall h a b. QCtx -> Nat a -> Nat b -> QZero h a -> QZero h b -> QEq h a b
+
+predicate Names h z j
+
+define Nm0 = forall h z j. Nat z -> Nil j -> QZero h z -> Names h z j
+define Nm1 = forall h z j z1 j1. Names h z j -> Nat z1 -> Suc j j1 -> QSucc h z z1 -> Names h z1 j1
+
+define NAMES = Nm0 and Nm1
+
+define NamesLeast (P h z j) = (forall h z j. Nat z -> Nil j -> QZero h z -> P h z j)
+    -> (forall h z j z1 j1. P h z j -> Nat z1 -> Suc j j1 -> QSucc h z z1 -> P h z1 j1)
+    -> forall h z j. Names h z j -> P h z j
+
+-- A name is a variable, and names zero by Zero, or a successor by Succ.
+define NamesShape h z j = Nat z and ((Nil j and QZero h z)
+                                     or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 j and QSucc h z0 z))
+define NamesInv h z j   = Names h z j and NamesShape h z j
+
+theorem names_inv:
+  assume names: NAMES
+  assume least: NamesLeast NamesInv
+  nm0: Nm0                                by and_e names
+  nm1: Nm1                                by and_e names
+  lemma c0:
+    variable h z j
+    assume nz: Nat z
+    assume nj: Nil j
+    assume qz: QZero h z
+    n: Names h z j                        by imp_e nm0 nz nj qz
+    b: Nil j and QZero h z                by and_i nj qz
+    o:  (Nil j and QZero h z) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 j and QSucc h z0 z)
+                                          by or_i b
+    sh: NamesShape h z j                  by and_i nz o
+    r:  NamesInv h z j                    by and_i n sh
+    therefore forall h z j. Nat z -> Nil j -> QZero h z -> NamesInv h z j
+  lemma c1:
+    variable h z j z1 j1
+    assume ih:  NamesInv h z j
+    assume nz1: Nat z1
+    assume sj:  Suc j j1
+    assume qs:  QSucc h z z1
+    n:  Names h z j                       by and_e ih
+    sh: NamesShape h z j                  by and_e ih
+    nz: Nat z                             by and_e sh
+    n1: Names h z1 j1                     by imp_e nm1 n nz1 sj qs
+    c:  Names h z j and Nat z and Suc j j1 and QSucc h z z1
+                                          by and_i n nz sj qs
+    e:  exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 j1 and QSucc h z0 z1
+                                          by exists_i c
+    o:  (Nil j1 and QZero h z1) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 j1 and QSucc h z0 z1)
+                                          by or_i e
+    s1: NamesShape h z1 j1                by and_i nz1 o
+    r:  NamesInv h z1 j1                  by and_i n1 s1
+    therefore forall h z j z1 j1. NamesInv h z j -> Nat z1 -> Suc j j1 -> QSucc h z z1 -> NamesInv h z1 j1
+  r: forall h z j. Names h z j -> NamesInv h z j
+                                          by imp_e least c0 c1
+  therefore NAMES -> NamesLeast NamesInv -> forall h z j. Names h z j -> NamesInv h z j
+
+-- Two names of one number are provably equal.
+define NamesEq h a n = Nat a and forall c m. Names h c m -> Eq n m -> QEq h a c
+
+theorem names_eq:
+  assume q:     QCtx
+  assume names: NAMES
+  assume linv:  NamesLeast NamesInv
+  assume least: NamesLeast NamesEq
+  fs0: FS0                                by and_e q
+  en:  En                                 by and_e fs0
+  inv: forall h z j. Names h z j -> NamesInv h z j
+                                          by imp_e names_inv names linv
+  lemma c0:
+    variable h a n
+    assume na: Nat a
+    assume nn: Nil n
+    assume qa: QZero h a
+    lemma each:
+      variable c m
+      assume nc:  Names h c m
+      assume enm: Eq n m
+      ic:  NamesInv h c m                 by imp_e inv nc
+      sh:  NamesShape h c m               by and_e ic
+      ncv: Nat c                          by and_e sh
+      o:  (Nil m and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c)
+                                          by and_e sh
+      lemma zero:
+        assume b: Nil m and QZero h c
+        qc: QZero h c                     by and_e b
+        r:  QEq h a c                     by imp_e qz_fun q na ncv qa qc
+        therefore (Nil m and QZero h c) -> QEq h a c
+      lemma succ:
+        assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c
+        lemma wit:
+          variable z0 j0
+          assume hw: Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c
+          sm: Suc j0 m                    by and_e hw
+          nm: Nil m                       by imp_e en enm nn
+          f:  absurd                      by imp_e suc_nil fs0 sm nm
+          r:  QEq h a c                   by absurd_e f
+          therefore forall z0 j0. (Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c) -> QEq h a c
+        r: QEq h a c                      by exists_e ex wit
+        therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c) -> QEq h a c
+      r: QEq h a c                        by or_e o zero succ
+      therefore forall c m. Names h c m -> Eq n m -> QEq h a c
+    r: NamesEq h a n                      by and_i na each
+    therefore forall h a n. Nat a -> Nil n -> QZero h a -> NamesEq h a n
+  lemma c1:
+    variable h a n a1 n1
+    assume ih:  NamesEq h a n
+    assume na1: Nat a1
+    assume sn:  Suc n n1
+    assume qs:  QSucc h a a1
+    na: Nat a                             by and_e ih
+    ihe: forall c m. Names h c m -> Eq n m -> QEq h a c
+                                          by and_e ih
+    lemma each:
+      variable c m
+      assume nc:  Names h c m
+      assume enm: Eq n1 m
+      ic:  NamesInv h c m                 by imp_e inv nc
+      sh:  NamesShape h c m               by and_e ic
+      ncv: Nat c                          by and_e sh
+      o:   (Nil m and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c)
+                                          by and_e sh
+      lemma zero:
+        assume b: Nil m and QZero h c
+        nm:  Nil m                        by and_e b
+        emn: Eq m n1                      by imp_e eq_sym fs0 enm
+        nn1: Nil n1                       by imp_e en emn nm
+        f:   absurd                       by imp_e suc_nil fs0 sn nn1
+        r:   QEq h a1 c                   by absurd_e f
+        therefore (Nil m and QZero h c) -> QEq h a1 c
+      lemma succ:
+        assume ex: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c
+        lemma wit:
+          variable z0 j0
+          assume hw: Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c
+          n0:  Names h z0 j0              by and_e hw
+          nz0: Nat z0                     by and_e hw
+          sm:  Suc j0 m                   by and_e hw
+          qc:  QSucc h z0 c               by and_e hw
+          ej:  Eq n j0                    by imp_e suc_inj fs0 sn sm enm
+          e0:  QEq h a z0                 by imp_e ihe n0 ej
+          e1:  QEq h z0 a                 by imp_e qe_sym q na nz0 e0
+          ecc: QEq h c c                  by imp_e qe_refl q ncv
+          qac: QSucc h a c                by imp_e qs_tr q nz0 ncv na ncv e1 ecc qc
+          r:   QEq h a1 c                 by imp_e qs_fun q na na1 ncv qs qac
+          therefore forall z0 j0. (Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c) -> QEq h a1 c
+        r: QEq h a1 c                     by exists_e ex wit
+        therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 m and QSucc h z0 c) -> QEq h a1 c
+      r: QEq h a1 c                       by or_e o zero succ
+      therefore forall c m. Names h c m -> Eq n1 m -> QEq h a1 c
+    r: NamesEq h a1 n1                    by and_i na1 each
+    therefore forall h a n a1 n1. NamesEq h a n -> Nat a1 -> Suc n n1 -> QSucc h a a1 -> NamesEq h a1 n1
+  r: forall h z j. Names h z j -> NamesEq h z j
+                                          by imp_e least c0 c1
+  therefore QCtx -> NAMES -> NamesLeast NamesInv -> NamesLeast NamesEq -> forall h z j. Names h z j -> NamesEq h z j

@@ -1,0 +1,114 @@
+-- The axioms of Q as codes: QAx a says a is the code of one of them. Each is the body of an
+-- axiom of examples/q.hai with its quantifiers left off, outermost connective first, so its
+-- variables are free. Generalization gives the closed axiom back. The variables may be any
+-- numerals, so every renaming of an axiom is one too. In an axiom with an `exists` inside they
+-- must be distinct. In the others they need not be, since identifying variables of a purely
+-- universal axiom gives one of its instances. The theorems are still exactly Q's.
+
+import truth
+
+define SzCode x = exists v0 v1 c3 c4 c5.
+    Nat v0 and Nat v1 and ImpCode c3 c4 x and NotCode c5 c4 and ZeroAt v1 c5 and SuccAt v0 v1 c3
+
+define SiCode x = exists v0 v1 v2 v3 c5 c6 c7 c8 c9 c10.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 x and ImpCode c7 c8 c6
+    and ImpCode c9 c10 c8 and EqAt v0 v1 c10 and EqAt v2 v3 c9 and SuccAt v1 v3 c7
+    and SuccAt v0 v2 c5
+
+define PredCode x = exists v0 v1 c2 c3 c4 c5.
+    Nat v0 and Nat v1 and not (Eq v0 v1) and ImpCode c2 c3 x and ExCode v1 c5 c3 and SuccAt v1 v0 c5
+    and NotCode c4 c2 and ZeroAt v0 c4
+
+define PzCode x = exists v0 v1 c3 c4.
+    Nat v0 and Nat v1 and ImpCode c3 c4 x and PlusAt v0 v1 v0 c4 and ZeroAt v1 c3
+
+define PsCode x = exists v0 v1 v2 v3 v4 c6 c7 c8 c9 c10 c11.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 x and ImpCode c8 c9 c7
+    and ImpCode c10 c11 c9 and PlusAt v0 v2 v4 c11 and SuccAt v3 v4 c10 and PlusAt v0 v1 v3 c8
+    and SuccAt v1 v2 c6
+
+define TzCode x = exists v0 v1 c3 c4.
+    Nat v0 and Nat v1 and ImpCode c3 c4 x and TimesAt v0 v1 v1 c4 and ZeroAt v1 c3
+
+define TsCode x = exists v0 v1 v2 v3 v4 c6 c7 c8 c9 c10 c11.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and ImpCode c6 c7 x and ImpCode c8 c9 c7
+    and ImpCode c10 c11 c9 and TimesAt v0 v2 v4 c11 and PlusAt v3 v0 v4 c10 and TimesAt v0 v1 v3 c8
+    and SuccAt v1 v2 c6
+
+define ZeCode x = exists v0 c1.
+    Nat v0 and ExCode v0 c1 x and ZeroAt v0 c1
+
+define ZuCode x = exists v0 v1 c3 c4 c5 c6.
+    Nat v0 and Nat v1 and ImpCode c3 c4 x and ImpCode c5 c6 c4 and EqAt v0 v1 c6 and ZeroAt v1 c5
+    and ZeroAt v0 c3
+
+define SeCode x = exists v0 v1 c2.
+    Nat v0 and Nat v1 and not (Eq v0 v1) and ExCode v1 c2 x and SuccAt v0 v1 c2
+
+define SuCode x = exists v0 v1 v2 c4 c5 c6 c7.
+    Nat v0 and Nat v1 and Nat v2 and ImpCode c4 c5 x and ImpCode c6 c7 c5 and EqAt v1 v2 c7
+    and SuccAt v0 v2 c6 and SuccAt v0 v1 c4
+
+define PeCode x = exists v0 v1 v2 c3.
+    Nat v0 and Nat v1 and Nat v2 and not (Eq v0 v1) and not (Eq v0 v2) and not (Eq v1 v2)
+    and ExCode v2 c3 x and PlusAt v0 v1 v2 c3
+
+define PuCode x = exists v0 v1 v2 v3 c5 c6 c7 c8.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 x and ImpCode c7 c8 c6
+    and EqAt v2 v3 c8 and PlusAt v0 v1 v3 c7 and PlusAt v0 v1 v2 c5
+
+define TeCode x = exists v0 v1 v2 c3.
+    Nat v0 and Nat v1 and Nat v2 and not (Eq v0 v1) and not (Eq v0 v2) and not (Eq v1 v2)
+    and ExCode v2 c3 x and TimesAt v0 v1 v2 c3
+
+define TuCode x = exists v0 v1 v2 v3 c5 c6 c7 c8.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 x and ImpCode c7 c8 c6
+    and EqAt v2 v3 c8 and TimesAt v0 v1 v3 c7 and TimesAt v0 v1 v2 c5
+
+define ReflCode x = exists v0.
+    Nat v0 and EqAt v0 v0 x
+
+define EeCode x = exists v0 v1 v2 v3 c5 c6 c7 c8 c9 c10.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 x and ImpCode c7 c8 c6
+    and ImpCode c9 c10 c8 and EqAt v2 v3 c10 and EqAt v0 v1 c9 and EqAt v1 v3 c7 and EqAt v0 v2 c5
+
+define EzCode x = exists v0 v1 c3 c4 c5 c6.
+    Nat v0 and Nat v1 and ImpCode c3 c4 x and ImpCode c5 c6 c4 and ZeroAt v1 c6 and ZeroAt v0 c5
+    and EqAt v0 v1 c3
+
+define EsCode x = exists v0 v1 v2 v3 c5 c6 c7 c8 c9 c10.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and ImpCode c5 c6 x and ImpCode c7 c8 c6
+    and ImpCode c9 c10 c8 and SuccAt v2 v3 c10 and SuccAt v0 v1 c9 and EqAt v1 v3 c7
+    and EqAt v0 v2 c5
+
+define EpCode x = exists v0 v1 v2 v3 v4 v5 c7 c8 c9 c10 c11 c12 c13 c14.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 x
+    and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and PlusAt v3 v4 v5 c14
+    and PlusAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
+
+define EtCode x = exists v0 v1 v2 v3 v4 v5 c7 c8 c9 c10 c11 c12 c13 c14.
+    Nat v0 and Nat v1 and Nat v2 and Nat v3 and Nat v4 and Nat v5 and ImpCode c7 c8 x
+    and ImpCode c9 c10 c8 and ImpCode c11 c12 c10 and ImpCode c13 c14 c12 and TimesAt v3 v4 v5 c14
+    and TimesAt v0 v1 v2 c13 and EqAt v2 v5 c11 and EqAt v1 v4 c9 and EqAt v0 v3 c7
+
+define QAx a = SzCode a
+           or SiCode a
+           or PredCode a
+           or PzCode a
+           or PsCode a
+           or TzCode a
+           or TsCode a
+           or ZeCode a
+           or ZuCode a
+           or SeCode a
+           or SuCode a
+           or PeCode a
+           or PuCode a
+           or TeCode a
+           or TuCode a
+           or ReflCode a
+           or EeCode a
+           or EzCode a
+           or EsCode a
+           or EpCode a
+           or EtCode a

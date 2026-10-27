@@ -13,7 +13,7 @@ predicate Pr a b p
 predicate Fn f
 predicate Ap f x y
 
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 
 -- numbers
 define ZEx   = exists z. Zero z
@@ -195,12 +195,12 @@ theorem add_exists:
                           -> Pr x m q -> Succ v w -> Ap h q w
             ar:  AddRec h                 by and_i base step
             k5:  Fn h and AddRec h        by and_i fh ar
-            res: exists h. Fn h and AddRec h
+            res: exists h1. Fn h1 and AddRec h1
                                           by exists_i k5
             therefore forall h. (Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap i x y -> Ap h p y)
                         and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
                                -> Ap k t w -> Ap h q w))
-                        -> exists h. Fn h and AddRec h
+                        -> exists h1. Fn h1 and AddRec h1
           res: exists h. Fn h and AddRec h
                                           by exists_e eh wh
           therefore forall k. (Fn k and forall x w. Iff (Ap k x w) (exists a. Ap sn x a and Ap s a w))
@@ -232,12 +232,12 @@ theorem comp_in:
     assume c:  CompOf h f g
     assume ga: Ap g x a
     assume fa: Ap f a w
-    i:  Iff (Ap h x w) (exists a. Ap g x a and Ap f a w)
+    i:  Iff (Ap h x w) (exists a1. Ap g x a1 and Ap f a1 w)
                                           by forall_e c x w
-    j:  (exists a. Ap g x a and Ap f a w) -> Ap h x w
+    j:  (exists a1. Ap g x a1 and Ap f a1 w) -> Ap h x w
                                           by and_e i
     k:  Ap g x a and Ap f a w             by and_i ga fa
-    e:  exists a. Ap g x a and Ap f a w   by exists_i k
+    e:  exists a1. Ap g x a1 and Ap f a1 w   by exists_i k
     r:  Ap h x w                          by imp_e j e
     therefore forall h f g x a w. CompOf h f g -> Ap g x a -> Ap f a w -> Ap h x w
   therefore forall h f g x a w. CompOf h f g -> Ap g x a -> Ap f a w -> Ap h x w
@@ -262,13 +262,13 @@ theorem tup_in:
     assume fa: Ap f x a
     assume gb: Ap g x b
     assume pw: Pr a b w
-    i:  Iff (Ap h x w) (exists a b. Ap f x a and Ap g x b and Pr a b w)
+    i:  Iff (Ap h x w) (exists a1 b1. Ap f x a1 and Ap g x b1 and Pr a1 b1 w)
                                           by forall_e c x w
-    j:  (exists a b. Ap f x a and Ap g x b and Pr a b w) -> Ap h x w
+    j:  (exists a1 b1. Ap f x a1 and Ap g x b1 and Pr a1 b1 w) -> Ap h x w
                                           by and_e i
     k:  Ap f x a and Ap g x b and Pr a b w
                                           by and_i fa gb pw
-    e:  exists a b. Ap f x a and Ap g x b and Pr a b w
+    e:  exists a1 b1. Ap f x a1 and Ap g x b1 and Pr a1 b1 w
                                           by exists_i k
     r:  Ap h x w                          by imp_e j e
     therefore forall h f g x a b w. TupOf h f g -> Ap f x a -> Ap g x b -> Pr a b w -> Ap h x w
@@ -294,10 +294,10 @@ theorem fst_in:
     variable f a b p
     assume c:  FstOf f
     assume pp: Pr a b p
-    i:  Iff (Ap f p a) (exists b. Pr a b p)
+    i:  Iff (Ap f p a) (exists b1. Pr a b1 p)
                                           by forall_e c p a
-    j:  (exists b. Pr a b p) -> Ap f p a  by and_e i
-    e:  exists b. Pr a b p                by exists_i pp
+    j:  (exists b1. Pr a b1 p) -> Ap f p a  by and_e i
+    e:  exists b1. Pr a b1 p                by exists_i pp
     r:  Ap f p a                          by imp_e j e
     therefore forall f a b p. FstOf f -> Pr a b p -> Ap f p a
   therefore forall f a b p. FstOf f -> Pr a b p -> Ap f p a
@@ -307,10 +307,10 @@ theorem snd_in:
     variable f a b p
     assume c:  SndOf f
     assume pp: Pr a b p
-    i:  Iff (Ap f p b) (exists a. Pr a b p)
+    i:  Iff (Ap f p b) (exists a1. Pr a1 b p)
                                           by forall_e c p b
-    j:  (exists a. Pr a b p) -> Ap f p b  by and_e i
-    e:  exists a. Pr a b p                by exists_i pp
+    j:  (exists a1. Pr a1 b p) -> Ap f p b  by and_e i
+    e:  exists a1. Pr a1 b p                by exists_i pp
     r:  Ap f p b                          by imp_e j e
     therefore forall f a b p. SndOf f -> Pr a b p -> Ap f p b
   therefore forall f a b p. SndOf f -> Pr a b p -> Ap f p b
@@ -323,10 +323,10 @@ theorem fst_out:
     assume c:  FstOf f
     assume pp: Pr a b p
     assume fy: Ap f p y
-    i:  Iff (Ap f p y) (exists b. Pr y b p)
+    i:  Iff (Ap f p y) (exists b1. Pr y b1 p)
                                           by forall_e c p y
-    j:  Ap f p y -> exists b. Pr y b p    by and_e i
-    e:  exists b. Pr y b p                by imp_e j fy
+    j:  Ap f p y -> exists b1. Pr y b1 p    by and_e i
+    e:  exists b1. Pr y b1 p                by imp_e j fy
     lemma wb:
       variable b1
       assume pb: Pr y b1 p
@@ -346,10 +346,10 @@ theorem snd_out:
     assume c:  SndOf f
     assume pp: Pr a b p
     assume fy: Ap f p y
-    i:  Iff (Ap f p y) (exists a. Pr a y p)
+    i:  Iff (Ap f p y) (exists a1. Pr a1 y p)
                                           by forall_e c p y
-    j:  Ap f p y -> exists a. Pr a y p    by and_e i
-    e:  exists a. Pr a y p                by imp_e j fy
+    j:  Ap f p y -> exists a1. Pr a1 y p    by and_e i
+    e:  exists a1. Pr a1 y p                by imp_e j fy
     lemma wa:
       variable a1
       assume pa: Pr a1 y p
@@ -438,7 +438,7 @@ theorem ap_num:
     assume fn: Fn f
     assume nx: Num x
     assume fy: Ap f x y
-    e: exists y. Num y and Ap f x y       by imp_e total fn nx
+    e: exists y1. Num y1 and Ap f x y1       by imp_e total fn nx
     lemma wu:
       variable u
       assume hu: Num u and Ap f x u
@@ -564,12 +564,12 @@ theorem mul_exists:
                   mr:  MulRec h m         by and_i base step
                   c:   Fn m and MulRec h m
                                           by and_i fm mr
-                  res: exists m. Fn m and MulRec h m
+                  res: exists m1. Fn m1 and MulRec h m1
                                           by exists_i c
                   therefore forall m. (Fn m and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap m p y)
                               and (forall x n n1 p q v t w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q
                                      -> Pr p v t -> Ap k t w -> Ap m q w))
-                              -> exists m. Fn m and MulRec h m
+                              -> exists m1. Fn m1 and MulRec h m1
                 res: exists m. Fn m and MulRec h m
                                           by exists_e em wm
                 therefore forall k. (Fn k and CompOf k h tp) -> exists m. Fn m and MulRec h m
@@ -620,8 +620,8 @@ theorem pred_ex:
         variable w
         assume k: Num w and Succ w v
         p: PredR v w                      by or_i k
-        r: exists w. PredR v w            by exists_i p
-        therefore forall w. (Num w and Succ w v) -> exists w. PredR v w
+        r: exists w1. PredR v w1            by exists_i p
+        therefore forall w. (Num w and Succ w v) -> exists w1. PredR v w1
       r: exists w. PredR v w              by exists_e ex wp
       therefore (exists p. Num p and Succ p v) -> exists w. PredR v w
     r: exists w. PredR v w                by or_e o z s
@@ -789,12 +789,12 @@ theorem pred_exists:
               res: Ap pd c w              by or_e pr atz ats
               therefore forall y v c w. Pr y v c -> PredR v w -> Ap pd c w
             k:   Fn pd and PredOf pd      by and_i fpd spec
-            res: exists pd. Fn pd and PredOf pd
+            res: exists pd1. Fn pd1 and PredOf pd1
                                           by exists_i k
             therefore forall pd. (Fn pd and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap pd p y)
                         and (forall x n m p q v t w. Pr x n p -> Ap pd p v -> Succ n m -> Pr x m q -> Pr p v t
                                -> Ap ps t w -> Ap pd q w))
-                        -> exists pd. Fn pd and PredOf pd
+                        -> exists pd1. Fn pd1 and PredOf pd1
           res: exists pd. Fn pd and PredOf pd
                                           by exists_e epd wpd
           therefore forall ps. (Fn ps and CompOf ps sn fs) -> exists pd. Fn pd and PredOf pd
@@ -907,12 +907,12 @@ theorem sub_exists:
                             -> Ap s q w
               sr:  SubRec s               by and_i base step
               k1:  Fn s and SubRec s      by and_i fs sr
-              res: exists s. Fn s and SubRec s
+              res: exists s1. Fn s1 and SubRec s1
                                           by exists_i k1
               therefore forall s. (Fn s and (forall x z p y. Zero z -> Pr x z p -> Ap ii x y -> Ap s p y)
                           and (forall x n m p q v t w. Pr x n p -> Ap s p v -> Succ n m -> Pr x m q -> Pr p v t
                                  -> Ap k t w -> Ap s q w))
-                          -> exists s. Fn s and SubRec s
+                          -> exists s1. Fn s1 and SubRec s1
             res: exists s. Fn s and SubRec s
                                           by exists_e es wsub
             therefore forall k. (Fn k and CompOf k pd tt) -> exists s. Fn s and SubRec s
@@ -1426,22 +1426,22 @@ theorem sub_shift:
                                           by imp_e es eb2 r3 sb3
                             kk:   Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
                                           by and_i sa sb pc scv
-                            r:   exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                            r:   exists a4 b4 c1. Succ a a4 and Succ b b4 and Pr a4 b4 c1 and Ap s c1 v
                                           by exists_i kk
                             therefore forall b3. (Ap so p b3 and Ap sf b3 b2)
-                                        -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
-                          r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                        -> exists a4 b4 c1. Succ a a4 and Succ b b4 and Pr a4 b4 c1 and Ap s c1 v
+                          r: exists a4 b3 c1. Succ a a4 and Succ b b3 and Pr a4 b3 c1 and Ap s c1 v
                                           by exists_e u4 wb3
                           therefore forall a3. (Ap fo p a3 and Ap sf a3 a2)
-                                      -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
-                        r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                      -> exists a4 b3 c1. Succ a a4 and Succ b b3 and Pr a4 b3 c1 and Ap s c1 v
+                        r: exists a3 b3 c1. Succ a a3 and Succ b b3 and Pr a3 b3 c1 and Ap s c1 v
                                           by exists_e u3 wa3
                         therefore forall a2 b2. (Ap cf p a2 and Ap cs p b2 and Pr a2 b2 c)
-                                    -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
-                      r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                    -> exists a3 b3 c1. Succ a a3 and Succ b b3 and Pr a3 b3 c1 and Ap s c1 v
+                      r: exists a2 b2 c1. Succ a a2 and Succ b b2 and Pr a2 b2 c1 and Ap s c1 v
                                           by exists_e u2 wab
                       therefore forall c. (Ap tq p c and Ap s c v)
-                                  -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                  -> exists a2 b2 c1. Succ a a2 and Succ b b2 and Pr a2 b2 c1 and Ap s c1 v
                     r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
                                           by exists_e u1 wc
                     therefore forall a b p v. Pr a b p -> Ap f p v
@@ -1614,7 +1614,7 @@ theorem sub_shift:
                                           by imp_e pred_ex zos nv
                     u:   exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
                                           by imp_e fun pp fv
-                    eb3: exists t. Succ b1 t
+                    eb3: exists t1. Succ b1 t1
                                           by imp_e sex nb1
                     lemma we:
                       variable e
@@ -1780,13 +1780,13 @@ theorem sub_self:
                   pnc: Pr n n c           by imp_e epr e3 e4 rc pc
                   k:   Pr n n c and Ap s c v
                                           by and_i pnc scv
-                  r:   exists c. Pr n n c and Ap s c v
+                  r:   exists c1. Pr n n c1 and Ap s c1 v
                                           by exists_i k
                   therefore forall b1 b2. (Ap so p b1 and Ap so p b2 and Pr b1 b2 c)
-                              -> exists c. Pr n n c and Ap s c v
-                r: exists c. Pr n n c and Ap s c v
+                              -> exists c1. Pr n n c1 and Ap s c1 v
+                r: exists c1. Pr n n c1 and Ap s c1 v
                                           by exists_e u2 wb
-                therefore forall c. (Ap dd p c and Ap s c v) -> exists c. Pr n n c and Ap s c v
+                therefore forall c. (Ap dd p c and Ap s c v) -> exists c1. Pr n n c1 and Ap s c1 v
               r: exists c. Pr n n c and Ap s c v
                                           by exists_e u1 wc
               therefore forall x n p v. Pr x n p -> Ap f p v -> exists c. Pr n n c and Ap s c v
@@ -1878,7 +1878,7 @@ theorem sub_self:
                   m4:  Num m and Num m and Num c1
                                           by imp_e pnum pc1
                   nc1: Num c1             by and_e m4
-                  eu:  exists u. Num u and Ap s c1 u
+                  eu:  exists u1. Num u1 and Ap s c1 u1
                                           by imp_e total fsub nc1
                   lemma wu:
                     variable uu
@@ -2064,17 +2064,17 @@ theorem sub_one:
                           pc2: Pr a1 n c  by imp_e epr ra1 e4 rc pc
                           k:   Succ n a1 and Pr a1 n c and Ap s c v
                                           by and_i sn1 pc2 scv
-                          r:   exists m c. Succ n m and Pr m n c and Ap s c v
+                          r:   exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
                                           by exists_i k
                           therefore forall a3. (Ap so p a3 and Ap sf a3 a1)
-                                      -> exists m c. Succ n m and Pr m n c and Ap s c v
-                        r: exists m c. Succ n m and Pr m n c and Ap s c v
+                                      -> exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
+                        r: exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
                                           by exists_e u3 wa3
                         therefore forall a1 b1. (Ap cs p a1 and Ap so p b1 and Pr a1 b1 c)
-                                    -> exists m c. Succ n m and Pr m n c and Ap s c v
-                      r: exists m c. Succ n m and Pr m n c and Ap s c v
+                                    -> exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
+                      r: exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
                                           by exists_e u2 wab
-                      therefore forall c. (Ap ee p c and Ap s c v) -> exists m c. Succ n m and Pr m n c and Ap s c v
+                      therefore forall c. (Ap ee p c and Ap s c v) -> exists m c1. Succ n m and Pr m n c1 and Ap s c1 v
                     r: exists m c. Succ n m and Pr m n c and Ap s c v
                                           by exists_e u1 wc
                     therefore forall x n p v. Pr x n p -> Ap f p v -> exists m c. Succ n m and Pr m n c and Ap s c v
@@ -2200,7 +2200,7 @@ theorem sub_one:
                     nn1: Num n1           by imp_e ns nn sn1
                     u:   exists m c. Succ n m and Pr m n c and Ap s c v
                                           by imp_e fun pp fv
-                    em1: exists t. Succ n1 t
+                    em1: exists t1. Succ n1 t1
                                           by imp_e sex nn1
                     lemma wu:
                       variable m c
@@ -2221,7 +2221,7 @@ theorem sub_one:
                           m4:  Num m1 and Num n1 and Num c1
                                           by imp_e pnum pc1
                           nc1: Num c1     by and_e m4
-                          eu:  exists u. Num u and Ap s c1 u
+                          eu:  exists u1. Num u1 and Ap s c1 u1
                                           by imp_e total fsub nc1
                           lemma wuu:
                             variable uu

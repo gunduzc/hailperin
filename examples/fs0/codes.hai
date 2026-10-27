@@ -1,0 +1,87 @@
+-- S-expressions as numbers, so that arithmetic can talk about them: the atom is 0, and a pair
+-- of a and b is the number pair of their codes, plus 1, which keeps it apart from 0. Only
+-- the existence of codes is needed on the way to D3: a proof's code witnesses an arithmetic
+-- Sigma1 sentence, and that direction never compares two codes.
+
+import arith
+
+predicate Code a n
+
+define Cn = forall a n. Nil a -> Nil n -> Code a n
+define Cp = forall a b p x y z c. Pair a b p -> Code a x -> Code b y -> PairN x y z -> Suc z c -> Code p c
+
+define CODE = Cn and Cp
+
+-- Every S-expression has a code, and the code is a numeral.
+define CodeEx a = exists n. Code a n and Nat n
+
+theorem code_exists:
+  assume times: TIMES
+  assume code:  CODE
+  assume addl:  forall x. NatLeast (AddEx x)
+  assume natl:  AddLeast AddNat
+  assume mull:  forall x. NatLeast (MulEx x)
+  assume ind:   Induction CodeEx
+  fs0:  FS0                               by and_e times
+  zn:   Zn                                by and_e times
+  sn:   Sn                                by and_e times
+  cn:   Cn                                by and_e code
+  cp:   Cp                                by and_e code
+  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
+  lemma c0:
+    variable n
+    assume nn: Nil n
+    k:  Code n n                          by imp_e cn nn nn
+    nm: Nat n                             by imp_e zn nn
+    c:  Code n n and Nat n                by and_i k nm
+    e:  CodeEx n                          by exists_i c
+    therefore forall n. Nil n -> CodeEx n
+  lemma c1:
+    variable a b p
+    assume ia: CodeEx a
+    assume ib: CodeEx b
+    assume pp: Pair a b p
+    lemma w1:
+      variable x
+      assume ha: Code a x and Nat x
+      ca: Code a x                        by and_e ha
+      nx: Nat x                           by and_e ha
+      lemma w2:
+        variable y
+        assume hb: Code b y and Nat y
+        cb: Code b y                      by and_e hb
+        ny: Nat y                         by and_e hb
+        ez: exists z. PairN x y z and Nat z
+                                          by imp_e pairn_exists times addl natl mull nx ny
+        lemma w3:
+          variable z
+          assume hz: PairN x y z and Nat z
+          pz: PairN x y z                 by and_e hz
+          nz: Nat z                       by and_e hz
+          ec: exists t. Suc z t           by forall_e sucs z
+          lemma w4:
+            variable c
+            assume sc: Suc z c
+            cc: Code p c                  by imp_e cp pp ca cb pz sc
+            lemma w5:
+              variable o
+              assume ho: Nil o and Pair o z c
+              no: Nil o                   by and_e ho
+              po: Pair o z c              by and_e ho
+              nc: Nat c                   by imp_e sn no nz po
+              therefore forall o. (Nil o and Pair o z c) -> Nat c
+            nc: Nat c                     by exists_e sc w5
+            k:  Code p c and Nat c        by and_i cc nc
+            e:  CodeEx p                  by exists_i k
+            therefore forall c. Suc z c -> CodeEx p
+          r: CodeEx p                     by exists_e ec w4
+          therefore forall z. (PairN x y z and Nat z) -> CodeEx p
+        r: CodeEx p                       by exists_e ez w3
+        therefore forall y. (Code b y and Nat y) -> CodeEx p
+      r: CodeEx p                         by exists_e ib w2
+      therefore forall x. (Code a x and Nat x) -> CodeEx p
+    r: CodeEx p                           by exists_e ia w1
+    therefore forall a b p. CodeEx a -> CodeEx b -> Pair a b p -> CodeEx p
+  r: forall x. CodeEx x                   by imp_e ind c0 c1
+  therefore TIMES -> CODE -> (forall x. NatLeast (AddEx x)) -> AddLeast AddNat -> (forall x. NatLeast (MulEx x))
+              -> Induction CodeEx -> forall x. CodeEx x

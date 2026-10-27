@@ -267,8 +267,7 @@ impl Parser<'_> {
         Ok(holes)
     }
 
-    /// A parameter of a definition: `(P x y)`, `(A)`, or a lowercase
-    /// individual.
+    /// A parameter of a definition: `(P x y)`, a statement `A`, or a lowercase individual.
     fn param(&mut self) -> Result<Option<Param>, Error> {
         let line = self.line();
         match self.peek() {
@@ -276,15 +275,17 @@ impl Parser<'_> {
                 self.pos += 1;
                 let name = self.upper("a parameter's name after `(`")?;
                 let holes = self.holes()?;
+                if holes.is_empty() {
+                    return Err(self.err(format!("`{name}` has no placeholders, so it goes without parentheses: `{name}`")));
+                }
                 self.expect(Sym::RParen, "`)` after the parameter's placeholders")?;
                 Ok(Some(Param { name, holes, line }))
             }
-            Some(Tok::Lower(n)) => {
+            Some(Tok::Lower(n) | Tok::Upper(n)) => {
                 let name = n.clone();
                 self.pos += 1;
                 Ok(Some(Param { name, holes: Vec::new(), line }))
             }
-            Some(Tok::Upper(n)) => Err(self.err(format!("a predicate parameter is written with its placeholders in parentheses: `({n} x)`"))),
             _ => Ok(None),
         }
     }
@@ -313,7 +314,7 @@ impl Parser<'_> {
                 self.pos += 1;
                 let name = self.lower("a theorem's name")?;
                 self.name_colon("theorem", &name)?;
-                let block = self.block(&name)?;
+                let block = self.block(&name, false)?;
                 Ok(Item::Theorem { name, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
@@ -321,8 +322,8 @@ impl Parser<'_> {
         }
     }
 
-    /// Declarations in order, steps, then `therefore`.
-    fn block(&mut self, name: &str) -> Result<Block, Error> {
+    /// Declarations in order, steps, then `therefore`. A lemma declares no predicates.
+    fn block(&mut self, name: &str, lemma: bool) -> Result<Block, Error> {
         let mut variables = Vec::new();
         let mut predicates = Vec::new();
         let mut assumes = Vec::new();
@@ -353,6 +354,9 @@ impl Parser<'_> {
                 }
                 Kw::Predicate => {
                     let pname = self.upper("a predicate's name after `predicate`")?;
+                    if lemma {
+                        return Err(Error::new(line, format!("a lemma declares no predicates: declare `{pname}` in its theorem")));
+                    }
                     let holes = self.holes()?;
                     predicates.push(Param { name: pname, holes, line });
                 }
@@ -376,7 +380,7 @@ impl Parser<'_> {
                     self.pos += 1;
                     let lemma = self.lower("the lemma's name")?;
                     self.name_colon("lemma", &lemma)?;
-                    let block = self.block(&lemma)?;
+                    let block = self.block(&lemma, true)?;
                     steps.push(Step::Lemma { name: lemma, block, line });
                 }
                 Some(Tok::Kw(Kw::Therefore)) => {
@@ -406,10 +410,17 @@ impl Parser<'_> {
     /// the previous line is probably a label without its colon.
     fn step_error(&self, steps: &[Step]) -> Error {
         if let Some(Step::Line(prev)) = steps.last() {
-            if let Some(Arg::Ident(n, l)) = prev.just.args.last() {
-                if *l < self.line() || matches!(self.peek(), Some(Tok::Upper(_) | Tok::Sym(Sym::LParen) | Tok::Kw(Kw::Forall | Kw::Exists | Kw::Not | Kw::Absurd))) {
-                    return Error::new(*l, format!("`{n}` was read as an argument of the line above. If it is a label, it needs a colon: `{n}:`"));
-                }
+            let name = |a: &Arg| match a {
+                Arg::Ident(n, l) | Arg::Instance { head: n, line: l, .. } => (n.clone(), *l),
+            };
+            // The first argument on a line of its own, or else the last one if a formula follows it.
+            let formula_next = matches!(self.peek(), Some(Tok::Upper(_) | Tok::Sym(Sym::LParen) | Tok::Kw(Kw::Forall | Kw::Exists | Kw::Not | Kw::Absurd)));
+            let stray = prev.just.args.iter().map(name).find(|(_, l)| *l > prev.just.line).or_else(|| match prev.just.args.last() {
+                Some(Arg::Ident(n, l)) if *l < self.line() || formula_next => Some((n.clone(), *l)),
+                _ => None,
+            });
+            if let Some((n, l)) = stray {
+                return Error::new(l, format!("`{n}` was read as an argument of the line above. If it is a label, it needs a colon: `{n}:`"));
             }
         }
         match self.peek() {
@@ -432,7 +443,7 @@ impl Parser<'_> {
     fn name_after_by(&mut self) -> Result<String, Error> {
         match self.peek() {
             Some(Tok::Lower(_)) => self.lower(""),
-            Some(Tok::Upper(n)) => Err(self.err(format!("`{n}` is capitalized, so it isn't a rule, line or theorem: templates go in an instance, `(t {n})`"))),
+            Some(Tok::Upper(n)) => Err(self.err(format!("`{n}` is capitalized, so it isn't a rule, line or theorem: templates follow their theorem, `t {n}`"))),
             _ => Err(self.err("expected a rule, line, variable or theorem")),
         }
     }
@@ -445,27 +456,23 @@ impl Parser<'_> {
             match self.peek() {
                 // A lowercase name is an argument unless it's the next step's label.
                 Some(Tok::Lower(n)) if !self.at_label() => {
-                    args.push(Arg::Ident(n.clone(), self.line()));
+                    let (head, l) = (n.clone(), self.line());
                     self.pos += 1;
+                    // `thm T1 T2`: a theorem instance as an argument.
+                    let targs = self.templates()?;
+                    args.push(if targs.is_empty() { Arg::Ident(head, l) } else { Arg::Instance { head, targs, line: l } });
                 }
-                Some(Tok::Upper(_)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
+                Some(Tok::Upper(_)) => {
                     self.name_after_by()?;
                 }
                 Some(Tok::Sym(Sym::LParen)) => {
-                    let l = self.line();
                     self.pos += 1;
                     match self.peek() {
                         Some(Tok::Lower(n)) if crate::check::RULES.contains(&n.as_str()) => {
                             return Err(self.err(format!("one rule per line: give `{n}` a line of its own")));
                         }
-                        Some(Tok::Lower(_)) => {
-                            // `(thm T1 T2)`: a theorem instance as an argument.
-                            let head = self.name_after_by()?;
-                            let ts = self.targs()?;
-                            self.expect(Sym::RParen, "`)`")?;
-                            args.push(Arg::Instance { head, targs: ts, line: l });
-                        }
-                        _ => return Err(self.err("in parentheses after `by` comes a theorem's instance: `(t T)`")),
+                        Some(Tok::Lower(n)) => return Err(self.err(format!("a theorem's templates follow its name, without parentheses: `{n} T`"))),
+                        _ => return Err(self.err("a template in parentheses follows its theorem: `t (T a)`")),
                     }
                 }
                 _ => break,
@@ -474,7 +481,37 @@ impl Parser<'_> {
         Ok(Just { rule, args, line })
     }
 
-    /// Templates after a theorem, inside an instance.
+    /// Templates after a theorem: a name, or in parentheses a predicate given arguments or a
+    /// formula. They end at the first lowercase name, the first line fed to the theorem.
+    fn templates(&mut self) -> Result<Vec<TArg>, Error> {
+        let mut out = Vec::new();
+        loop {
+            match self.peek() {
+                Some(Tok::Upper(n)) if self.peek2() != Some(&Tok::Sym(Sym::Dot)) => {
+                    out.push(TArg::Name(n.clone(), self.line()));
+                    self.pos += 1;
+                }
+                Some(Tok::Sym(Sym::LParen)) if !matches!(self.peek2(), Some(Tok::Lower(_))) => out.push(self.paren_targ()?),
+                _ => break,
+            }
+        }
+        Ok(out)
+    }
+
+    /// `( formula )` as a template, which a lone name doesn't need.
+    fn paren_targ(&mut self) -> Result<TArg, Error> {
+        self.pos += 1;
+        let f = self.formula()?;
+        if let FExpr::Atom { name, args, .. } = &f {
+            if args.is_empty() {
+                return Err(self.err(format!("`{name}` has no arguments, so it goes without parentheses: `{name}`")));
+            }
+        }
+        self.expect(Sym::RParen, "`)`")?;
+        Ok(TArg::Paren(Box::new(f)))
+    }
+
+    /// Arguments of a predicate or definition in a formula.
     fn targs(&mut self) -> Result<Vec<TArg>, Error> {
         let mut out = Vec::new();
         loop {
@@ -488,12 +525,7 @@ impl Parser<'_> {
                     out.push(TArg::Var(n.clone(), self.line()));
                     self.pos += 1;
                 }
-                Some(Tok::Sym(Sym::LParen)) => {
-                    self.pos += 1;
-                    let f = self.formula()?;
-                    self.expect(Sym::RParen, "`)`")?;
-                    out.push(TArg::Paren(Box::new(f)));
-                }
+                Some(Tok::Sym(Sym::LParen)) => out.push(self.paren_targ()?),
                 _ => break,
             }
         }
@@ -642,7 +674,7 @@ mod tests {
 
     #[test]
     fn items() {
-        let src = "predicate P x\ndefine Iff (A) (B) = (A -> B) and (B -> A)\ndefine Ind (Q x) = Q x -> forall x. Q x\n\
+        let src = "predicate P x\ndefine Iff A B = (A -> B) and (B -> A)\ndefine Ind (Q x) = Q x -> forall x. Q x\n\
                    theorem t:\n  predicate R y\n  variable x\n  assume i: Ind R\n  assume a: A\n  therefore A -> A";
         let items = parsed(src);
         assert!(matches!(&items[0], Item::Predicate { name, holes, .. } if name == "P" && holes == &["x"]));
@@ -660,7 +692,7 @@ mod tests {
     #[test]
     fn blocks_and_justifications() {
         let src = "theorem t:\n assume h: A or B\n lemma l:\n  assume a: A\n  r: B or A by or_i a\n  therefore A -> B or A\n \
-                   k: B by forall_e pz w x\n m: C by imp_e ind k l\n n: D by imp_e (f (Unicorn)) u h\n therefore A";
+                   k: B by forall_e pz w x\n m: C by imp_e ind k l\n n: D by imp_e f Unicorn u h\n therefore A";
         let items = parsed(src);
         let Item::Theorem { block, .. } = &items[0] else { panic!() };
         assert_eq!(block.steps.len(), 4);

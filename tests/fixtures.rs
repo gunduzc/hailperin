@@ -128,3 +128,53 @@ fn bad_usage_exits_2() {
     assert!(r.stderr.starts_with("hailperin: "), "{}", r.stderr);
     assert!(r.stdout.is_empty());
 }
+
+/// Writes `files` into a fresh directory and runs the binary on `main` there.
+fn run_files(name: &str, files: &[(&str, &str)], main: &str) -> String {
+    let dir = std::env::temp_dir().join(format!("hailperin-{name}-{}", std::process::id()));
+    let _ = fs::remove_dir_all(&dir);
+    for (path, src) in files {
+        let path = dir.join(path);
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, src).unwrap();
+    }
+    let out = run(&[dir.join(main).to_str().unwrap()]).stdout;
+    fs::remove_dir_all(&dir).unwrap();
+    out
+}
+
+#[test]
+fn a_file_sees_only_what_it_imports() {
+    // `b` uses `X` from `a` without importing it: refused alike alone and after `a` is loaded.
+    let files = [
+        ("a.hai", "predicate P x\ndefine X x = P x and P x\n"),
+        ("b.hai", "theorem tb:\n  variable y\n  assume h: X y\n  therefore forall y. X y -> X y\n"),
+        ("c.hai", "import a\nimport b\n"),
+    ];
+    assert!(run_files("sees", &files, "b.hai").contains("`X` is not declared"));
+    assert_eq!(run_files("sees", &files, "c.hai"), "failure: b.hai: line 3: tb: `X` is from a.hai, which this file doesn't import\n");
+}
+
+#[test]
+fn messages_fold_only_what_the_file_sees() {
+    // `fb` never imports `fa`, so its messages never print `Two`, whoever loads `fa` first.
+    let files = [
+        ("p.hai", "predicate P x\n"),
+        ("fa.hai", "import p\ndefine Two x = P x and P x\n"),
+        ("fb.hai", "import p\ntheorem tb:\n  variable y\n  assume h: P y and P y\n  k: P y by reit h\n  therefore forall y. (P y and P y) -> P y\n"),
+        ("fc.hai", "import fa\nimport fb\n"),
+    ];
+    assert_eq!(run_files("folds", &files, "fb.hai"), "failure: line 5: tb: this gives P y and P y, not P y\n");
+    assert_eq!(run_files("folds", &files, "fc.hai"), "failure: fb.hai: line 5: tb: this gives P y and P y, not P y\n");
+}
+
+#[test]
+fn an_imported_file_is_named_from_the_checked_file() {
+    // `sub/s` imports `a` as `../a`, but from `top` it is `a.hai`.
+    let files = [
+        ("a.hai", "predicate P x\ntheorem bad:\n  variable y\n  assume h: P y\n  k: P y by reit q\n  therefore forall y. P y -> P y\n"),
+        ("sub/s.hai", "import ../a\n"),
+        ("top.hai", "import sub/s\n"),
+    ];
+    assert_eq!(run_files("names", &files, "top.hai"), "failure: a.hai: line 5: bad: `q` is not a line or a theorem here\n");
+}

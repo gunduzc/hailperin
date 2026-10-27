@@ -13,27 +13,40 @@ pub struct Fold {
 }
 
 thread_local! {
-    /// The definitions of the check under way, in the order they were made.
-    static FOLDS: RefCell<Vec<Fold>> = const { RefCell::new(Vec::new()) };
+    /// The definitions of the check under way, each with its file, in the order they were made.
+    static FOLDS: RefCell<Vec<(usize, Fold)>> = const { RefCell::new(Vec::new()) };
+    /// The files the file being checked sees, in the order it would load them alone.
+    static SEES: RefCell<Vec<usize>> = const { RefCell::new(Vec::new()) };
 }
 
 /// Forgets the definitions folded so far, for a new check.
 pub fn clear_folds() {
     FOLDS.with(|f| f.borrow_mut().clear());
+    SEES.with(|s| s.borrow_mut().clear());
 }
 
-/// Prints instances of this definition by its name from now on.
-pub fn add_fold(fold: Fold) {
-    FOLDS.with(|f| f.borrow_mut().push(fold));
+/// Prints instances of this definition, from this file, by its name from now on.
+pub fn add_fold(file: usize, fold: Fold) {
+    FOLDS.with(|f| f.borrow_mut().push((file, fold)));
 }
 
-/// `f` as an instance of a definition, the latest that fits: its name and arguments.
+/// Prints with the definitions of these files only, so that a line prints the same whichever
+/// file is checked.
+pub fn set_sees(files: &[usize]) {
+    SEES.with(|s| *s.borrow_mut() = files.to_vec());
+}
+
+/// `f` as an instance of a definition, the latest that fits in the order the file being
+/// checked would load them alone: its name and arguments.
 fn folded(f: &Formula) -> Option<String> {
     if matches!(f.node(), Node::Atom(..) | Node::Absurd) {
         return None;
     }
+    let sees = SEES.with(|s| s.borrow().clone());
     FOLDS.with(|folds| {
-        for fold in folds.borrow().iter().rev() {
+        let folds = folds.borrow();
+        let visible = sees.iter().rev().flat_map(|file| folds.iter().rev().filter(move |(f, _)| f == file).map(|(_, fold)| fold));
+        for fold in visible {
             let metas: BTreeSet<Name> = fold.params.iter().cloned().collect();
             let mut sol = HashMap::new();
             if !crate::check::match_vars(&fold.body, f, &metas, &mut Vec::new(), &mut sol) {

@@ -5,7 +5,7 @@ pub mod lexer;
 pub mod parse;
 pub mod print;
 
-use std::collections::BTreeSet;
+use std::collections::BTreeMap;
 use std::fmt as stdfmt;
 use std::path::{Path, PathBuf};
 
@@ -39,8 +39,8 @@ pub type Report<'a> = &'a mut dyn FnMut(&parse::Item, Option<&(String, kernel::f
 /// Checks `src`, whose imports are found in `dir`. `path` is the file's own path, if it has
 /// one, so that importing it back is caught as a cycle.
 pub fn verify_in(src: &str, dir: &Path, path: Option<&Path>, report: Report) -> Result<(), Error> {
-    let mut l = loader(path)?;
-    l.source(src, dir, report)
+    let mut l = loader(path, dir)?;
+    l.source(src, dir, report).map(drop)
 }
 
 /// Checks a whole file, returning each theorem's name and conclusion in order.
@@ -53,15 +53,16 @@ pub fn verify(src: &str) -> Result<Vec<(String, kernel::formula::Formula)>, Erro
 /// Checks a file and returns, for each line of each theorem, its variables in scope, its
 /// open assumptions and its formula.
 pub fn explain_in(src: &str, dir: &Path, path: Option<&Path>) -> Result<Vec<String>, Error> {
-    let mut l = loader(path)?;
+    let mut l = loader(path, dir)?;
     l.checker.explain = true;
     l.source(src, dir, &mut |_, _| {})?;
     Ok(l.checker.take_trace())
 }
 
-fn loader(path: Option<&Path>) -> Result<Loader, Error> {
+fn loader(path: Option<&Path>, dir: &Path) -> Result<Loader, Error> {
     crate::print::clear_folds();
-    let mut l = Loader { checker: check::Checker::default(), done: BTreeSet::new(), open: Vec::new() };
+    let root = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
+    let mut l = Loader { checker: check::Checker::default(), done: BTreeMap::new(), open: Vec::new(), root };
     if let Some(p) = path {
         let p = p.canonicalize().map_err(|e| Error::new(1, format!("can't read this file: {e}")))?;
         let name = p.file_stem().map_or(String::new(), |s| s.to_string_lossy().into_owned());
@@ -70,28 +71,48 @@ fn loader(path: Option<&Path>) -> Result<Loader, Error> {
     Ok(l)
 }
 
-/// Imports are pasted in once each, in order; a file can't import itself, even indirectly.
+/// Imports are checked once each, in order, and each file sees only what it imports; a file
+/// can't import itself, even indirectly.
 struct Loader {
     checker: check::Checker,
-    done: BTreeSet<PathBuf>,
+    /// The files checked, with the files each sees.
+    done: BTreeMap<PathBuf, Vec<usize>>,
     /// The files being imported, outermost first, with their names.
     open: Vec<(PathBuf, String)>,
+    /// The checked file's directory, which messages name imported files from.
+    root: PathBuf,
 }
 
 impl Loader {
-    fn source(&mut self, src: &str, dir: &Path, report: Report) -> Result<(), Error> {
+    /// Checks a file after its imports. It sees what they see, and itself: the files it
+    /// sees, in the order it would load them alone, are returned.
+    fn source(&mut self, src: &str, dir: &Path, report: Report) -> Result<Vec<usize>, Error> {
         let file = parse::parse(&lexer::lex(src)?)?;
+        let mut sees = Vec::new();
         for import in &file.imports {
-            self.import(dir, import)?;
+            for f in self.import(dir, import)? {
+                if !sees.contains(&f) {
+                    sees.push(f);
+                }
+            }
         }
+        let name = self.open.last().map_or_else(String::new, |(p, _)| self.shown(p));
+        sees.push(self.checker.add_file(name));
+        self.checker.enter(sees.clone());
         for item in &file.items {
             let proved = self.checker.item(item)?;
             report(item, proved.as_ref());
         }
-        Ok(())
+        Ok(sees)
     }
 
-    fn import(&mut self, dir: &Path, import: &parse::Import) -> Result<(), Error> {
+    /// A file as messages name it: its path from the checked file's directory.
+    fn shown(&self, path: &Path) -> String {
+        path.strip_prefix(&self.root).unwrap_or(path).to_string_lossy().into_owned()
+    }
+
+    /// Checks an imported file once, and returns the files it sees.
+    fn import(&mut self, dir: &Path, import: &parse::Import) -> Result<Vec<usize>, Error> {
         let name = &import.name;
         let err = |msg: String| Error::new(import.line, msg);
         let path = dir.join(format!("{name}.hai"));
@@ -101,8 +122,8 @@ impl Loader {
             cycle.push(name);
             return Err(err(format!("import cycle: {}", cycle.join(" -> "))));
         }
-        if self.done.contains(&canon) {
-            return Ok(());
+        if let Some(sees) = self.done.get(&canon) {
+            return Ok(sees.clone());
         }
         let src = std::fs::read_to_string(&canon).map_err(|e| err(format!("can't import `{name}`: {e}")))?;
         self.open.push((canon.clone(), name.clone()));
@@ -110,14 +131,15 @@ impl Loader {
         let here = canon.parent().unwrap_or(dir);
         // An imported file's lines are not explained: only the file being checked.
         let explain = std::mem::replace(&mut self.checker.explain, false);
+        let shown = self.shown(&canon);
         let res = self.source(&src, here, &mut |_, _| {}).map_err(|mut e| {
-            e.file.get_or_insert_with(|| format!("{name}.hai"));
+            e.file.get_or_insert(shown);
             e
         });
         self.checker.explain = explain;
-        res?;
+        let sees = res?;
         self.open.pop();
-        self.done.insert(canon);
-        Ok(())
+        self.done.insert(canon, sees.clone());
+        Ok(sees)
     }
 }

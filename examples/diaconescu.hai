@@ -17,10 +17,10 @@ theorem diaconescu_core:
   assume hb: Picks f y b
   -- a = e or A; b = o or A
   ax:  In a x                             by and_e ha
-  d9:  In a u and EqOr A e a              by imp_e sepby_out hx ax
+  d9:  In a u and EqOr A e a              by imp_e sepby_out A hx ax
   ca:  EqOr A e a                         by and_e d9
   iby: In b y                             by and_e hb
-  d10: In b u and EqOr A o b              by imp_e sepby_out hy iby
+  d10: In b u and EqOr A o b              by imp_e sepby_out A hy iby
   cb:  EqOr A o b                         by and_e d10
   lemma yes:
     assume h: A
@@ -35,17 +35,17 @@ theorem diaconescu_core:
       variable z
       lemma xy1:
         assume zx: In z x
-        d11: In z u and EqOr A e z        by imp_e sepby_out hx zx
+        d11: In z u and EqOr A e z        by imp_e sepby_out A hx zx
         zu:  In z u                       by and_e d11
         d12: EqOr A o z                   by or_i h
-        zy:  In z y                       by imp_e sepby_in hy zu d12
+        zy:  In z y                       by imp_e sepby_in A hy zu d12
         therefore In z x -> In z y
       lemma xy2:
         assume zy: In z y
-        d13: In z u and EqOr A o z        by imp_e sepby_out hy zy
+        d13: In z u and EqOr A o z        by imp_e sepby_out A hy zy
         zu:  In z u                       by and_e d13
         d14: EqOr A e z                   by or_i h
-        zx:  In z x                       by imp_e sepby_in hx zu d14
+        zx:  In z x                       by imp_e sepby_in A hx zu d14
         therefore In z y -> In z x
       xyz: Iff (In z x) (In z y)          by and_i xy1 xy2
       therefore Eq x y
@@ -99,8 +99,8 @@ theorem diaconescu_choose:
   roo: Eq o o                             by forall_e eq_refl o
   ce:  EqOr A e e                         by or_i ree
   co:  EqOr A o o                         by or_i roo
-  ein: In e x                             by imp_e sepby_in hx eu ce
-  oin: In o y                             by imp_e sepby_in hy ou co
+  ein: In e x                             by imp_e sepby_in A hx eu ce
+  oin: In o y                             by imp_e sepby_in A hy ou co
   xs:  In x s                             by imp_e pairing_in1 hs
   ys:  In y s                             by imp_e pairing_in2 hs
   -- every member of s is inhabited
@@ -136,7 +136,7 @@ theorem diaconescu_choose:
       lemma wb:
         variable b
         assume hb: Picks f y b
-        k: A or not A                     by imp_e diaconescu_core he ho hu hx hy ha hb
+        k: A or not A                     by imp_e diaconescu_core A he ho hu hx hy ha hb
         therefore forall b. Picks f y b -> A or not A
       r5: A or not A                      by exists_e exb wb
       therefore forall a. Picks f x a -> A or not A
@@ -148,7 +148,7 @@ theorem diaconescu_choose:
 
 -- The six sets exist: let e be empty, o = {e}, u = {e, o}, x and y the two separated sets,
 -- s = {x, y}. One box per let, and the innermost packs them.
-define Setup (A) e o u x y s = Empty e and Pairing o e e and Pairing u e o and SepBy A x u e
+define Setup A e o u x y s = Empty e and Pairing o e e and Pairing u e o and SepBy A x u e
                                and SepBy A y u o and Pairing s x y
 
 theorem diaconescu_sets:
@@ -181,24 +181,24 @@ theorem diaconescu_sets:
               variable s
               assume hs: Pairing s x y
               c: Setup A e o u x y s      by and_i he ho hu hx hy hs
-              k: exists e o u x y s. Setup A e o u x y s
+              k: exists e1 o1 u1 x1 y1 s1. Setup A e1 o1 u1 x1 y1 s1
                                           by exists_i c
-              therefore forall s. Pairing s x y -> exists e o u x y s. Setup A e o u x y s
-            r5: exists e o u x y s. Setup A e o u x y s
+              therefore forall s. Pairing s x y -> exists e1 o1 u1 x1 y1 s1. Setup A e1 o1 u1 x1 y1 s1
+            r5: exists e1 o1 u1 x1 y1 s. Setup A e1 o1 u1 x1 y1 s
                                           by exists_e ps ws
-            therefore forall y. SepBy A y u o -> exists e o u x y s. Setup A e o u x y s
-          r4: exists e o u x y s. Setup A e o u x y s
+            therefore forall y. SepBy A y u o -> exists e1 o1 u1 x1 y1 s. Setup A e1 o1 u1 x1 y1 s
+          r4: exists e1 o1 u1 x1 y s. Setup A e1 o1 u1 x1 y s
                                           by exists_e sy wy
-          therefore forall x. SepBy A x u e -> exists e o u x y s. Setup A e o u x y s
-        r3: exists e o u x y s. Setup A e o u x y s
+          therefore forall x. SepBy A x u e -> exists e1 o1 u1 x1 y s. Setup A e1 o1 u1 x1 y s
+        r3: exists e1 o1 u1 x y s. Setup A e1 o1 u1 x y s
                                           by exists_e sx wx
-        therefore forall u. Pairing u e o -> exists e o u x y s. Setup A e o u x y s
-      r2: exists e o u x y s. Setup A e o u x y s
+        therefore forall u. Pairing u e o -> exists e1 o1 u1 x y s. Setup A e1 o1 u1 x y s
+      r2: exists e1 o1 u x y s. Setup A e1 o1 u x y s
                                           by exists_e pu wu
-      therefore forall o. Pairing o e e -> exists e o u x y s. Setup A e o u x y s
-    r1: exists e o u x y s. Setup A e o u x y s
+      therefore forall o. Pairing o e e -> exists e1 o1 u x y s. Setup A e1 o1 u x y s
+    r1: exists e1 o u x y s. Setup A e1 o u x y s
                                           by exists_e po wo
-    therefore forall e. Empty e -> exists e o u x y s. Setup A e o u x y s
+    therefore forall e. Empty e -> exists e1 o u x y s. Setup A e1 o u x y s
   r: exists e o u x y s. Setup A e o u x y s
                                           by exists_e empty we
   therefore Sets -> (forall e. Separation (EqOr A e)) -> exists e o u x y s. Setup A e o u x y s
@@ -210,7 +210,7 @@ theorem diaconescu:
   assume choice: Choice
   assume sep:    forall e. Separation (EqOr A e)
   ex: exists e o u x y s. Setup A e o u x y s
-                                          by imp_e diaconescu_sets sets sep
+                                          by imp_e diaconescu_sets A sets sep
   lemma w:
     variable e o u x y s
     assume h: Setup A e o u x y s
@@ -220,7 +220,7 @@ theorem diaconescu:
     hx: SepBy A x u e                     by and_e h
     hy: SepBy A y u o                     by and_e h
     hs: Pairing s x y                     by and_e h
-    k:  A or not A                        by imp_e diaconescu_choose choice he ho hu hx hy hs
+    k:  A or not A                        by imp_e diaconescu_choose A choice he ho hu hx hy hs
     therefore forall e o u x y s. Setup A e o u x y s -> A or not A
   r: A or not A                           by exists_e ex w
   therefore Sets -> Choice -> (forall e. Separation (EqOr A e)) -> A or not A
@@ -234,7 +234,7 @@ theorem empty_or_not_from_choice:
     variable a
     sep_a: forall e. Separation (EqOr (Inhabited a) e)
                                           by forall_e sep a
-    k: Inhabited a or not (Inhabited a)   by imp_e diaconescu sets choice sep_a
+    k: Inhabited a or not (Inhabited a)   by imp_e diaconescu (Inhabited a) sets choice sep_a
     therefore forall a. Inhabited a or not (Inhabited a)
   r: forall a. Empty a or Inhabited a     by imp_e empty_or_not em
   therefore Sets -> Choice -> (forall a e. Separation (EqOr (Inhabited a) e))

@@ -7,7 +7,7 @@ Universally free (Hailperin-style) intuitionistic first-order logic.
 - One domain, possibly empty.
 - Terms are variables. No sorts, no built-in equality. Individuals are predicates (`Socrates x`), functions are relations (`Succ x y`).
 - Theorems are closed formulas, and logical validities: whatever a theorem assumes, axioms included, is in its statement. Modus ponens is the only rule.
-- Classical logic is a schema, `define ExcludedMiddle (A) = A or not A`, assumed one instance at a time. Non-emptiness is a formula: `not (forall x. absurd)`.
+- Classical logic is a schema, `define ExcludedMiddle A = A or not A`, assumed one instance at a time. Non-emptiness is a formula: `not (forall x. absurd)`.
 
 ### Formulas
 
@@ -44,7 +44,7 @@ These fourteen and modus ponens are the kernel. Everything below is translated i
 
 ## Language
 
-A file is ASCII. Whitespace only separates tokens. A comment runs from `--` to the end of its line, and belongs to the item after it, or to the line it trails. Everything is declared before it is used, and no name is ever two things at once.
+A file is ASCII. Whitespace only separates tokens. A comment runs from `--` to the end of its line, and belongs to the item after it, or to the line it trails. Everything is declared before it is used, and no name is ever two things at once. Nothing shadows: a quantifier binds a name that is new where it stands, not a variable in scope, a binder around it, a definition's parameter, a label (the line's own included) or a theorem. A `therefore` restates the variables its block closes, which is not shadowing: `variable a` ... `therefore forall a. P a -> P a`.
 
 **Names.** Uppercase: predicates, definitions, parameters. Lowercase: variables, labels, theorems, lemmas, rules. A name matches `letter (letter | digit | '_' (letter | digit))*`. Reserved: `theorem lemma define import predicate variable assume therefore by forall exists and or not absurd`, and the rule names, `auto` among them.
 
@@ -57,28 +57,30 @@ item      ::= predicate | define | theorem
 
 predicate ::= 'predicate' Name var*
 define    ::= 'define' Name param* '=' formula
-param     ::= '(' Name var* ')' | var
-theorem   ::= 'theorem' name ':' block
+param     ::= '(' Name var+ ')' | Name | var
+theorem   ::= 'theorem' name ':' predicate* block
 lemma     ::= 'lemma' name ':' block
 
-block     ::= ('predicate' Name var*)*
-              ('variable' var+)*
+block     ::= ('variable' var+)*
               ('assume' label ':' formula)*
               (line | lemma)*
               'therefore' formula
 line      ::= label ':' formula 'by' just
 
-just      ::= rule arg*                           the rule first, then lines and variables
-arg       ::= name | '(' name targ* ')'           a line, a variable or a theorem, or a theorem's instance
+just      ::= rule arg*                           a rule from the table, then lines and variables
+arg       ::= name template*                      a line, a variable, or a theorem with its templates
+template  ::= Name | '(' formula ')'              in parentheses, anything but a lone Name
 
-formula   ::= ('forall' | 'exists') var+ '.' formula
-            | disj ['->' formula]
+formula   ::= disj ['->' formula]
 disj      ::= conj ('or' conj)*
 conj      ::= neg ('and' neg)*
-neg       ::= 'not' neg | atom
+neg       ::= 'not' neg | quant | atom
+quant     ::= ('forall' | 'exists') var+ '.' formula
 atom      ::= 'absurd' | Name targ* | '(' formula ')'
-targ      ::= var | Name | '(' formula ')'
+targ      ::= var | Name | '(' formula ')'        in parentheses, anything but a lone Name
 ```
+
+A quantifier's body reaches as far right as it can: `A and forall x. P x -> B` is `A and (forall x. (P x -> B))`.
 
 The grammar is LL(2): after a justification's arguments, a lowercase name is the next label or one more argument, and the `:` after it decides.
 
@@ -94,12 +96,12 @@ A predicate is declared once, at file level, before any use. The lowercase place
 ### Definitions
 
 ```
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Induction (P x) = (forall x. Zero x -> P x) -> (forall y x. P x -> Succ x y -> P y) -> forall x. P x
 ```
 
-A definition names a formula and asserts nothing. A parameter in parentheses is a predicate, with placeholders fixing its arity, `(A)` for a statement. A lowercase parameter is an individual. Definitions unfold and fold silently wherever a rule needs it, and messages print an instance of a definition over individuals by its name. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
+A definition names a formula and asserts nothing. A parameter in parentheses is a predicate, with placeholders fixing its arity: `(P x)`. An uppercase parameter alone is a statement: `A`. A lowercase parameter is an individual. Definitions unfold and fold silently wherever a rule needs it, and messages print an instance of a definition over individuals by its name. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
 
 ### Axioms and schemas
 
@@ -154,7 +156,7 @@ A theorem and a lemma are the same construct, a block. Its name is followed by a
 
 **Declarations first, in order.** A block opens with its `predicate` lines, then `variable`, then `assume`, each section possibly empty, then its steps and lemmas, then `therefore`. Read in order: what the theorem is about, for which individuals, given what. The header says everything a theorem rests on, and so does its statement.
 
-- `predicate P x` declares a predicate the theorem is schematic over, its arity fixed by the placeholders: the theorem holds for every predicate of that arity, and a citation picks one. It is the same declaration as at file level, with the theorem for its scope, and the same thing as a definition's `(P x)`. Only theorems declare predicates.
+- `predicate P x` declares a predicate the theorem is schematic over, its arity fixed by the placeholders: the theorem holds for every predicate of that arity, and a citation picks one. It is the same declaration as at file level, with the theorem for its scope, and the same thing as a definition's `(P x)`. Only theorems declare predicates, and their lemmas use them.
 - `variable x y` opens one layer per name, outermost first. A variable occurs free only inside a block whose `variable` named it. Nothing after `by` brings a variable into scope.
 - `assume h: A` opens an assumption layer.
 
@@ -184,13 +186,13 @@ Every rule takes as much as the formula has. `A and B and C` is `A and (B and C)
 
 A theorem is a fact like a line. Applying a fact with `imp_e` instantiates its `forall`s: each variable takes what the lines after it, or the stated formula, have in its place, and `forall_e` serves the variables neither fixes. With `pz: Pz`, `Plus w w w by imp_e pz zw` finds `z := w` from the line and `x := w` from the stated formula. `imp_e plus_rw ax e p` works for `plus_rw : Q -> forall x y a b. Eq a b -> Plus x y a -> Plus x y b`: `ax` meets `Q`, then the `forall`s are found from `e` and `p`. `not A` is `A -> absurd`, so `imp_e` serves it.
 
-**Predicates at a citation.** A schema's instance is a formula, written out where it is assumed: `Adduction NoSelfSub`, `Separation (EqOr A e)`. A theorem's predicates are read off the lines and the stated formula: the checker collects every reading that fits all of them, accepts when exactly one does, and refuses otherwise, naming the readings. Templates may still be passed, in declaration order inside the instance, and are the way out of a refusal: `by imp_e (next_exists (T0)) t0`.
+**Predicates at a citation.** A schema's instance is a formula, written out where it is assumed: `Adduction NoSelfSub`, `Separation (EqOr A e)`. A theorem's predicates are passed as templates at every citation, after its name and in declaration order: `by imp_e next_exists T0 t0`. Templates are uppercase and the lines fed after them are lowercase, so the first lowercase name ends them. A template is a predicate or definition applied to its first individuals, leaving as many places as the parameter has, or any formula when the parameter has none: `imp_e diaconescu (Inhabited a) sets`. A predicate is in parentheses exactly when it is given arguments among other names, in a definition's header, at a citation, or inside an instance. A name alone never is.
 
 **Russell**, with the witness box the elimination needs:
 
 ```
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 
 theorem russell:
   assume h: exists r. forall x. Iff (In x r) (not (In x x))
@@ -214,7 +216,7 @@ theorem russell:
 
 ### Imports
 
-`import pa` checks `pa.hai` from the same directory and pastes it in, once, however often it is imported. A path is relative to the importing file, with `/` between its parts, and `.` and `..` mean what they always mean: `import fs0/syntax`, `import ../pa`. Absolute paths and wildcards are errors. A file reached by two paths is the same file, checked once. Paths only find files: every name lives in one namespace, so cycles and name clashes are errors. Nothing at top level asserts anything, so an import adds no assumptions.
+`import pa` checks `pa.hai` from the same directory, once, however often it is imported. A file sees the names of the files it imports, of theirs, and its own, and nothing else, so it means the same whoever imports it. A path is relative to the importing file, with `/` between its parts, and `.` and `..` mean what they always mean: `import fs0/syntax`, `import ../pa`. Absolute paths and wildcards are errors. A file reached by two paths is the same file, checked once. Paths only find files: every name lives in one namespace, so cycles and name clashes are errors, even between files that don't see each other. Nothing at top level asserts anything, so an import adds no assumptions.
 
 ### Formatting
 

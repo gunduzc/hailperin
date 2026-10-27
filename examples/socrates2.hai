@@ -1,0 +1,28 @@
+predicate Socrates x
+predicate Person x
+predicate Mortal x
+
+theorem socrates_is_mortal:
+
+  -- If something is socrates, it's a person.
+  assume sp: forall x. Socrates x -> Person x
+
+  -- If something is a person, it's mortal.
+  assume pm: forall x. Person x -> Mortal x
+
+  lemma sm:
+
+    -- Let's assume that some arbitrary x is Socrates.
+    variable x
+    assume s: Socrates x
+
+    -- Then, by our assumption pm, since x is Socrates, x is a Person.
+    p: Person x by imp_e sp s
+
+    -- Then, by our assumption m, since x is a person, x is a Mortal.
+    m: Mortal x by imp_e pm p
+
+    -- Therefore, if some x is Socrates, then x is Mortal.
+    therefore forall x. Socrates x -> Mortal x
+
+  therefore (forall x. Socrates x -> Person x) -> (forall x. Person x -> Mortal x) -> forall x. Socrates x -> Mortal x

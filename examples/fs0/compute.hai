@@ -1,0 +1,327 @@
+-- Computing inside Q: when a, b and c name n, m and n + m, h proves Plus a b c. By induction
+-- on the name of b, with Pz at zero and Ps at a successor.
+
+import names
+
+define QPlus h a b c = exists x. PlusAt a b c x and PrH h x
+
+-- Plus atoms exist.
+theorem list3_exists:
+  variable v w u
+  assume fs0: FS0
+  pe: Pe                                  by and_e fs0
+  et: exists l. List2 w u l               by imp_e list2_exists fs0
+  lemma w1:
+    variable t
+    assume lt: List2 w u t
+    el: exists l. Pair v t l              by forall_e pe v t
+    lemma w2:
+      variable l
+      assume pl: Pair v t l
+      c:  List2 w u t and Pair v t l      by and_i lt pl
+      l3: List3 v w u l                   by exists_i c
+      e:  exists l1. List3 v w u l1         by exists_i l3
+      therefore forall l. Pair v t l -> exists l1. List3 v w u l1
+    r: exists l. List3 v w u l            by exists_e el w2
+    therefore forall t. List2 w u t -> exists l. List3 v w u l
+  r: exists l. List3 v w u l              by exists_e et w1
+  therefore forall v w u. FS0 -> exists l. List3 v w u l
+
+theorem plusat_exists:
+  variable v w u
+  assume fs0: FS0
+  tags: Tags                              by imp_e tag_exists fs0
+  t1:   exists t. T1 t                    by and_e tags
+  t2:   exists t. T2 t                    by and_e tags
+  el:   exists l. List3 v w u l           by imp_e list3_exists fs0
+  lemma w1:
+    variable p
+    assume tp: T2 p
+    lemma w2:
+      variable l
+      assume l3: List3 v w u l
+      ex: exists x. Node2 T1 p l x        by imp_e node2_exists T1 fs0 t1
+      lemma w3:
+        variable x
+        assume nd: Node2 T1 p l x
+        c: T2 p and List3 v w u l and Node2 T1 p l x
+                                          by and_i tp l3 nd
+        s: PlusAt v w u x                 by exists_i c
+        e: exists x1. PlusAt v w u x1       by exists_i s
+        therefore forall x. Node2 T1 p l x -> exists x1. PlusAt v w u x1
+      r: exists x. PlusAt v w u x         by exists_e ex w3
+      therefore forall l. List3 v w u l -> exists x. PlusAt v w u x
+    r: exists x. PlusAt v w u x           by exists_e el w2
+    therefore forall p. T2 p -> exists x. PlusAt v w u x
+  r: exists x. PlusAt v w u x             by exists_e t2 w1
+  therefore forall v w u. FS0 -> exists x. PlusAt v w u x
+
+-- Pz, Ps, and transport of the sum, with the codes found here.
+theorem qp_zero:
+  variable h a b
+  assume q:  QCtx
+  assume na: Nat a
+  assume nb: Nat b
+  assume qb: QZero h b
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  lemma w1:
+    variable c
+    assume hc: ZeroAt b c and PrH h c
+    zb: ZeroAt b c                        by and_e hc
+    pc: PrH h c                           by and_e hc
+    ex: exists x. PlusAt a b a x          by imp_e plusat_exists fs0
+    lemma w2:
+      variable d
+      assume pd: PlusAt a b a d
+      fd: Form d                          by imp_e plusat_form form na nb na pd
+      k:  PrH h d                         by imp_e q_pz fs0 form prf pfl na nb pd zb pc fd
+      c1: PlusAt a b a d and PrH h d      by and_i pd k
+      r:  QPlus h a b a                   by exists_i c1
+      therefore forall d. PlusAt a b a d -> QPlus h a b a
+    r: QPlus h a b a                      by exists_e ex w2
+    therefore forall c. (ZeroAt b c and PrH h c) -> QPlus h a b a
+  r: QPlus h a b a                        by exists_e qb w1
+  therefore forall h a b. QCtx -> Nat a -> Nat b -> QZero h b -> QPlus h a b a
+
+theorem qp_succ:
+  variable h x y s p u
+  assume q:   QCtx
+  assume nx:  Nat x
+  assume ny:  Nat y
+  assume ns:  Nat s
+  assume np:  Nat p
+  assume nu:  Nat u
+  assume qys: QSucc h y s
+  assume qp:  QPlus h x y p
+  assume qpu: QSucc h p u
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  prf:   PRF QAx                          by and_e q
+  pfl:   PrfLeast QAx PFormP              by and_e q
+  lemma w1:
+    variable c1
+    assume h1: SuccAt y s c1 and PrH h c1
+    s1: SuccAt y s c1                     by and_e h1
+    p1: PrH h c1                          by and_e h1
+    lemma w2:
+      variable c2
+      assume h2: PlusAt x y p c2 and PrH h c2
+      s2: PlusAt x y p c2                 by and_e h2
+      p2: PrH h c2                        by and_e h2
+      lemma w3:
+        variable c3
+        assume h3: SuccAt p u c3 and PrH h c3
+        s3: SuccAt p u c3                 by and_e h3
+        p3: PrH h c3                      by and_e h3
+        ex: exists z. PlusAt x s u z      by imp_e plusat_exists fs0
+        lemma w4:
+          variable d
+          assume pd: PlusAt x s u d
+          fd: Form d                      by imp_e plusat_form form nx ns nu pd
+          k:  PrH h d                     by imp_e q_ps fs0 form prf pfl nx ny ns np nu pd s3 s2 s1 p1 p2 p3 fd
+          c:  PlusAt x s u d and PrH h d  by and_i pd k
+          r:  QPlus h x s u               by exists_i c
+          therefore forall d. PlusAt x s u d -> QPlus h x s u
+        r: QPlus h x s u                  by exists_e ex w4
+        therefore forall c3. (SuccAt p u c3 and PrH h c3) -> QPlus h x s u
+      r: QPlus h x s u                    by exists_e qpu w3
+      therefore forall c2. (PlusAt x y p c2 and PrH h c2) -> QPlus h x s u
+    r: QPlus h x s u                      by exists_e qp w2
+    therefore forall c1. (SuccAt y s c1 and PrH h c1) -> QPlus h x s u
+  r: QPlus h x s u                        by exists_e qys w1
+  therefore forall h x y s p u. QCtx -> Nat x -> Nat y -> Nat s -> Nat p -> Nat u -> QSucc h y s -> QPlus h x y p
+              -> QSucc h p u -> QPlus h x s u
+
+theorem qp_tr:
+  variable h a b c c1
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume nc:  Nat c
+  assume nc1: Nat c1
+  assume qp:  QPlus h a b c
+  assume qe:  QEq h c c1
+  fs0: FS0                                by and_e q
+  ea:  QEq h a a                          by imp_e qe_refl q na
+  eb:  QEq h b b                          by imp_e qe_refl q nb
+  lemma w1:
+    variable e1
+    assume h1: EqAt a a e1 and PrH h e1
+    x1: EqAt a a e1                       by and_e h1
+    p1: PrH h e1                          by and_e h1
+    lemma w2:
+      variable e2
+      assume h2: EqAt b b e2 and PrH h e2
+      x2: EqAt b b e2                     by and_e h2
+      p2: PrH h e2                        by and_e h2
+      lemma w3:
+        variable e3
+        assume h3: EqAt c c1 e3 and PrH h e3
+        x3: EqAt c c1 e3                  by and_e h3
+        p3: PrH h e3                      by and_e h3
+        lemma w4:
+          variable e4
+          assume h4: PlusAt a b c e4 and PrH h e4
+          x4: PlusAt a b c e4             by and_e h4
+          p4: PrH h e4                    by and_e h4
+          ex: exists z. PlusAt a b c1 z   by imp_e plusat_exists fs0
+          lemma w5:
+            variable d
+            assume pd: PlusAt a b c1 d
+            k: PrH h d                    by imp_e q_plus_tr q na nb nc na nb nc1 x1 p1 x2 p2 x3 p3 x4 p4 pd
+            c2: PlusAt a b c1 d and PrH h d
+                                          by and_i pd k
+            r: QPlus h a b c1             by exists_i c2
+            therefore forall d. PlusAt a b c1 d -> QPlus h a b c1
+          r: QPlus h a b c1               by exists_e ex w5
+          therefore forall e4. (PlusAt a b c e4 and PrH h e4) -> QPlus h a b c1
+        r: QPlus h a b c1                 by exists_e qp w4
+        therefore forall e3. (EqAt c c1 e3 and PrH h e3) -> QPlus h a b c1
+      r: QPlus h a b c1                   by exists_e qe w3
+      therefore forall e2. (EqAt b b e2 and PrH h e2) -> QPlus h a b c1
+    r: QPlus h a b c1                     by exists_e eb w2
+    therefore forall e1. (EqAt a a e1 and PrH h e1) -> QPlus h a b c1
+  r: QPlus h a b c1                       by exists_e ea w1
+  therefore forall h a b c c1. QCtx -> Nat a -> Nat b -> Nat c -> Nat c1 -> QPlus h a b c -> QEq h c c1
+              -> QPlus h a b c1
+
+-- The sum of named numbers, provably.
+define NamesPlus h b m = Nat b and forall a n c k. Names h a n -> Names h c k -> Add n m k -> QPlus h a b c
+
+theorem names_plus:
+  assume q:     QCtx
+  assume plus:  PLUS
+  assume names: NAMES
+  assume linv:  NamesLeast NamesInv
+  assume leq:   NamesLeast NamesEq
+  assume ainv:  AddLeast AddShape
+  assume least: NamesLeast NamesPlus
+  fs0:  FS0                               by and_e q
+  refl: Refl                              by and_e fs0
+  qa:   Qa                                by and_e plus
+  inv:  forall h z j. Names h z j -> NamesInv h z j
+                                          by imp_e names_inv names linv
+  eqs:  forall h z j. Names h z j -> NamesEq h z j
+                                          by imp_e names_eq q names linv leq
+  ads:  forall x y z. Add x y z -> AddShape x y z
+                                          by imp_e add_inv fs0 ainv
+  lemma c0:
+    variable h b m
+    assume nb: Nat b
+    assume nm: Nil m
+    assume qb: QZero h b
+    lemma each:
+      variable a n c k
+      assume na: Names h a n
+      assume nc: Names h c k
+      assume ad: Add n m k
+      sh:  AddShape n m k                 by imp_e ads ad
+      ea:  NamesEq h a n                  by imp_e eqs na
+      nav: Nat a                          by and_e ea
+      eae: forall c1 m1. Names h c1 m1 -> Eq n m1 -> QEq h a c1
+                                          by and_e ea
+      ec:  NamesEq h c k                  by imp_e eqs nc
+      ncv: Nat c                          by and_e ec
+      lemma zero:
+        assume z: Nil m and Eq k n
+        ekn: Eq k n                       by and_e z
+        enk: Eq n k                       by imp_e eq_sym fs0 ekn
+        qac: QEq h a c                    by imp_e eae nc enk
+        pz:  QPlus h a b a                by imp_e qp_zero q nav nb qb
+        r:   QPlus h a b c                by imp_e qp_tr q nav nb nav ncv pz qac
+        therefore (Nil m and Eq k n) -> QPlus h a b c
+      lemma succ:
+        assume ex: exists y0 z0. Add n y0 z0 and Suc y0 m and Suc z0 k
+        lemma wit:
+          variable y0 z0
+          assume hw: Add n y0 z0 and Suc y0 m and Suc z0 k
+          sy: Suc y0 m                    by and_e hw
+          f:  absurd                      by imp_e suc_nil fs0 sy nm
+          r:  QPlus h a b c               by absurd_e f
+          therefore forall y0 z0. (Add n y0 z0 and Suc y0 m and Suc z0 k) -> QPlus h a b c
+        r: QPlus h a b c                  by exists_e ex wit
+        therefore (exists y0 z0. Add n y0 z0 and Suc y0 m and Suc z0 k) -> QPlus h a b c
+      r: QPlus h a b c                    by or_e sh zero succ
+      therefore forall a n c k. Names h a n -> Names h c k -> Add n m k -> QPlus h a b c
+    r: NamesPlus h b m                    by and_i nb each
+    therefore forall h b m. Nat b -> Nil m -> QZero h b -> NamesPlus h b m
+  lemma c1:
+    variable h b m b1 m1
+    assume ih:  NamesPlus h b m
+    assume nb1: Nat b1
+    assume sm:  Suc m m1
+    assume qs:  QSucc h b b1
+    nb: Nat b                             by and_e ih
+    ihe: forall a n c k. Names h a n -> Names h c k -> Add n m k -> QPlus h a b c
+                                          by and_e ih
+    rm1: Eq m1 m1                         by forall_e refl m1
+    lemma each:
+      variable a n c k
+      assume na: Names h a n
+      assume nc: Names h c k
+      assume ad: Add n m1 k
+      sh:  AddShape n m1 k                by imp_e ads ad
+      ea:  NamesEq h a n                  by imp_e eqs na
+      nav: Nat a                          by and_e ea
+      ic:  NamesInv h c k                 by imp_e inv nc
+      shc: NamesShape h c k               by and_e ic
+      ncv: Nat c                          by and_e shc
+      oc:  (Nil k and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c)
+                                          by and_e shc
+      lemma zero:
+        assume z: Nil m1 and Eq k n
+        nm1: Nil m1                       by and_e z
+        f:   absurd                       by imp_e suc_nil fs0 sm nm1
+        r:   QPlus h a b1 c               by absurd_e f
+        therefore (Nil m1 and Eq k n) -> QPlus h a b1 c
+      lemma succ:
+        assume ex: exists y0 z0. Add n y0 z0 and Suc y0 m1 and Suc z0 k
+        lemma wit:
+          variable y0 k0
+          assume hw: Add n y0 k0 and Suc y0 m1 and Suc k0 k
+          a0:  Add n y0 k0                by and_e hw
+          sy:  Suc y0 m1                  by and_e hw
+          sk:  Suc k0 k                   by and_e hw
+          ey:  Eq y0 m                    by imp_e suc_inj fs0 sy sm rm1
+          rn:  Eq n n                     by forall_e refl n
+          rk0: Eq k0 k0                   by forall_e refl k0
+          ad0: Add n m k0                 by imp_e qa rn ey rk0 a0
+          lemma cz:
+            assume bz: Nil k and QZero h c
+            nk: Nil k                     by and_e bz
+            f:  absurd                    by imp_e suc_nil fs0 sk nk
+            r:  QPlus h a b1 c            by absurd_e f
+            therefore (Nil k and QZero h c) -> QPlus h a b1 c
+          lemma cs:
+            assume exc: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c
+            lemma wc:
+              variable u0 j0
+              assume hc: Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c
+              n0:  Names h u0 j0          by and_e hc
+              nc0: Nat u0                 by and_e hc
+              sj:  Suc j0 k               by and_e hc
+              qc:  QSucc h u0 c           by and_e hc
+              rk:  Eq k k                 by forall_e refl k
+              ej:  Eq k0 j0               by imp_e suc_inj fs0 sk sj rk
+              rm:  Eq m m                 by forall_e refl m
+              ad1: Add n m j0             by imp_e qa rn rm ej ad0
+              p0:  QPlus h a b u0         by imp_e ihe na n0 ad1
+              r:   QPlus h a b1 c         by imp_e qp_succ q nav nb nb1 nc0 ncv qs p0 qc
+              therefore forall u0 j0. (Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c) -> QPlus h a b1 c
+            r: QPlus h a b1 c             by exists_e exc wc
+            therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c) -> QPlus h a b1 c
+          r: QPlus h a b1 c               by or_e oc cz cs
+          therefore forall y0 k0. (Add n y0 k0 and Suc y0 m1 and Suc k0 k) -> QPlus h a b1 c
+        r: QPlus h a b1 c                 by exists_e ex wit
+        therefore (exists y0 z0. Add n y0 z0 and Suc y0 m1 and Suc z0 k) -> QPlus h a b1 c
+      r: QPlus h a b1 c                   by or_e sh zero succ
+      therefore forall a n c k. Names h a n -> Names h c k -> Add n m1 k -> QPlus h a b1 c
+    r: NamesPlus h b1 m1                  by and_i nb1 each
+    therefore forall h b m b1 m1. NamesPlus h b m -> Nat b1 -> Suc m m1 -> QSucc h b b1 -> NamesPlus h b1 m1
+  r: forall h z j. Names h z j -> NamesPlus h z j
+                                          by imp_e least c0 c1
+  therefore QCtx -> PLUS -> NAMES -> NamesLeast NamesInv -> NamesLeast NamesEq -> AddLeast AddShape
+              -> NamesLeast NamesPlus -> forall h z j. Names h z j -> NamesPlus h z j

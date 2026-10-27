@@ -2,7 +2,7 @@
 -- Rathjen, 2024). Three axioms and one schema.
 
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Sub x y = forall z. In z x -> In z y
 define Empty x = forall z. not (In z x)

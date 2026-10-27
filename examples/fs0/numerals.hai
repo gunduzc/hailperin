@@ -1,0 +1,342 @@
+-- The object language of arithmetic is relational: Zero x, Succ x y, Plus x y z, Times x y z
+-- and Eq x y, numbered by the tags 0 to 4. It has no closed terms, so a number n is named
+-- by a formula: Num_n v says the variable v denotes n. Num_0 v is Zero v, and Num_n+1 v is
+-- exists w. Num_n w and Succ w v, where w is v + 1, fresh by construction.
+
+import proof
+
+predicate NumF n v f
+
+-- Variable lists of one and two variables.
+define List1 v l = exists n. Nil n and Pair v n l
+define List2 v w l = exists t. List1 w t and Pair v t l
+
+-- The atoms Zero v and Succ v w.
+define ZeroAt v x = exists p l. T0 p and List1 v l and Node2 T1 p l x
+define SuccAt v w x = exists p l. T1 p and List2 v w l and Node2 T1 p l x
+
+-- f is Num_n v.
+define Nf0 = forall n v f. Nil n -> Nat v -> ZeroAt v f -> NumF n v f
+define Nf1 = forall m n v w g s c f. Suc m n -> Nat v -> Suc v w -> NumF m w g -> SuccAt w v s
+               -> AndCode g s c -> ExCode w c f -> NumF n v f
+
+define NUMF = Nf0 and Nf1
+
+define NumFLeast (P n v f) = (forall n v f. Nil n -> Nat v -> ZeroAt v f -> P n v f)
+                             -> (forall m n v w g s c f. Suc m n -> Nat v -> Suc v w -> P m w g -> SuccAt w v s
+                                   -> AndCode g s c -> ExCode w c f -> P n v f)
+                             -> forall n v f. NumF n v f -> P n v f
+
+-- A list of numerals is a variable list.
+theorem list1_vs:
+  variable v l
+  assume form: FORM
+  assume nv:   Nat v
+  assume l1:   List1 v l
+  vn: Vn                                  by and_e form
+  vc: Vc                                  by and_e form
+  lemma w:
+    variable n
+    assume h: Nil n and Pair v n l
+    nn: Nil n                             by and_e h
+    pl: Pair v n l                        by and_e h
+    vs: Vs n                              by imp_e vn nn
+    vl: Vs l                              by imp_e vc nv vs pl
+    therefore forall n. (Nil n and Pair v n l) -> Vs l
+  r: Vs l                                 by exists_e l1 w
+  therefore forall v l. FORM -> Nat v -> List1 v l -> Vs l
+
+theorem list2_vs:
+  variable v w l
+  assume form: FORM
+  assume nv:   Nat v
+  assume nw:   Nat w
+  assume l2:   List2 v w l
+  vc: Vc                                  by and_e form
+  lemma wit:
+    variable t
+    assume h: List1 w t and Pair v t l
+    l1: List1 w t                         by and_e h
+    vt: Vs t                              by imp_e list1_vs form nw l1
+    pl: Pair v t l                        by and_e h
+    vl: Vs l                              by imp_e vc nv vt pl
+    therefore forall t. (List1 w t and Pair v t l) -> Vs l
+  r: Vs l                                 by exists_e l2 wit
+  therefore forall v w l. FORM -> Nat v -> Nat w -> List2 v w l -> Vs l
+
+-- The successor of a numeral is a numeral.
+theorem suc_nat:
+  variable v w
+  assume form: FORM
+  assume nv:   Nat v
+  assume sw:   Suc v w
+  sn: Sn                                  by and_e form
+  lemma wit:
+    variable z
+    assume h: Nil z and Pair z v w
+    nz: Nil z                             by and_e h
+    pz: Pair z v w                        by and_e h
+    nw: Nat w                             by imp_e sn nz nv pz
+    therefore forall z. (Nil z and Pair z v w) -> Nat w
+  r: Nat w                                by exists_e sw wit
+  therefore forall v w. FORM -> Nat v -> Suc v w -> Nat w
+
+-- Numerals of formulas are formulas.
+-- A Succ atom is a formula.
+theorem succat_form:
+  variable w v s
+  assume form: FORM
+  assume nw:   Nat w
+  assume nv:   Nat v
+  assume sa:   SuccAt w v s
+  zn:  Zn                                 by and_e form
+  fat: Fat                                by and_e form
+  lemma wit:
+    variable p l
+    assume h: T1 p and List2 w v l and Node2 T1 p l s
+    tp: T1 p                              by and_e h
+    lemma prev:
+      variable z
+      assume hz: T0 z and Suc z p
+      tz: T0 z                            by and_e hz
+      nz: Nat z                           by imp_e zn tz
+      sz: Suc z p                         by and_e hz
+      np: Nat p                           by imp_e suc_nat form nz sz
+      therefore forall z. (T0 z and Suc z p) -> Nat p
+    np: Nat p                             by exists_e tp prev
+    l2: List2 w v l                       by and_e h
+    vl: Vs l                              by imp_e list2_vs form nw nv l2
+    nd: Node2 T1 p l s                    by and_e h
+    fs: Form s                            by imp_e fat np vl nd
+    therefore forall p l. (T1 p and List2 w v l and Node2 T1 p l s) -> Form s
+  fs: Form s                              by exists_e sa wit
+  therefore forall w v s. FORM -> Nat w -> Nat v -> SuccAt w v s -> Form s
+
+define NumForm n v f = Form f
+
+theorem numf_form:
+  assume form:  FORM
+  assume least: NumFLeast NumForm
+  zn:  Zn                                 by and_e form
+  fat: Fat                                by and_e form
+  fan: Fan                                by and_e form
+  fex: Fex                                by and_e form
+  lemma c0:
+    variable n v f
+    assume nn: Nil n
+    assume nv: Nat v
+    assume za: ZeroAt v f
+    lemma wit:
+      variable p l
+      assume h: T0 p and List1 v l and Node2 T1 p l f
+      tp: T0 p                            by and_e h
+      np: Nat p                           by imp_e zn tp
+      l1: List1 v l                       by and_e h
+      vl: Vs l                            by imp_e list1_vs form nv l1
+      nd: Node2 T1 p l f                  by and_e h
+      ff: Form f                          by imp_e fat np vl nd
+      therefore forall p l. (T0 p and List1 v l and Node2 T1 p l f) -> Form f
+    r: Form f                             by exists_e za wit
+    therefore forall n v f. Nil n -> Nat v -> ZeroAt v f -> NumForm n v f
+  lemma c1:
+    variable m n v w g s c f
+    assume smn: Suc m n
+    assume nv:  Nat v
+    assume svw: Suc v w
+    assume fg:  NumForm m w g
+    assume sa:  SuccAt w v s
+    assume ac:  AndCode g s c
+    assume ef:  ExCode w c f
+    nw: Nat w                             by imp_e suc_nat form nv svw
+    fs: Form s                            by imp_e succat_form form nw nv sa
+    fc: Form c                            by imp_e fan fg fs ac
+    ff: Form f                            by imp_e fex nw fc ef
+    therefore forall m n v w g s c f. Suc m n -> Nat v -> Suc v w -> NumForm m w g -> SuccAt w v s
+                -> AndCode g s c -> ExCode w c f -> NumForm n v f
+  r: forall n v f. NumF n v f -> NumForm n v f
+                                          by imp_e least c0 c1
+  therefore FORM -> NumFLeast NumForm -> forall n v f. NumF n v f -> NumForm n v f
+
+-- The codes exist.
+theorem list1_exists:
+  variable v
+  assume fs0: FS0
+  ne: Ne                                  by and_e fs0
+  pe: Pe                                  by and_e fs0
+  lemma w1:
+    variable n
+    assume nn: Nil n
+    el: exists l. Pair v n l              by forall_e pe v n
+    lemma w2:
+      variable l
+      assume pl: Pair v n l
+      c:  Nil n and Pair v n l            by and_i nn pl
+      l1: List1 v l                       by exists_i c
+      e:  exists l2. List1 v l2             by exists_i l1
+      therefore forall l. Pair v n l -> exists l2. List1 v l2
+    r: exists l. List1 v l                by exists_e el w2
+    therefore forall n. Nil n -> exists l. List1 v l
+  r: exists l. List1 v l                  by exists_e ne w1
+  therefore forall v. FS0 -> exists l. List1 v l
+
+theorem list2_exists:
+  variable v w
+  assume fs0: FS0
+  pe: Pe                                  by and_e fs0
+  et: exists l. List1 w l                 by imp_e list1_exists fs0
+  lemma w1:
+    variable t
+    assume lt: List1 w t
+    el: exists l. Pair v t l              by forall_e pe v t
+    lemma w2:
+      variable l
+      assume pl: Pair v t l
+      c:  List1 w t and Pair v t l        by and_i lt pl
+      l2: List2 v w l                     by exists_i c
+      e:  exists l1. List2 v w l1           by exists_i l2
+      therefore forall l. Pair v t l -> exists l1. List2 v w l1
+    r: exists l. List2 v w l              by exists_e el w2
+    therefore forall t. List1 w t -> exists l. List2 v w l
+  r: exists l. List2 v w l                by exists_e et w1
+  therefore forall v w. FS0 -> exists l. List2 v w l
+
+theorem zeroat_exists:
+  variable v
+  assume fs0: FS0
+  ne:   Ne                                by and_e fs0
+  tags: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+        and (exists t. T5 t) and (exists t. T6 t)
+                                          by imp_e tag_exists fs0
+  t1:   exists t. T1 t                    by and_e tags
+  el:   exists l. List1 v l               by imp_e list1_exists fs0
+  lemma w1:
+    variable p
+    assume tp: T0 p
+    lemma w2:
+      variable l
+      assume l1: List1 v l
+      ex: exists x. Node2 T1 p l x        by imp_e node2_exists T1 fs0 t1
+      lemma w3:
+        variable x
+        assume nd: Node2 T1 p l x
+        c: T0 p and List1 v l and Node2 T1 p l x
+                                          by and_i tp l1 nd
+        z: ZeroAt v x                     by exists_i c
+        e: exists x1. ZeroAt v x1           by exists_i z
+        therefore forall x. Node2 T1 p l x -> exists x1. ZeroAt v x1
+      r: exists x. ZeroAt v x             by exists_e ex w3
+      therefore forall l. List1 v l -> exists x. ZeroAt v x
+    r: exists x. ZeroAt v x               by exists_e el w2
+    therefore forall p. T0 p -> exists x. ZeroAt v x
+  r: exists x. ZeroAt v x                 by exists_e ne w1
+  therefore forall v. FS0 -> exists x. ZeroAt v x
+
+theorem succat_exists:
+  variable v w
+  assume fs0: FS0
+  tags: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+        and (exists t. T5 t) and (exists t. T6 t)
+                                          by imp_e tag_exists fs0
+  t1:   exists t. T1 t                    by and_e tags
+  el:   exists l. List2 v w l             by imp_e list2_exists fs0
+  lemma w1:
+    variable p
+    assume tp: T1 p
+    lemma w2:
+      variable l
+      assume l2: List2 v w l
+      ex: exists x. Node2 T1 p l x        by imp_e node2_exists T1 fs0 t1
+      lemma w3:
+        variable x
+        assume nd: Node2 T1 p l x
+        c: T1 p and List2 v w l and Node2 T1 p l x
+                                          by and_i tp l2 nd
+        s: SuccAt v w x                   by exists_i c
+        e: exists x1. SuccAt v w x1         by exists_i s
+        therefore forall x. Node2 T1 p l x -> exists x1. SuccAt v w x1
+      r: exists x. SuccAt v w x           by exists_e ex w3
+      therefore forall l. List2 v w l -> exists x. SuccAt v w x
+    r: exists x. SuccAt v w x             by exists_e el w2
+    therefore forall p. T1 p -> exists x. SuccAt v w x
+  r: exists x. SuccAt v w x               by exists_e t1 w1
+  therefore forall v w. FS0 -> exists x. SuccAt v w x
+
+-- Every number has a numeral formula, at every variable.
+define NumEx n = forall v. Nat v -> exists f. NumF n v f
+
+theorem numf_exists:
+  assume form:  FORM
+  assume numf:  NUMF
+  assume least: NatLeast NumEx
+  fs0:  FS0                               by and_e form
+  nf0:  Nf0                               by and_e numf
+  nf1:  Nf1                               by and_e numf
+  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
+  tags: (exists t. T1 t) and (exists t. T2 t) and (exists t. T3 t) and (exists t. T4 t)
+        and (exists t. T5 t) and (exists t. T6 t)
+                                          by imp_e tag_exists fs0
+  t3:   exists t. T3 t                    by and_e tags
+  t6:   exists t. T6 t                    by and_e tags
+  lemma c0:
+    variable n
+    assume nn: Nil n
+    lemma k:
+      variable v
+      assume nv: Nat v
+      ez: exists x. ZeroAt v x            by imp_e zeroat_exists fs0
+      lemma w:
+        variable x
+        assume za: ZeroAt v x
+        nm: NumF n v x                    by imp_e nf0 nn nv za
+        e:  exists f. NumF n v f          by exists_i nm
+        therefore forall x. ZeroAt v x -> exists f. NumF n v f
+      r: exists f. NumF n v f             by exists_e ez w
+      therefore forall v. Nat v -> exists f. NumF n v f
+    therefore forall n. Nil n -> NumEx n
+  lemma c1:
+    variable z n s
+    assume nz: Nil z
+    assume ih: NumEx n
+    assume pz: Pair z n s
+    zp:  Nil z and Pair z n s             by and_i nz pz
+    sns: Suc n s                          by exists_i zp
+    lemma k:
+      variable v
+      assume nv: Nat v
+      ew: exists t. Suc v t               by forall_e sucs v
+      lemma w1:
+        variable w
+        assume svw: Suc v w
+        nw: Nat w                         by imp_e suc_nat form nv svw
+        eg: exists f. NumF n w f          by imp_e ih nw
+        lemma w2:
+          variable g
+          assume ng: NumF n w g
+          es: exists x. SuccAt w v x      by imp_e succat_exists fs0
+          lemma w3:
+            variable sa
+            assume hs: SuccAt w v sa
+            ec: exists x. AndCode g sa x  by imp_e node2_exists T3 fs0 t3
+            lemma w4:
+              variable c
+              assume ac: AndCode g sa c
+              ef: exists x. ExCode w c x  by imp_e node2_exists T6 fs0 t6
+              lemma w5:
+                variable f
+                assume xf: ExCode w c f
+                nm: NumF s v f            by imp_e nf1 sns nv svw ng hs ac xf
+                e:  exists f1. NumF s v f1  by exists_i nm
+                therefore forall f. ExCode w c f -> exists f1. NumF s v f1
+              r: exists f. NumF s v f     by exists_e ef w5
+              therefore forall c. AndCode g sa c -> exists f. NumF s v f
+            r: exists f. NumF s v f       by exists_e ec w4
+            therefore forall sa. SuccAt w v sa -> exists f. NumF s v f
+          r: exists f. NumF s v f         by exists_e es w3
+          therefore forall g. NumF n w g -> exists f. NumF s v f
+        r: exists f. NumF s v f           by exists_e eg w2
+        therefore forall w. Suc v w -> exists f. NumF s v f
+      r: exists f. NumF s v f             by exists_e ew w1
+      therefore forall v. Nat v -> exists f. NumF s v f
+    therefore forall z n s. Nil z -> NumEx n -> Pair z n s -> NumEx s
+  r: forall x. Nat x -> NumEx x           by imp_e least c0 c1
+  therefore FORM -> NUMF -> NatLeast NumEx -> forall x. Nat x -> NumEx x

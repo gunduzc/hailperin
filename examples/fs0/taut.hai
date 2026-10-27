@@ -1,0 +1,209 @@
+-- Classical case analysis inside the object calculus: from A -> C and not A -> C, C. A proof of
+-- the one tautology it rests on is made from hypotheses alone, starting from none, so the
+-- theorem rule carries it under any hypotheses: no weakening of other proofs is needed.
+
+import scexists
+
+-- (A -> C) -> ((C -> F) -> (A -> F)), from no hypotheses, and so from any.
+theorem taut_b:
+  variable h a c f ac cf af x1 tb
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume list:  LIST
+  assume prf:   PRF QAx
+  assume dtp:   PrfLeast QAx DTP
+  assume mc:    MemLeast MemCons
+  assume fa:    Form a
+  assume fc:    Form c
+  assume ff:    Form f
+  assume iac:   ImpCode a c ac
+  assume icf:   ImpCode c f cf
+  assume iaf:   ImpCode a f af
+  assume ix1:   ImpCode cf af x1
+  assume itb:   ImpCode ac x1 tb
+  ne:  Ne                                 by and_e fs0
+  pe:  Pe                                 by and_e fs0
+  mh:  Mh                                 by and_e list
+  mt:  Mt                                 by and_e list
+  fim: Fim                                by and_e form
+  fac: Form ac                            by imp_e fim fa fc iac
+  fcf: Form cf                            by imp_e fim fc ff icf
+  leaf: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> QAx a2 -> PrH h2 a2)
+        and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
+                                          by imp_e prh_leaf QAx fs0 prf
+  hyp:  forall h1 a1. Form a1 -> Mem a1 h1 -> PrH h1 a1
+                                          by and_e leaf
+  lemma w0:
+    variable n0
+    assume nn: Nil n0
+    e1: exists p. Pair ac n0 p            by forall_e pe ac n0
+    lemma w1:
+      variable l1
+      assume p1: Pair ac n0 l1
+      e2: exists p. Pair cf l1 p          by forall_e pe cf l1
+      lemma w2:
+        variable l2
+        assume p2: Pair cf l1 l2
+        e3: exists p. Pair a l2 p         by forall_e pe a l2
+        lemma w3:
+          variable l3
+          assume p3: Pair a l2 l3
+          ma:   Mem a l3                  by imp_e mh p3
+          mcf2: Mem cf l2                 by imp_e mh p2
+          mcf:  Mem cf l3                 by imp_e mt p3 mcf2
+          mac1: Mem ac l1                 by imp_e mh p1
+          mac2: Mem ac l2                 by imp_e mt p2 mac1
+          mac:  Mem ac l3                 by imp_e mt p3 mac2
+          pa:   PrH l3 a                  by imp_e hyp fa ma
+          pac:  PrH l3 ac                 by imp_e hyp fac mac
+          pcf:  PrH l3 cf                 by imp_e hyp fcf mcf
+          pc:   PrH l3 c                  by imp_e prh_mp QAx fs0 prf fc iac pac pa
+          pf:   PrH l3 f                  by imp_e prh_mp QAx fs0 prf ff icf pcf pc
+          d1:   PrH l2 af                 by imp_e deduction QAx fs0 form logax list prf dtp mc p3 fa iaf pf
+          d2:   PrH l1 x1                 by imp_e deduction QAx fs0 form logax list prf dtp mc p2 fcf ix1 d1
+          d3:   PrH n0 tb                 by imp_e deduction QAx fs0 form logax list prf dtp mc p1 fac itb d2
+          r:    PrH h tb                  by imp_e prh_thm QAx fs0 prf nn d3
+          therefore forall l3. Pair a l2 l3 -> PrH h tb
+        r: PrH h tb                       by exists_e e3 w3
+        therefore forall l2. Pair cf l1 l2 -> PrH h tb
+      r: PrH h tb                         by exists_e e2 w2
+      therefore forall l1. Pair ac n0 l1 -> PrH h tb
+    r: PrH h tb                           by exists_e e1 w1
+    therefore forall n0. Nil n0 -> PrH h tb
+  r: PrH h tb                             by exists_e ne w0
+  therefore forall h a c f ac cf af x1 tb. FS0 -> FORM -> LOGAX -> LIST -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
+              -> Form a -> Form c -> Form f -> ImpCode a c ac -> ImpCode c f cf -> ImpCode a f af -> ImpCode cf af x1
+              -> ImpCode ac x1 tb -> PrH h tb
+
+-- Classical cases: from A -> C and not A -> C, C. By the tautology twice, not C gives both
+-- not A and not not A, so not not C, and C by Ldne.
+theorem prh_cases:
+  variable h a c z na i1 i2
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume list:  LIST
+  assume prf:   PRF QAx
+  assume dtp:   PrfLeast QAx DTP
+  assume mc:    MemLeast MemCons
+  assume fa:    Form a
+  assume fc:    Form c
+  assume bz:    BotCode z
+  assume ina:   ImpCode a z na
+  assume ii1:   ImpCode a c i1
+  assume p1:    PrH h i1
+  assume ii2:   ImpCode na c i2
+  assume p2:    PrH h i2
+  fim:  Fim                               by and_e form
+  ldne: Ldne                              by and_e logax
+  fz:   Form z                            by imp_e bot_form form bz
+  fna:  Form na                           by imp_e fim fa fz ina
+  tags: Tags                              by imp_e tag_exists fs0
+  t2:   exists t. T2 t                    by and_e tags
+  e_nc: exists y. Node2 T2 c z y          by imp_e node2_exists T2 fs0 t2
+  lemma w_nc:
+    variable nc
+    assume i_nc: ImpCode c z nc
+    fnc:  Form nc                         by imp_e fim fc fz i_nc
+    e_x1: exists y. Node2 T2 nc na y      by imp_e node2_exists T2 fs0 t2
+    lemma w_x1:
+      variable x1
+      assume i_x1: ImpCode nc na x1
+      fx1:  Form x1                       by imp_e fim fnc fna i_x1
+      e_tb: exists y. Node2 T2 i1 x1 y    by imp_e node2_exists T2 fs0 t2
+      lemma w_tb:
+        variable tb
+        assume i_tb: ImpCode i1 x1 tb
+        ptb:   PrH h tb                   by imp_e taut_b fs0 form logax list prf dtp mc fa fc fz ii1 i_nc ina i_x1 i_tb
+        px1:   PrH h x1                   by imp_e prh_mp QAx fs0 prf fx1 i_tb ptb p1
+        e_nna: exists y. Node2 T2 na z y  by imp_e node2_exists T2 fs0 t2
+        lemma w_nna:
+          variable nna
+          assume i_nna: ImpCode na z nna
+          fnna: Form nna                  by imp_e fim fna fz i_nna
+          e_x2: exists y. Node2 T2 nc nna y
+                                          by imp_e node2_exists T2 fs0 t2
+          lemma w_x2:
+            variable x2
+            assume i_x2: ImpCode nc nna x2
+            fx2: Form x2                  by imp_e fim fnc fnna i_x2
+            e_tb2: exists y. Node2 T2 i2 x2 y
+                                          by imp_e node2_exists T2 fs0 t2
+            lemma w_tb2:
+              variable tb2
+              assume i_tb2: ImpCode i2 x2 tb2
+              ptb2: PrH h tb2             by imp_e taut_b fs0 form logax list prf dtp mc fna fc fz ii2 i_nc i_nna i_x2 i_tb2
+              px2:  PrH h x2              by imp_e prh_mp QAx fs0 prf fx2 i_tb2 ptb2 p2
+              e_nnc: exists y. Node2 T2 nc z y
+                                          by imp_e node2_exists T2 fs0 t2
+              lemma w_nnc:
+                variable nnc
+                assume i_nnc: ImpCode nc z nnc
+                fnnc: Form nnc            by imp_e fim fnc fz i_nnc
+                pnnc: PrH h nnc           by imp_e prh_s QAx fs0 form logax prf fnc fna fz i_nna i_x2 i_x1 i_nnc px2 px1
+                lemma inst:
+                  variable d
+                  assume id: ImpCode nnc c d
+                  r: LogAx d              by imp_e ldne fc bz i_nc i_nnc id
+                  therefore forall d. ImpCode nnc c d -> LogAx d
+                pc: PrH h c               by imp_e prh_by_axiom QAx fs0 form prf fnnc fc inst pnnc
+                therefore forall nnc. ImpCode nc z nnc -> PrH h c
+              r: PrH h c                  by exists_e e_nnc w_nnc
+              therefore forall tb2. ImpCode i2 x2 tb2 -> PrH h c
+            r: PrH h c                    by exists_e e_tb2 w_tb2
+            therefore forall x2. ImpCode nc nna x2 -> PrH h c
+          r: PrH h c                      by exists_e e_x2 w_x2
+          therefore forall nna. ImpCode na z nna -> PrH h c
+        r: PrH h c                        by exists_e e_nna w_nna
+        therefore forall tb. ImpCode i1 x1 tb -> PrH h c
+      r: PrH h c                          by exists_e e_tb w_tb
+      therefore forall x1. ImpCode nc na x1 -> PrH h c
+    r: PrH h c                            by exists_e e_x1 w_x1
+    therefore forall nc. ImpCode c z nc -> PrH h c
+  r: PrH h c                              by exists_e e_nc w_nc
+  therefore forall h a c z na i1 i2. FS0 -> FORM -> LOGAX -> LIST -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
+              -> Form a -> Form c -> BotCode z -> ImpCode a z na -> ImpCode a c i1 -> PrH h i1 -> ImpCode na c i2
+              -> PrH h i2 -> PrH h c
+
+-- Proof by cases on a and not a, through QI.
+theorem qi_cases:
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume list:  LIST
+  assume prf:   PRF QAx
+  assume dtp:   PrfLeast QAx DTP
+  assume mc:    MemLeast MemCons
+  lemma all:
+    variable h a na c
+    assume fa: Form a
+    assume fc: Form c
+    assume nc: NotCode a na
+    assume q1: QI h a c
+    assume q2: QI h na c
+    lemma wz:
+      variable z
+      assume kz: BotCode z and ImpCode a z na
+      bz: BotCode z                       by and_e kz
+      iz: ImpCode a z na                  by and_e kz
+      lemma w1:
+        variable i1
+        assume k1: ImpCode a c i1 and PrH h i1
+        ii1: ImpCode a c i1               by and_e k1
+        p1:  PrH h i1                     by and_e k1
+        lemma w2:
+          variable i2
+          assume k2: ImpCode na c i2 and PrH h i2
+          ii2: ImpCode na c i2            by and_e k2
+          p2:  PrH h i2                   by and_e k2
+          r:   PrH h c                    by imp_e prh_cases fs0 form logax list prf dtp mc fa fc bz iz ii1 p1 ii2 p2
+          therefore forall i2. (ImpCode na c i2 and PrH h i2) -> PrH h c
+        r: PrH h c                        by exists_e q2 w2
+        therefore forall i1. (ImpCode a c i1 and PrH h i1) -> PrH h c
+      r: PrH h c                          by exists_e q1 w1
+      therefore forall z. (BotCode z and ImpCode a z na) -> PrH h c
+    r: PrH h c                            by exists_e nc wz
+    therefore forall h a na c. Form a -> Form c -> NotCode a na -> QI h a c -> QI h na c -> PrH h c
+  therefore FS0 -> FORM -> LOGAX -> LIST -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
+              -> forall h a na c. Form a -> Form c -> NotCode a na -> QI h a c -> QI h na c -> PrH h c

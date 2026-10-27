@@ -1,0 +1,299 @@
+-- Atom codes are functions of their variables: the tags are unique, a list of given variables
+-- is unique, and a node is a function of its parts. So any provable code of an atom is the
+-- code a truth rule names.
+
+import namesm
+
+theorem tags_unique:
+  assume fs0: FS0
+  u0: forall s s1. T0 s -> T0 s1 -> Eq s s1
+                                          by imp_e t0_unique fs0
+  lemma u1:
+    variable s s1
+    assume a: T1 s
+    assume b: T1 s1
+    r: Eq s s1                            by imp_e next_unique T0 fs0 u0 a b
+    therefore forall s s1. T1 s -> T1 s1 -> Eq s s1
+  lemma u2:
+    variable s s1
+    assume a: T2 s
+    assume b: T2 s1
+    r: Eq s s1                            by imp_e next_unique T1 fs0 u1 a b
+    therefore forall s s1. T2 s -> T2 s1 -> Eq s s1
+  lemma u3:
+    variable s s1
+    assume a: T3 s
+    assume b: T3 s1
+    r: Eq s s1                            by imp_e next_unique T2 fs0 u2 a b
+    therefore forall s s1. T3 s -> T3 s1 -> Eq s s1
+  lemma u4:
+    variable s s1
+    assume a: T4 s
+    assume b: T4 s1
+    r: Eq s s1                            by imp_e next_unique T3 fs0 u3 a b
+    therefore forall s s1. T4 s -> T4 s1 -> Eq s s1
+  r:  (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by and_i u0 u1 u2 u3 u4
+  therefore FS0 -> (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+              and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+              and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+
+theorem list1_fun:
+  variable v l l1
+  assume fs0: FS0
+  assume a:   List1 v l
+  assume b:   List1 v l1
+  nu:   Nu                                by and_e fs0
+  pu:   Pu                                by and_e fs0
+  ep:   Ep                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  rv:   Eq v v                            by forall_e refl v
+  rl:   Eq l l                            by forall_e refl l
+  lemma w1:
+    variable n
+    assume h1: Nil n and Pair v n l
+    nn: Nil n                             by and_e h1
+    pa: Pair v n l                        by and_e h1
+    lemma w2:
+      variable n1
+      assume h2: Nil n1 and Pair v n1 l1
+      nn1: Nil n1                         by and_e h2
+      pb:  Pair v n1 l1                   by and_e h2
+      en:  Eq n n1                        by imp_e nu nn nn1
+      p1:  Pair v n1 l                    by imp_e ep rv en rl pa
+      r:   Eq l l1                        by imp_e pu p1 pb
+      therefore forall n1. (Nil n1 and Pair v n1 l1) -> Eq l l1
+    r: Eq l l1                            by exists_e b w2
+    therefore forall n. (Nil n and Pair v n l) -> Eq l l1
+  r: Eq l l1                              by exists_e a w1
+  therefore forall v l l1. FS0 -> List1 v l -> List1 v l1 -> Eq l l1
+
+theorem list2_fun:
+  variable v w l l1
+  assume fs0: FS0
+  assume a:   List2 v w l
+  assume b:   List2 v w l1
+  pu:   Pu                                by and_e fs0
+  ep:   Ep                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  rv:   Eq v v                            by forall_e refl v
+  rl:   Eq l l                            by forall_e refl l
+  lemma w1:
+    variable t
+    assume h1: List1 w t and Pair v t l
+    ta: List1 w t                         by and_e h1
+    pa: Pair v t l                        by and_e h1
+    lemma w2:
+      variable t1
+      assume h2: List1 w t1 and Pair v t1 l1
+      tb: List1 w t1                      by and_e h2
+      pb: Pair v t1 l1                    by and_e h2
+      et: Eq t t1                         by imp_e list1_fun fs0 ta tb
+      p1: Pair v t1 l                     by imp_e ep rv et rl pa
+      r:  Eq l l1                         by imp_e pu p1 pb
+      therefore forall t1. (List1 w t1 and Pair v t1 l1) -> Eq l l1
+    r: Eq l l1                            by exists_e b w2
+    therefore forall t. (List1 w t and Pair v t l) -> Eq l l1
+  r: Eq l l1                              by exists_e a w1
+  therefore forall v w l l1. FS0 -> List2 v w l -> List2 v w l1 -> Eq l l1
+
+theorem list3_fun:
+  variable v w u l l1
+  assume fs0: FS0
+  assume a:   List3 v w u l
+  assume b:   List3 v w u l1
+  pu:   Pu                                by and_e fs0
+  ep:   Ep                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  rv:   Eq v v                            by forall_e refl v
+  rl:   Eq l l                            by forall_e refl l
+  lemma w1:
+    variable t
+    assume h1: List2 w u t and Pair v t l
+    ta: List2 w u t                       by and_e h1
+    pa: Pair v t l                        by and_e h1
+    lemma w2:
+      variable t1
+      assume h2: List2 w u t1 and Pair v t1 l1
+      tb: List2 w u t1                    by and_e h2
+      pb: Pair v t1 l1                    by and_e h2
+      et: Eq t t1                         by imp_e list2_fun fs0 ta tb
+      p1: Pair v t1 l                     by imp_e ep rv et rl pa
+      r:  Eq l l1                         by imp_e pu p1 pb
+      therefore forall t1. (List2 w u t1 and Pair v t1 l1) -> Eq l l1
+    r: Eq l l1                            by exists_e b w2
+    therefore forall t. (List2 w u t and Pair v t l) -> Eq l l1
+  r: Eq l l1                              by exists_e a w1
+  therefore forall v w u l l1. FS0 -> List3 v w u l -> List3 v w u l1 -> Eq l l1
+
+theorem zeroat_fun:
+  variable v x y
+  assume fs0: FS0
+  assume a:   ZeroAt v x
+  assume b:   ZeroAt v y
+  tu: (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by imp_e tags_unique fs0
+  uk: forall s s1. T0 s -> T0 s1 -> Eq s s1
+                                          by and_e tu
+  un: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  lemma w1:
+    variable p l
+    assume h1: T0 p and List1 v l and Node2 T1 p l x
+    tp: T0 p                              by and_e h1
+    la: List1 v l                         by and_e h1
+    na: Node2 T1 p l x                    by and_e h1
+    lemma w2:
+      variable p1 l1
+      assume h2: T0 p1 and List1 v l1 and Node2 T1 p1 l1 y
+      tq: T0 p1                           by and_e h2
+      lb: List1 v l1                      by and_e h2
+      nb: Node2 T1 p1 l1 y                by and_e h2
+      ep: Eq p p1                         by imp_e uk tp tq
+      el: Eq l l1                         by imp_e list1_fun fs0 la lb
+      r:  Eq x y                          by imp_e node2_fun T1 fs0 un na nb ep el
+      therefore forall p1 l1. (T0 p1 and List1 v l1 and Node2 T1 p1 l1 y) -> Eq x y
+    r: Eq x y                             by exists_e b w2
+    therefore forall p l. (T0 p and List1 v l and Node2 T1 p l x) -> Eq x y
+  r: Eq x y                               by exists_e a w1
+  therefore forall v x y. FS0 -> ZeroAt v x -> ZeroAt v y -> Eq x y
+
+theorem succat_fun:
+  variable v w x y
+  assume fs0: FS0
+  assume a:   SuccAt v w x
+  assume b:   SuccAt v w y
+  tu: (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by imp_e tags_unique fs0
+  uk: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  un: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  lemma w1:
+    variable p l
+    assume h1: T1 p and List2 v w l and Node2 T1 p l x
+    tp: T1 p                              by and_e h1
+    la: List2 v w l                       by and_e h1
+    na: Node2 T1 p l x                    by and_e h1
+    lemma w2:
+      variable p1 l1
+      assume h2: T1 p1 and List2 v w l1 and Node2 T1 p1 l1 y
+      tq: T1 p1                           by and_e h2
+      lb: List2 v w l1                    by and_e h2
+      nb: Node2 T1 p1 l1 y                by and_e h2
+      ep: Eq p p1                         by imp_e uk tp tq
+      el: Eq l l1                         by imp_e list2_fun fs0 la lb
+      r:  Eq x y                          by imp_e node2_fun T1 fs0 un na nb ep el
+      therefore forall p1 l1. (T1 p1 and List2 v w l1 and Node2 T1 p1 l1 y) -> Eq x y
+    r: Eq x y                             by exists_e b w2
+    therefore forall p l. (T1 p and List2 v w l and Node2 T1 p l x) -> Eq x y
+  r: Eq x y                               by exists_e a w1
+  therefore forall v w x y. FS0 -> SuccAt v w x -> SuccAt v w y -> Eq x y
+
+theorem plusat_fun:
+  variable v w u x y
+  assume fs0: FS0
+  assume a:   PlusAt v w u x
+  assume b:   PlusAt v w u y
+  tu: (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by imp_e tags_unique fs0
+  uk: forall s s1. T2 s -> T2 s1 -> Eq s s1
+                                          by and_e tu
+  un: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  lemma w1:
+    variable p l
+    assume h1: T2 p and List3 v w u l and Node2 T1 p l x
+    tp: T2 p                              by and_e h1
+    la: List3 v w u l                     by and_e h1
+    na: Node2 T1 p l x                    by and_e h1
+    lemma w2:
+      variable p1 l1
+      assume h2: T2 p1 and List3 v w u l1 and Node2 T1 p1 l1 y
+      tq: T2 p1                           by and_e h2
+      lb: List3 v w u l1                  by and_e h2
+      nb: Node2 T1 p1 l1 y                by and_e h2
+      ep: Eq p p1                         by imp_e uk tp tq
+      el: Eq l l1                         by imp_e list3_fun fs0 la lb
+      r:  Eq x y                          by imp_e node2_fun T1 fs0 un na nb ep el
+      therefore forall p1 l1. (T2 p1 and List3 v w u l1 and Node2 T1 p1 l1 y) -> Eq x y
+    r: Eq x y                             by exists_e b w2
+    therefore forall p l. (T2 p and List3 v w u l and Node2 T1 p l x) -> Eq x y
+  r: Eq x y                               by exists_e a w1
+  therefore forall v w u x y. FS0 -> PlusAt v w u x -> PlusAt v w u y -> Eq x y
+
+theorem timesat_fun:
+  variable v w u x y
+  assume fs0: FS0
+  assume a:   TimesAt v w u x
+  assume b:   TimesAt v w u y
+  tu: (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by imp_e tags_unique fs0
+  uk: forall s s1. T3 s -> T3 s1 -> Eq s s1
+                                          by and_e tu
+  un: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  lemma w1:
+    variable p l
+    assume h1: T3 p and List3 v w u l and Node2 T1 p l x
+    tp: T3 p                              by and_e h1
+    la: List3 v w u l                     by and_e h1
+    na: Node2 T1 p l x                    by and_e h1
+    lemma w2:
+      variable p1 l1
+      assume h2: T3 p1 and List3 v w u l1 and Node2 T1 p1 l1 y
+      tq: T3 p1                           by and_e h2
+      lb: List3 v w u l1                  by and_e h2
+      nb: Node2 T1 p1 l1 y                by and_e h2
+      ep: Eq p p1                         by imp_e uk tp tq
+      el: Eq l l1                         by imp_e list3_fun fs0 la lb
+      r:  Eq x y                          by imp_e node2_fun T1 fs0 un na nb ep el
+      therefore forall p1 l1. (T3 p1 and List3 v w u l1 and Node2 T1 p1 l1 y) -> Eq x y
+    r: Eq x y                             by exists_e b w2
+    therefore forall p l. (T3 p and List3 v w u l and Node2 T1 p l x) -> Eq x y
+  r: Eq x y                               by exists_e a w1
+  therefore forall v w u x y. FS0 -> TimesAt v w u x -> TimesAt v w u y -> Eq x y
+
+theorem eqat_fun:
+  variable v w x y
+  assume fs0: FS0
+  assume a:   EqAt v w x
+  assume b:   EqAt v w y
+  tu: (forall s s1. T0 s -> T0 s1 -> Eq s s1) and (forall s s1. T1 s -> T1 s1 -> Eq s s1)
+      and (forall s s1. T2 s -> T2 s1 -> Eq s s1) and (forall s s1. T3 s -> T3 s1 -> Eq s s1)
+      and (forall s s1. T4 s -> T4 s1 -> Eq s s1)
+                                          by imp_e tags_unique fs0
+  uk: forall s s1. T4 s -> T4 s1 -> Eq s s1
+                                          by and_e tu
+  un: forall s s1. T1 s -> T1 s1 -> Eq s s1
+                                          by and_e tu
+  lemma w1:
+    variable p l
+    assume h1: T4 p and List2 v w l and Node2 T1 p l x
+    tp: T4 p                              by and_e h1
+    la: List2 v w l                       by and_e h1
+    na: Node2 T1 p l x                    by and_e h1
+    lemma w2:
+      variable p1 l1
+      assume h2: T4 p1 and List2 v w l1 and Node2 T1 p1 l1 y
+      tq: T4 p1                           by and_e h2
+      lb: List2 v w l1                    by and_e h2
+      nb: Node2 T1 p1 l1 y                by and_e h2
+      ep: Eq p p1                         by imp_e uk tp tq
+      el: Eq l l1                         by imp_e list2_fun fs0 la lb
+      r:  Eq x y                          by imp_e node2_fun T1 fs0 un na nb ep el
+      therefore forall p1 l1. (T4 p1 and List2 v w l1 and Node2 T1 p1 l1 y) -> Eq x y
+    r: Eq x y                             by exists_e b w2
+    therefore forall p l. (T4 p and List2 v w l and Node2 T1 p l x) -> Eq x y
+  r: Eq x y                               by exists_e a w1
+  therefore forall v w x y. FS0 -> EqAt v w x -> EqAt v w y -> Eq x y

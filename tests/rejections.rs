@@ -83,24 +83,24 @@ fn labels_are_local_to_their_block() {
 }
 
 #[test]
-fn parameters_are_inferred_when_one_reading_fits() {
+fn a_citation_passes_every_template() {
     let src = "theorem mp:\n predicate A\n predicate B\n assume ab: A -> B\n assume a: A\n b: B by imp_e ab a\n therefore (A -> B) -> A -> B\n\
-               theorem use:\n predicate P x\n predicate Q x\n lemma l:\n  variable x\n  assume h: P x -> Q x\n  assume p: P x\n  q: Q x by imp_e mp h p\n  therefore forall x. (P x -> Q x) -> P x -> Q x\n therefore forall x. (P x -> Q x) -> P x -> Q x";
+               theorem use:\n predicate P x\n predicate Q x\n lemma l:\n  variable x\n  assume h: P x -> Q x\n  assume p: P x\n  q: Q x by imp_e mp (P x) (Q x) h p\n  therefore forall x. (P x -> Q x) -> P x -> Q x\n therefore forall x. (P x -> Q x) -> P x -> Q x";
     assert_eq!(ok(src).len(), 2);
-    // `P a` against `R a a`, with `a` in scope: four readings, and the conclusion mentions
-    // none of them.
-    let src = "predicate R x y\npredicate Q\ntheorem t:\n predicate P x\n lemma l:\n  variable x\n  assume h: P x\n  assume q: Q\n  therefore forall x. P x -> Q -> Q\n therefore forall x. P x -> Q -> Q\n\
-               theorem bad:\n variable a\n assume r: R a a\n assume q: Q\n k: Q by imp_e t r q\n therefore forall a. R a a -> Q -> Q";
-    assert!(err(src).starts_with("bad: `t` has more than one reading here"), "{}", err(src));
-    // A template settles it.
+    let src = "theorem mp:\n predicate A\n predicate B\n assume ab: A -> B\n assume a: A\n b: B by imp_e ab a\n therefore (A -> B) -> A -> B\n\
+               theorem bad:\n predicate P x\n predicate Q x\n lemma l:\n  variable x\n  assume h: P x -> Q x\n  assume p: P x\n  q: Q x by imp_e mp (P x) h p\n  therefore forall x. (P x -> Q x) -> P x -> Q x\n therefore forall x. (P x -> Q x) -> P x -> Q x";
+    assert_eq!(err(src), "bad: `mp` takes templates for `A` and `B`, in that order");
+    let src = src.replace("imp_e mp (P x) h p", "imp_e mp (P x) (Q x) (Q x) h p");
+    assert_eq!(err(&src), "bad: `mp` takes only templates for `A` and `B`, in that order");
+    // A template may be a definition applied to fewer individuals than it takes.
     let src = "predicate R x y\npredicate Q\ndefine RA a z = R z a\ntheorem t:\n predicate P x\n lemma l:\n  variable x\n  assume h: P x\n  assume q: Q\n  therefore forall x. P x -> Q -> Q\n therefore forall x. P x -> Q -> Q\n\
-               theorem ok:\n variable a\n assume r: R a a\n assume q: Q\n k: Q by imp_e (t (RA a)) r q\n therefore forall a. R a a -> Q -> Q";
+               theorem ok:\n variable a\n assume r: R a a\n assume q: Q\n k: Q by imp_e t (RA a) r q\n therefore forall a. R a a -> Q -> Q";
     assert_eq!(ok(src).len(), 2);
 }
 
 #[test]
 fn definitions_fold_and_unfold_silently() {
-    let src = "define Iff (A) (B) = (A -> B) and (B -> A)\ntheorem ok:\n predicate A\n lemma aa:\n  assume a: A\n  therefore A -> A\n i: Iff A A by and_i aa aa\n therefore Iff A A";
+    let src = "define Iff A B = (A -> B) and (B -> A)\ntheorem ok:\n predicate A\n lemma aa:\n  assume a: A\n  therefore A -> A\n i: Iff A A by and_i aa aa\n therefore Iff A A";
     assert_eq!(ok(src), ["ok: (A -> A) and (A -> A)"]);
 }
 
@@ -147,9 +147,9 @@ fn fail(src: &str) -> String {
 }
 
 #[test]
-fn neg_check_ambiguous_parameter() {
-    let src = "-- A theorem's predicate is inferred only when exactly one reading fits.\npredicate R x y\npredicate Q\ntheorem t:\n  predicate P x\n  lemma l:\n    variable x\n    assume h: P x\n    assume q: Q\n    therefore forall x. P x -> Q -> Q\n  therefore forall x. P x -> Q -> Q\ntheorem bad:\n  variable a\n  assume r: R a a\n  assume q: Q\n  k: Q by imp_e t r q\n  therefore forall a. R a a -> Q -> Q\n";
-    assert_eq!(fail(src), "failure: line 16: bad: `t` has more than one reading here: P x = R x x or P x = R x a or P x = R a x. Pass a template");
+fn neg_check_missing_template() {
+    let src = "-- A citation of a theorem passes a template for each of its predicates.\npredicate R x y\npredicate Q\ntheorem t:\n  predicate P x\n  lemma l:\n    variable x\n    assume h: P x\n    assume q: Q\n    therefore forall x. P x -> Q -> Q\n  therefore forall x. P x -> Q -> Q\ntheorem bad:\n  variable a\n  assume r: R a a\n  assume q: Q\n  k: Q by imp_e t r q\n  therefore forall a. R a a -> Q -> Q\n";
+    assert_eq!(fail(src), "failure: line 16: bad: `t` takes a template for `P x`");
 }
 
 #[test]
@@ -173,7 +173,7 @@ fn neg_check_auto_label() {
 #[test]
 fn neg_check_duplicate_theorem() {
     let src = "theorem twice:\n  predicate A\n  assume a: A\n  therefore A -> A\ntheorem twice:\n  predicate A\n  assume a: A\n  therefore A -> A\n";
-    assert_eq!(fail(src), "failure: line 5: `twice` is already defined");
+    assert_eq!(fail(src), "failure: line 5: `twice` is already a theorem");
 }
 
 #[test]
@@ -227,7 +227,7 @@ fn neg_check_shadowing() {
 #[test]
 fn neg_check_template_arity() {
     let src = "-- A schema applied to a predicate of the wrong arity.\npredicate R x y\ndefine Ind (P x) = (forall x. P x) -> exists x. P x\ntheorem bad:\n  assume k: Ind R\n  therefore Ind R -> Ind R\n";
-    assert_eq!(fail(src), "failure: line 5: bad: `R` given 0 argument(s) leaves 2, but a 1-place predicate is needed");
+    assert_eq!(fail(src), "failure: line 5: bad: `Ind` needs a 1-place predicate for `P x`, and `R` has 2 places");
 }
 
 #[test]
@@ -542,8 +542,37 @@ fn keyword_as_label() {
 }
 
 #[test]
-fn exists_i_witness_named_like_an_inner_binder() {
-    // The witness for k is k1, the name of the next binder: it must not be captured.
+fn nothing_shadows() {
+    // A binder may not reuse a variable in scope, an enclosing binder, a parameter or a label.
     let src = "predicate P x y\ntheorem t:\n  variable k k1\n  assume h: P k1 k\n  e: exists k k1. P k k1 by exists_i h\n  therefore forall k k1. P k1 k -> exists k k1. P k k1\n";
+    assert_eq!(err(src), "t: `k` is already a variable in scope");
+    assert_eq!(err("predicate P x\ndefine D = forall x. exists x. P x"), "`x` is already bound here");
+    assert_eq!(err("predicate P x\ndefine D = forall x x. P x"), "`x` is already bound here");
+    assert_eq!(err("predicate P x\ndefine D y = forall y. P y"), "`y` is already a parameter of this definition");
+    let src = "predicate P x\ntheorem t:\n  assume h: forall x. P x\n  j: forall x. P x by reit h\n  k: forall j. P j by reit h\n  therefore (forall x. P x) -> forall x. P x\n";
+    assert_eq!(err(src), "t: `j` is a label here, so it can't be a variable");
+    // A line's own label counts.
+    let src = "predicate P x\ntheorem t:\n  assume h: forall x. P x\n  k: forall k. P k by reit h\n  therefore (forall x. P x) -> forall x. P x\n";
+    assert_eq!(err(src), "t: `k` is a label here, so it can't be a variable");
+    // A `therefore` restates the variables its block closes.
+    let src = "predicate P x\ntheorem t:\n  variable a\n  assume h: P a\n  therefore forall a. P a -> P a\n";
     ok(src);
+}
+
+#[test]
+fn templates_are_named_only_with_arguments() {
+    let pre = "predicate Q x\npredicate R x y\ntheorem t:\n predicate P x\n variable a\n assume p: P a\n therefore forall a. P a -> P a\n";
+    let cite = |by: &str| format!("{pre}theorem bad:\n variable a b\n assume q: Q a\n k: Q a by {by}\n therefore forall a b. Q a -> Q a");
+    assert_eq!(err(&cite("imp_e t (Q) q")), "`Q` has no arguments, so it goes without parentheses: `Q`");
+    assert_eq!(err(&cite("imp_e (t Q) q")), "a theorem's templates follow its name, without parentheses: `t T`");
+    assert_eq!(err(&cite("imp_e t (R a b) q")), "bad: `t` needs a 1-place predicate for `P x`, and `R a b` leaves no places");
+    assert_eq!(err(&cite("imp_e t (Q a and Q b) q")), "bad: `t` needs a 1-place predicate for `P x`, and a compound formula has no places: define it, then pass the definition");
+    assert_eq!(err("define D (A) = A"), "`A` has no placeholders, so it goes without parentheses: `A`");
+    assert_eq!(err("predicate Q x\ndefine D (Q x) = forall a. Q a"), "`Q` is already declared, so it can't be a parameter");
+}
+
+#[test]
+fn only_theorems_declare_predicates() {
+    let src = "predicate Q x\ntheorem u:\n variable a\n assume q: Q a\n lemma l:\n  predicate P x\n  variable b\n  assume p: P b\n  therefore forall b. P b -> P b\n therefore forall a. Q a -> Q a";
+    assert_eq!(err(src), "a lemma declares no predicates: declare `P` in its theorem");
 }

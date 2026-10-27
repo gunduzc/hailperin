@@ -1,0 +1,459 @@
+-- Sigma1-completeness, toward bounded forall. BelowOr h c v d says d is the disjunction of
+-- Eq v u over the chain's variables u below c, read off the chain atoms in h. Whatever each
+-- disjunct implies, the disjunction implies.
+
+import taut
+
+-- Or-elimination and ex falso, for provability.
+theorem qi_or:
+  variable h a b c ab
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume prf:   PRF QAx
+  assume fa:    Form a
+  assume fb:    Form b
+  assume fc:    Form c
+  assume iab:   OrCode a b ab
+  assume qa:    QI h a c
+  assume qb:    QI h b c
+  fim:  Fim                               by and_e form
+  fo:   Fo                                by and_e form
+  loe:  Loe                               by and_e logax
+  tags: Tags                              by imp_e tag_exists fs0
+  t2:   exists t. T2 t                    by and_e tags
+  fab:  Form ab                           by imp_e fo fa fb iab
+  lemma w1:
+    variable ac
+    assume h1: ImpCode a c ac and PrH h ac
+    iac: ImpCode a c ac                   by and_e h1
+    pac: PrH h ac                         by and_e h1
+    fac: Form ac                          by imp_e fim fa fc iac
+    lemma w2:
+      variable bc
+      assume h2: ImpCode b c bc and PrH h bc
+      ibc: ImpCode b c bc                 by and_e h2
+      pbc: PrH h bc                       by and_e h2
+      fbc: Form bc                        by imp_e fim fb fc ibc
+      ex:  exists y. Node2 T2 ab c y      by imp_e node2_exists T2 fs0 t2
+      lemma w3:
+        variable x
+        assume ix: ImpCode ab c x
+        fx: Form x                        by imp_e fim fab fc ix
+        ey: exists y. Node2 T2 bc x y     by imp_e node2_exists T2 fs0 t2
+        lemma w4:
+          variable y
+          assume iy: ImpCode bc x y
+          fy: Form y                      by imp_e fim fbc fx iy
+          lemma inst:
+            variable d
+            assume id: ImpCode ac y d
+            r: LogAx d                    by imp_e loe fa fb fc iac ibc iab ix iy id
+            therefore forall d. ImpCode ac y d -> LogAx d
+          py: PrH h y                     by imp_e prh_by_axiom QAx fs0 form prf fac fy inst pac
+          px: PrH h x                     by imp_e prh_mp QAx fs0 prf fx iy py pbc
+          k:  ImpCode ab c x and PrH h x  by and_i ix px
+          r:  QI h ab c                   by exists_i k
+          therefore forall y. ImpCode bc x y -> QI h ab c
+        r: QI h ab c                      by exists_e ey w4
+        therefore forall x. ImpCode ab c x -> QI h ab c
+      r: QI h ab c                        by exists_e ex w3
+      therefore forall bc. (ImpCode b c bc and PrH h bc) -> QI h ab c
+    r: QI h ab c                          by exists_e qb w2
+    therefore forall ac. (ImpCode a c ac and PrH h ac) -> QI h ab c
+  r: QI h ab c                            by exists_e qa w1
+  therefore forall h a b c ab. FS0 -> FORM -> LOGAX -> PRF QAx -> Form a -> Form b -> Form c -> OrCode a b ab -> QI h a c
+              -> QI h b c -> QI h ab c
+
+theorem qi_efq:
+  variable h z c
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume prf:   PRF QAx
+  assume bz:    BotCode z
+  assume fc:    Form c
+  fim:  Fim                               by and_e form
+  lefq: Lefq                              by and_e logax
+  tags: Tags                              by imp_e tag_exists fs0
+  t2:   exists t. T2 t                    by and_e tags
+  fz:   Form z                            by imp_e bot_form form bz
+  leaf: (forall h1 a. Form a -> LogAx a -> PrH h1 a) and (forall h2 a. Form a -> QAx a -> PrH h2 a)
+        and (forall h3 a. Form a -> Mem a h3 -> PrH h3 a)
+                                          by imp_e prh_leaf QAx fs0 prf
+  log:  forall h1 a. Form a -> LogAx a -> PrH h1 a
+                                          by and_e leaf
+  ed: exists y. Node2 T2 z c y            by imp_e node2_exists T2 fs0 t2
+  lemma wit:
+    variable d
+    assume id: ImpCode z c d
+    fd: Form d                            by imp_e fim fz fc id
+    ld: LogAx d                           by imp_e lefq fc bz id
+    pd: PrH h d                           by imp_e log fd ld
+    k:  ImpCode z c d and PrH h d         by and_i id pd
+    r:  QI h z c                          by exists_i k
+    therefore forall d. ImpCode z c d -> QI h z c
+  r: QI h z c                             by exists_e ed wit
+  therefore forall h z c. FS0 -> FORM -> LOGAX -> PRF QAx -> BotCode z -> Form c -> QI h z c
+
+-- The disjunction below c, and the variables below c, read off the members of h, with the
+-- numbers they name: c names m, and u, below it, names j.
+predicate BelowOr h c m v d
+predicate BelowIn h u j c m
+
+define Bo0 = forall h c m v zc z. Nat c -> Nil m -> ZeroAt c zc -> Mem zc h -> BotCode z -> BelowOr h c m v z
+define Bo1 = forall h c0 m0 c m v d0 s e d. Nat v -> Nat c0 -> Nat c -> BelowOr h c0 m0 v d0 -> SuccAt c0 c s -> Mem s h
+               -> Suc m0 m -> EqAt v c0 e -> OrCode d0 e d -> BelowOr h c m v d
+define Bi0 = forall h u j c m s. NamesM h u j -> SuccAt u c s -> Mem s h -> Suc j m -> BelowIn h u j c m
+define Bi1 = forall h u j c0 m0 c m s. BelowIn h u j c0 m0 -> SuccAt c0 c s -> Mem s h -> Suc m0 m -> BelowIn h u j c m
+
+define BELOW = Bo0 and Bo1 and Bi0 and Bi1
+
+define BelowOrLeast (P h c m v d) = (forall h c m v zc z. Nat c -> Nil m -> ZeroAt c zc -> Mem zc h -> BotCode z -> P h c m v z)
+    -> (forall h c0 m0 c m v d0 s e d. Nat v -> Nat c0 -> Nat c -> P h c0 m0 v d0 -> SuccAt c0 c s -> Mem s h
+          -> Suc m0 m -> EqAt v c0 e -> OrCode d0 e d -> P h c m v d)
+    -> forall h c m v d. BelowOr h c m v d -> P h c m v d
+
+define BelowInLeast (P h u j c m) = (forall h u j c m s. NamesM h u j -> SuccAt u c s -> Mem s h -> Suc j m -> P h u j c m)
+    -> (forall h u j c0 m0 c m s. P h u j c0 m0 -> SuccAt c0 c s -> Mem s h -> Suc m0 m -> P h u j c m)
+    -> forall h u j c m. BelowIn h u j c m -> P h u j c m
+
+-- Each disjunct implies a, so the disjunction does. And c names m, by membership.
+define BorElim h c m v d = Form d and NamesM h c m
+                           and forall a. Form a -> (forall u j e. BelowIn h u j c m -> EqAt v u e -> QI h e a) -> QI h d a
+
+theorem bor_elim:
+  assume q:     QCtx
+  assume below: BELOW
+  assume nm:    NAMESM
+  assume least: BelowOrLeast BorElim
+  fs0:   FS0                              by and_e q
+  form:  FORM                             by and_e q
+  logax: LOGAX                            by and_e q
+  prf:   PRF QAx                          by and_e q
+  fo:    Fo                               by and_e form
+  bi0:   Bi0                              by and_e below
+  bi1:   Bi1                              by and_e below
+  mm0:   Mm0                              by and_e nm
+  mm1:   Mm1                              by and_e nm
+  lemma base:
+    variable h c m v zc z
+    assume nc: Nat c
+    assume nn: Nil m
+    assume za: ZeroAt c zc
+    assume mz: Mem zc h
+    assume bz: BotCode z
+    fz: Form z                            by imp_e bot_form form bz
+    cm: NamesM h c m                      by imp_e mm0 nc nn za mz
+    lemma each:
+      variable a
+      assume fa: Form a
+      assume cs: forall u j e. BelowIn h u j c m -> EqAt v u e -> QI h e a
+      r: QI h z a                         by imp_e qi_efq fs0 form logax prf bz fa
+      therefore forall a. Form a -> (forall u j e. BelowIn h u j c m -> EqAt v u e -> QI h e a) -> QI h z a
+    r: Form z and NamesM h c m and (forall a. Form a -> (forall u j e. BelowIn h u j c m -> EqAt v u e -> QI h e a) -> QI h z a)
+                                          by and_i fz cm each
+    therefore forall h c m v zc z. Nat c -> Nil m -> ZeroAt c zc -> Mem zc h -> BotCode z -> BorElim h c m v z
+  lemma step:
+    variable h c0 m0 c m v d0 s e d
+    assume nv:  Nat v
+    assume nc0: Nat c0
+    assume nc:  Nat c
+    assume ih:  BorElim h c0 m0 v d0
+    assume sa:  SuccAt c0 c s
+    assume ms:  Mem s h
+    assume sm:  Suc m0 m
+    assume ea:  EqAt v c0 e
+    assume od:  OrCode d0 e d
+    fd0: Form d0                          by and_e ih
+    cm0: NamesM h c0 m0                   by and_e ih
+    ihe: forall a. Form a -> (forall u j e1. BelowIn h u j c0 m0 -> EqAt v u e1 -> QI h e1 a) -> QI h d0 a
+                                          by and_e ih
+    fe: Form e                            by imp_e eqat_form form nv nc0 ea
+    fd: Form d                            by imp_e fo fd0 fe od
+    cm: NamesM h c m                      by imp_e mm1 cm0 nc sm sa ms
+    lemma each:
+      variable a
+      assume fa: Form a
+      assume cs: forall u j e1. BelowIn h u j c m -> EqAt v u e1 -> QI h e1 a
+      lemma cs0:
+        variable u j e1
+        assume bu: BelowIn h u j c0 m0
+        assume eu: EqAt v u e1
+        bc: BelowIn h u j c m             by imp_e bi1 bu sa ms sm
+        r:  QI h e1 a                     by imp_e cs bc eu
+        therefore forall u j e1. BelowIn h u j c0 m0 -> EqAt v u e1 -> QI h e1 a
+      q0:  QI h d0 a                      by imp_e ihe fa cs0
+      bc0: BelowIn h c0 m0 c m            by imp_e bi0 cm0 sa ms sm
+      qe:  QI h e a                       by imp_e cs bc0 ea
+      r:   QI h d a                       by imp_e qi_or fs0 form logax prf fd0 fe fa od q0 qe
+      therefore forall a. Form a -> (forall u j e1. BelowIn h u j c m -> EqAt v u e1 -> QI h e1 a) -> QI h d a
+    r: Form d and NamesM h c m and (forall a. Form a -> (forall u j e1. BelowIn h u j c m -> EqAt v u e1 -> QI h e1 a) -> QI h d a)
+                                          by and_i fd cm each
+    therefore forall h c0 m0 c m v d0 s e d. Nat v -> Nat c0 -> Nat c -> BorElim h c0 m0 v d0 -> SuccAt c0 c s -> Mem s h
+                -> Suc m0 m -> EqAt v c0 e -> OrCode d0 e d -> BorElim h c m v d
+  r: forall h c m v d. BelowOr h c m v d -> BorElim h c m v d
+                                          by imp_e least base step
+  therefore QCtx -> BELOW -> NAMESM -> BelowOrLeast BorElim -> forall h c m v d. BelowOr h c m v d -> BorElim h c m v d
+
+-- Every membership name has its disjunction, for any variable v.
+define BorEx h z j = Nat z and forall v. Nat v -> exists d. BelowOr h z j v d
+
+theorem bor_namesm:
+  assume fs0:   FS0
+  assume below: BELOW
+  assume least: NamesMLeast BorEx
+  bo0:  Bo0                               by and_e below
+  bo1:  Bo1                               by and_e below
+  tags: Tags                              by imp_e tag_exists fs0
+  t4:   exists t. T4 t                    by and_e tags
+  eb:   exists z. BotCode z               by imp_e bot_exists fs0
+  lemma base:
+    variable h z j c
+    assume nz: Nat z
+    assume nj: Nil j
+    assume za: ZeroAt z c
+    assume mc: Mem c h
+    lemma each:
+      variable v
+      assume nv: Nat v
+      lemma wb:
+        variable y
+        assume bc: BotCode y
+        b: BelowOr h z j v y              by imp_e bo0 nz nj za mc bc
+        r: exists d. BelowOr h z j v d    by exists_i b
+        therefore forall y. BotCode y -> exists d. BelowOr h z j v d
+      r: exists d. BelowOr h z j v d      by exists_e eb wb
+      therefore forall v. Nat v -> exists d. BelowOr h z j v d
+    r: Nat z and (forall v. Nat v -> exists d. BelowOr h z j v d)
+                                          by and_i nz each
+    therefore forall h z j c. Nat z -> Nil j -> ZeroAt z c -> Mem c h -> BorEx h z j
+  lemma step:
+    variable h z j z1 j1 c
+    assume ih:  BorEx h z j
+    assume nz1: Nat z1
+    assume sj:  Suc j j1
+    assume sa:  SuccAt z z1 c
+    assume mc:  Mem c h
+    nz: Nat z                             by and_e ih
+    ihe: forall v. Nat v -> exists d. BelowOr h z j v d
+                                          by and_e ih
+    lemma each:
+      variable v
+      assume nv: Nat v
+      ed0: exists d. BelowOr h z j v d    by imp_e ihe nv
+      lemma w0:
+        variable d0
+        assume b0: BelowOr h z j v d0
+        ee: exists y. EqAt v z y          by imp_e eqat_exists fs0
+        lemma w1:
+          variable e
+          assume ea: EqAt v z e
+          eo: exists y. Node2 T4 d0 e y   by imp_e node2_exists T4 fs0 t4
+          lemma w2:
+            variable d
+            assume od: OrCode d0 e d
+            b: BelowOr h z1 j1 v d        by imp_e bo1 nv nz nz1 b0 sa mc sj ea od
+            r: exists d1. BelowOr h z1 j1 v d1
+                                          by exists_i b
+            therefore forall d. OrCode d0 e d -> exists d1. BelowOr h z1 j1 v d1
+          r: exists d. BelowOr h z1 j1 v d
+                                          by exists_e eo w2
+          therefore forall e. EqAt v z e -> exists d. BelowOr h z1 j1 v d
+        r: exists d. BelowOr h z1 j1 v d  by exists_e ee w1
+        therefore forall d0. BelowOr h z j v d0 -> exists d. BelowOr h z1 j1 v d
+      r: exists d. BelowOr h z1 j1 v d    by exists_e ed0 w0
+      therefore forall v. Nat v -> exists d. BelowOr h z1 j1 v d
+    r: Nat z1 and (forall v. Nat v -> exists d. BelowOr h z1 j1 v d)
+                                          by and_i nz1 each
+    therefore forall h z j z1 j1 c. BorEx h z j -> Nat z1 -> Suc j j1 -> SuccAt z z1 c -> Mem c h -> BorEx h z1 j1
+  r: forall h z j. NamesM h z j -> BorEx h z j
+                                          by imp_e least base step
+  therefore FS0 -> BELOW -> NamesMLeast BorEx -> forall h z j. NamesM h z j -> BorEx h z j
+
+-- A variable below c names a number below c's: j < m, in the sense of the truth definition.
+define BelowLt h u j c m = Nat j -> LtN j m
+
+theorem belowin_lt:
+  assume plus:  PLUS
+  assume least: BelowInLeast BelowLt
+  fs0:  FS0                               by and_e plus
+  ab:   Ab                                by and_e plus
+  as:   As                                by and_e plus
+  ne:   Ne                                by and_e fs0
+  sucs: forall s. exists t. Suc s t       by imp_e suc_exists fs0
+  lemma base:
+    variable h u j c m s
+    assume un: NamesM h u j
+    assume sa: SuccAt u c s
+    assume ms: Mem s h
+    assume sj: Suc j m
+    lemma each:
+      assume nj: Nat j
+      lemma w0:
+        variable z0
+        assume nz: Nil z0
+        a0: Add j z0 j                    by imp_e ab nj nz
+        e1: exists t. Suc z0 t            by forall_e sucs z0
+        lemma w1:
+          variable o
+          assume so: Suc z0 o
+          a1: Add j o m                   by imp_e as a0 so sj
+          k:  Suc z0 o and Add j o m      by and_i so a1
+          r:  LtN j m                     by exists_i k
+          therefore forall o. Suc z0 o -> LtN j m
+        r: LtN j m                        by exists_e e1 w1
+        therefore forall z0. Nil z0 -> LtN j m
+      r: LtN j m                          by exists_e ne w0
+      therefore Nat j -> LtN j m
+    therefore forall h u j c m s. NamesM h u j -> SuccAt u c s -> Mem s h -> Suc j m -> BelowLt h u j c m
+  lemma step:
+    variable h u j c0 m0 c m s
+    assume ih: BelowLt h u j c0 m0
+    assume sa: SuccAt c0 c s
+    assume ms: Mem s h
+    assume sm: Suc m0 m
+    lemma each:
+      assume nj: Nat j
+      l0: LtN j m0                        by imp_e ih nj
+      lemma w0:
+        variable k k1
+        assume hk: Suc k k1 and Add j k1 m0
+        ad: Add j k1 m0                   by and_e hk
+        e1: exists t. Suc k1 t            by forall_e sucs k1
+        lemma w1:
+          variable k2
+          assume s2: Suc k1 k2
+          a2: Add j k2 m                  by imp_e as ad s2 sm
+          c2: Suc k1 k2 and Add j k2 m    by and_i s2 a2
+          r:  LtN j m                     by exists_i c2
+          therefore forall k2. Suc k1 k2 -> LtN j m
+        r: LtN j m                        by exists_e e1 w1
+        therefore forall k k1. (Suc k k1 and Add j k1 m0) -> LtN j m
+      r: LtN j m                          by exists_e l0 w0
+      therefore Nat j -> LtN j m
+    therefore forall h u j c0 m0 c m s. BelowLt h u j c0 m0 -> SuccAt c0 c s -> Mem s h -> Suc m0 m -> BelowLt h u j c m
+  r: forall h u j c m. BelowIn h u j c m -> BelowLt h u j c m
+                                          by imp_e least base step
+  therefore PLUS -> BelowInLeast BelowLt -> forall h u j c m. BelowIn h u j c m -> BelowLt h u j c m
+
+-- Fresh witnesses: below a bound F, every variable free in L is even or a pool variable under F.
+define FreshB f l = forall u b. Mem b l -> Fr u b -> Even u or exists j. Pool j u and Lt j f
+
+-- So the pool variable at F is free nowhere in L.
+theorem fresh_at:
+  variable f l z
+  assume nat: NAT
+  assume pc:  PoolCtx
+  assume fb:  FreshB f l
+  assume pz:  Pool f z
+  fs0:  FS0                               by and_e nat
+  refl: Refl                              by and_e fs0
+  dbl:  DBL                               by and_e pc
+  lt:   LT                                by and_e pc
+  dinv: DblLeast DblInv                   by and_e pc
+  dinj: DblLeast DblInj                   by and_e pc
+  dodd: DblLeast DblOdd                   by and_e pc
+  dnat: DblLeast DblNat                   by and_e pc
+  linv: LtLeast LtInv                     by and_e pc
+  leq:  LtLeast LtEq                      by and_e pc
+  ltr:  LtLeast LtTrans                   by and_e pc
+  lirr: NatLeast LtIrr                    by and_e pc
+  eqs:  forall n m. Lt n m -> LtEq n m    by imp_e lt_eq fs0 lt leq
+  irr:  forall n. Nat n -> LtIrr n        by imp_e lt_irrefl fs0 lt linv leq ltr lirr
+  nf:   Nat f                             by imp_e pool_index_nat nat dnat pz
+  imf:  LtIrr f                           by imp_e irr nf
+  rz:   Eq z z                            by forall_e refl z
+  rf:   Eq f f                            by forall_e refl f
+  lemma each:
+    variable b
+    assume mb: Mem b l
+    lemma no:
+      assume fr: Fr z b
+      o: Even z or exists j. Pool j z and Lt j f
+                                          by imp_e fb mb fr
+      lemma ev:
+        assume e: Even z
+        bad: absurd                       by imp_e even_pool fs0 dbl dinv dodd e pz rz
+        therefore Even z -> absurd
+      lemma po:
+        assume ex: exists j. Pool j z and Lt j f
+        lemma wit:
+          variable j
+          assume hj: Pool j z and Lt j f
+          pj:  Pool j z                   by and_e hj
+          ljf: Lt j f                     by and_e hj
+          ejf: Eq j f                     by imp_e pool_inj fs0 dbl dinv dinj pj pz rz
+          qq:  LtEq j f                   by imp_e eqs ljf
+          lff: Lt f f                     by imp_e qq ejf rf
+          bad: absurd                     by imp_e imf lff
+          therefore forall j. (Pool j z and Lt j f) -> absurd
+        bad: absurd                       by exists_e ex wit
+        therefore (exists j. Pool j z and Lt j f) -> absurd
+      bad: absurd                         by or_e o ev po
+      therefore not (Fr z b)
+    therefore forall b. Mem b l -> not (Fr z b)
+  therefore forall f l z. NAT -> PoolCtx -> FreshB f l -> Pool f z -> NoFree z l
+
+-- And a hypothesis whose variables stay under F + 1 moves the bound to F + 1.
+theorem fresh_cons:
+  variable f l f1 b l1
+  assume free: FREE
+  assume list: LIST
+  assume lt:   LT
+  assume mc:   MemLeast MemCons
+  assume fb:   FreshB f l
+  assume sf:   Suc f f1
+  assume vb:   forall u. Fr u b -> Even u or exists j. Pool j u and Lt j f1
+  assume pl:   Pair b l l1
+  fs0:  FS0                               by and_e list
+  refl: Refl                              by and_e fs0
+  qfr:  Qfr                               by and_e free
+  lt1:  Lt1                               by and_e lt
+  lemma each:
+    variable u c
+    assume mcl: Mem c l1
+    assume fr:  Fr u c
+    mcb: MemCons c l1                     by imp_e mem_cons list mc mcl
+    o:   Eq c b or Mem c l                by imp_e mcb pl
+    lemma head:
+      assume ecb: Eq c b
+      ru: Eq u u                          by forall_e refl u
+      fu: Fr u b                          by imp_e qfr ru ecb fr
+      r:  Even u or exists j. Pool j u and Lt j f1
+                                          by imp_e vb fu
+      therefore Eq c b -> Even u or exists j. Pool j u and Lt j f1
+    lemma tail:
+      assume ml: Mem c l
+      o1: Even u or exists j. Pool j u and Lt j f
+                                          by imp_e fb ml fr
+      lemma ev:
+        assume e: Even u
+        r: Even u or exists j. Pool j u and Lt j f1
+                                          by or_i e
+        therefore Even u -> Even u or exists j. Pool j u and Lt j f1
+      lemma po:
+        assume ex: exists j. Pool j u and Lt j f
+        lemma wit:
+          variable j
+          assume hj: Pool j u and Lt j f
+          pj:  Pool j u                   by and_e hj
+          ljf: Lt j f                     by and_e hj
+          lj1: Lt j f1                    by imp_e lt1 ljf sf
+          k:   Pool j u and Lt j f1       by and_i pj lj1
+          x:   exists j1. Pool j1 u and Lt j1 f1
+                                          by exists_i k
+          r:   Even u or exists j1. Pool j1 u and Lt j1 f1
+                                          by or_i x
+          therefore forall j. (Pool j u and Lt j f) -> Even u or exists j1. Pool j1 u and Lt j1 f1
+        r: Even u or exists j. Pool j u and Lt j f1
+                                          by exists_e ex wit
+        therefore (exists j. Pool j u and Lt j f) -> Even u or exists j. Pool j u and Lt j f1
+      r: Even u or exists j. Pool j u and Lt j f1
+                                          by or_e o1 ev po
+      therefore Mem c l -> Even u or exists j. Pool j u and Lt j f1
+    r: Even u or exists j. Pool j u and Lt j f1
+                                          by or_e o head tail
+    therefore forall u c. Mem c l1 -> Fr u c -> Even u or exists j. Pool j u and Lt j f1
+  therefore forall f l f1 b l1. FREE -> LIST -> LT -> MemLeast MemCons -> FreshB f l -> Suc f f1
+              -> (forall u. Fr u b -> Even u or exists j. Pool j u and Lt j f1) -> Pair b l l1 -> FreshB f1 l1

@@ -3,7 +3,7 @@
 -- equality, defined. Compare russell.hai, which is the same diagonal with no sets at all.
 
 predicate In x y
-define Iff (A) (B) = (A -> B) and (B -> A)
+define Iff A B = (A -> B) and (B -> A)
 define Eq x y = forall z. Iff (In z x) (In z y)
 define Diag (F x y) z = forall y. F z y -> not (In z y)     -- z is in no set F sends it to
 
@@ -51,10 +51,10 @@ theorem cantor:
         xd2: In x d                       by imp_e bwd c2
         f2:  absurd                       by imp_e notin xd2
         therefore forall x. In x a -> not (F x d)
-      ex: exists d. forall x. In x a -> not (F x d)
+      ex: exists d1. forall x. In x a -> not (F x d1)
                                           by exists_i nohit
       therefore forall d. (forall z. Iff (In z d) (In z a and Diag F z))
-                            -> exists d. forall x. In x a -> not (F x d)
+                            -> exists d1. forall x. In x a -> not (F x d1)
     k: exists d. forall x. In x a -> not (F x d)
                                           by exists_e sep escapes
     therefore forall a. exists d. forall x. In x a -> not (F x d)

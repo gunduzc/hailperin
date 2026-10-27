@@ -49,8 +49,8 @@ theorem list_inv_all:
     lt: List t                            by and_e ih
     lp: List p                            by imp_e lc lt pht
     c:  Pair h t p and List t             by and_i pht lt
-    e:  exists h t. Pair h t p and List t by exists_i c
-    o:  Nil p or exists h t. Pair h t p and List t
+    e:  exists h1 t1. Pair h1 t1 p and List t1 by exists_i c
+    o:  Nil p or exists h1 t1. Pair h1 t1 p and List t1
                                           by or_i e
     k:  ListInv p                         by and_i lp o
     therefore forall h t p. ListInv t -> Pair h t p -> ListInv p
@@ -81,7 +81,7 @@ theorem mem_pair:
     variable a t p
     assume pat: Pair a t p
     m:  Mem a p                           by imp_e mh pat
-    e:  exists h t. Pair h t p            by exists_i pat
+    e:  exists h t1. Pair h t1 p            by exists_i pat
     k:  MemPair a p                       by and_i m e
     therefore forall a t p. Pair a t p -> MemPair a p
   lemma step:
@@ -90,8 +90,48 @@ theorem mem_pair:
     assume m:   Mem a t
     assume ih:  MemPair a t
     mp: Mem a p                           by imp_e mt pht m
-    e:  exists h t. Pair h t p            by exists_i pht
+    e:  exists h1 t1. Pair h1 t1 p            by exists_i pht
     k:  MemPair a p                       by and_i mp e
     therefore forall a h t p. Pair h t p -> Mem a t -> MemPair a t -> MemPair a p
   r: forall a x. Mem a x -> MemPair a x   by imp_e least base step
   therefore LIST -> MemLeast MemPair -> forall a x. Mem a x -> MemPair a x
+
+-- A member of a cons is its head, or a member of its tail.
+define MemCons b l = forall a h. Pair a h l -> Eq b a or Mem b h
+
+theorem mem_cons:
+  assume list:  LIST
+  assume least: MemLeast MemCons
+  pj:   Pj                                by and_e list
+  refl: Refl                              by and_e list
+  em:   Em                                by and_e list
+  lemma base:
+    variable b t p
+    assume pb: Pair b t p
+    lemma k:
+      variable a h
+      assume pa: Pair a h p
+      rp: Eq p p                          by forall_e refl p
+      e:  Eq b a and Eq t h               by imp_e pj pb pa rp
+      ea: Eq b a                          by and_e e
+      o:  Eq b a or Mem b h               by or_i ea
+      therefore forall a h. Pair a h p -> Eq b a or Mem b h
+    therefore forall b t p. Pair b t p -> MemCons b p
+  lemma step:
+    variable b h1 t p
+    assume pt: Pair h1 t p
+    assume mt: Mem b t
+    assume ih: MemCons b t
+    lemma k:
+      variable a h
+      assume pa: Pair a h p
+      rp: Eq p p                          by forall_e refl p
+      e:  Eq h1 a and Eq t h              by imp_e pj pt pa rp
+      et: Eq t h                          by and_e e
+      rb: Eq b b                          by forall_e refl b
+      mh: Mem b h                         by imp_e em rb et mt
+      o:  Eq b a or Mem b h               by or_i mh
+      therefore forall a h. Pair a h p -> Eq b a or Mem b h
+    therefore forall b h1 t p. Pair h1 t p -> Mem b t -> MemCons b t -> MemCons b p
+  r: forall b l. Mem b l -> MemCons b l   by imp_e least base step
+  therefore LIST -> MemLeast MemCons -> forall b l. Mem b l -> MemCons b l

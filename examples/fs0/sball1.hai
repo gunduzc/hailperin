@@ -1,0 +1,633 @@
+-- Toward bounded forall in Sigma1-completeness: exists-elimination on an implication,
+-- uncurrying, and formula inversion for implications and universals.
+
+import blem2
+
+-- From b -> c, with u free in neither c nor h: (exists u. b) -> c. Generalization, then Lexe.
+theorem exe_imp:
+  variable h u b c bc eb x
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume prf:   PRF QAx
+  assume nu:    Nat u
+  assume fb:    Form b
+  assume fc:    Form c
+  assume nfc:   not (Fr u c)
+  assume nfh:   NoFree u h
+  assume ibc:   ImpCode b c bc
+  assume pbc:   PrH h bc
+  assume ieb:   ExCode u b eb
+  assume ix:    ImpCode eb c x
+  fim:  Fim                               by and_e form
+  ffa:  Ffa                               by and_e form
+  fex:  Fex                               by and_e form
+  lexe: Lexe                              by and_e logax
+  tags: Tags                              by imp_e tag_exists fs0
+  t5:   exists t. T5 t                    by and_e tags
+  fbc:  Form bc                           by imp_e fim fb fc ibc
+  feb:  Form eb                           by imp_e fex nu fb ieb
+  fx:   Form x                            by imp_e fim feb fc ix
+  eg:   exists y. Node2 T5 u bc y         by imp_e node2_exists T5 fs0 t5
+  lemma wit:
+    variable g
+    assume ig: AllCode u bc g
+    fg: Form g                            by imp_e ffa nu fbc ig
+    pg: PrH h g                           by imp_e prh_gen QAx fs0 prf nu nfh pbc ig
+    lemma inst:
+      variable d
+      assume id: ImpCode g x d
+      r: LogAx d                          by imp_e lexe nu fb fc nfc ibc ig ieb ix id
+      therefore forall d. ImpCode g x d -> LogAx d
+    r: PrH h x                            by imp_e prh_by_axiom QAx fs0 form prf fg fx inst pg
+    therefore forall g. AllCode u bc g -> PrH h x
+  r: PrH h x                              by exists_e eg wit
+  therefore forall h u b c bc eb x. FS0 -> FORM -> LOGAX -> PRF QAx -> Nat u -> Form b -> Form c -> not (Fr u c)
+              -> NoFree u h -> ImpCode b c bc -> PrH h bc -> ExCode u b eb -> ImpCode eb c x -> PrH h x
+
+-- From s -> (p -> a), (s and p) -> a: the tautology is proved from no hypotheses, by deduction.
+theorem uncurry:
+  variable h s p a pa cur sp x
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume list:  LIST
+  assume prf:   PRF QAx
+  assume dtp:   PrfLeast QAx DTP
+  assume mc:    MemLeast MemCons
+  assume fs:    Form s
+  assume fp:    Form p
+  assume fa:    Form a
+  assume ipa:   ImpCode p a pa
+  assume icur:  ImpCode s pa cur
+  assume isp:   AndCode s p sp
+  assume ix:    ImpCode sp a x
+  assume pcur:  PrH h cur
+  ne:   Ne                                by and_e fs0
+  pe:   Pe                                by and_e fs0
+  mh:   Mh                                by and_e list
+  mt:   Mt                                by and_e list
+  fim:  Fim                               by and_e form
+  fan:  Fan                               by and_e form
+  tags: Tags                              by imp_e tag_exists fs0
+  t2:   exists t. T2 t                    by and_e tags
+  fpa:  Form pa                           by imp_e fim fp fa ipa
+  fcur: Form cur                          by imp_e fim fs fpa icur
+  fsp:  Form sp                           by imp_e fan fs fp isp
+  fx:   Form x                            by imp_e fim fsp fa ix
+  leaf: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> QAx a2 -> PrH h2 a2)
+        and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
+                                          by imp_e prh_leaf QAx fs0 prf
+  hyp:  forall h1 a1. Form a1 -> Mem a1 h1 -> PrH h1 a1
+                                          by and_e leaf
+  et: exists y. Node2 T2 cur x y          by imp_e node2_exists T2 fs0 t2
+  lemma wt:
+    variable t
+    assume it: ImpCode cur x t
+    lemma w0:
+      variable n0
+      assume nn: Nil n0
+      e1: exists q. Pair cur n0 q         by forall_e pe cur n0
+      lemma w1:
+        variable l1
+        assume p1: Pair cur n0 l1
+        e2: exists q. Pair sp l1 q        by forall_e pe sp l1
+        lemma w2:
+          variable l2
+          assume p2: Pair sp l1 l2
+          msp:  Mem sp l2                 by imp_e mh p2
+          mcu1: Mem cur l1                by imp_e mh p1
+          mcu:  Mem cur l2                by imp_e mt p2 mcu1
+          psp:  PrH l2 sp                 by imp_e hyp fsp msp
+          pcu:  PrH l2 cur                by imp_e hyp fcur mcu
+          both: PrH l2 s and PrH l2 p     by imp_e prh_and_e QAx fs0 form logax prf fs fp isp psp
+          ps:   PrH l2 s                  by and_e both
+          pp:   PrH l2 p                  by and_e both
+          ppa:  PrH l2 pa                 by imp_e prh_mp QAx fs0 prf fpa icur pcu ps
+          pa2:  PrH l2 a                  by imp_e prh_mp QAx fs0 prf fa ipa ppa pp
+          d1:   PrH l1 x                  by imp_e deduction QAx fs0 form logax list prf dtp mc p2 fsp ix pa2
+          d2:   PrH n0 t                  by imp_e deduction QAx fs0 form logax list prf dtp mc p1 fcur it d1
+          r:    PrH h t                   by imp_e prh_thm QAx fs0 prf nn d2
+          therefore forall l2. Pair sp l1 l2 -> PrH h t
+        r: PrH h t                        by exists_e e2 w2
+        therefore forall l1. Pair cur n0 l1 -> PrH h t
+      r: PrH h t                          by exists_e e1 w1
+      therefore forall n0. Nil n0 -> PrH h t
+    pt: PrH h t                           by exists_e ne w0
+    r:  PrH h x                           by imp_e prh_mp QAx fs0 prf fx it pt pcur
+    therefore forall t. ImpCode cur x t -> PrH h x
+  r: PrH h x                              by exists_e et wt
+  therefore forall h s p a pa cur sp x. FS0 -> FORM -> LOGAX -> LIST -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
+              -> Form s -> Form p -> Form a -> ImpCode p a pa -> ImpCode s pa cur -> AndCode s p sp -> ImpCode sp a x
+              -> PrH h cur -> PrH h x
+
+-- Uncurrying through QI: from s -> (p -> a), (s and p) -> a.
+theorem qi_uncurry:
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume list:  LIST
+  assume prf:   PRF QAx
+  assume dtp:   PrfLeast QAx DTP
+  assume mc:    MemLeast MemCons
+  fan: Fan                                by and_e form
+  lemma all:
+    variable h s p a sp
+    assume fs:  Form s
+    assume fp:  Form p
+    assume fa:  Form a
+    assume q:   QI2 h s p a
+    assume asp: AndCode s p sp
+    fsp: Form sp                          by imp_e fan fs fp asp
+    e:   exists x. Form x and Node2 T2 sp a x
+                                          by imp_e imp_exists form fsp fa
+    lemma wpa:
+      variable pa
+      assume k1: ImpCode p a pa and QI h s pa
+      ipa: ImpCode p a pa                 by and_e k1
+      qs:  QI h s pa                      by and_e k1
+      lemma wcur:
+        variable cur
+        assume k2: ImpCode s pa cur and PrH h cur
+        icur: ImpCode s pa cur            by and_e k2
+        pcur: PrH h cur                   by and_e k2
+        lemma wx:
+          variable x
+          assume k3: Form x and Node2 T2 sp a x
+          ix: ImpCode sp a x              by and_e k3
+          px: PrH h x                     by imp_e uncurry fs0 form logax list prf dtp mc fs fp fa ipa icur asp ix pcur
+          t:  ImpCode sp a x and PrH h x  by and_i ix px
+          r:  QI h sp a                   by exists_i t
+          therefore forall x. (Form x and Node2 T2 sp a x) -> QI h sp a
+        r: QI h sp a                      by exists_e e wx
+        therefore forall cur. (ImpCode s pa cur and PrH h cur) -> QI h sp a
+      r: QI h sp a                        by exists_e qs wcur
+      therefore forall pa. (ImpCode p a pa and QI h s pa) -> QI h sp a
+    r: QI h sp a                          by exists_e q wpa
+    therefore forall h s p a sp. Form s -> Form p -> Form a -> QI2 h s p a -> AndCode s p sp -> QI h sp a
+  therefore FS0 -> FORM -> LOGAX -> LIST -> PRF QAx -> PrfLeast QAx DTP -> MemLeast MemCons
+              -> forall h s p a sp. Form s -> Form p -> Form a -> QI2 h s p a -> AndCode s p sp -> QI h sp a
+
+-- An existential antecedent through QI: from b -> c, with u free in neither c nor h,
+-- (exists u. b) -> c.
+theorem qi_exe:
+  assume fs0:   FS0
+  assume form:  FORM
+  assume logax: LOGAX
+  assume prf:   PRF QAx
+  fex: Fex                                by and_e form
+  lemma all:
+    variable h u b c eb
+    assume nu:  Nat u
+    assume fb:  Form b
+    assume fc:  Form c
+    assume nfc: not (Fr u c)
+    assume nfh: NoFree u h
+    assume q:   QI h b c
+    assume eeb: ExCode u b eb
+    feb: Form eb                          by imp_e fex nu fb eeb
+    e:   exists x. Form x and Node2 T2 eb c x
+                                          by imp_e imp_exists form feb fc
+    lemma wbc:
+      variable bc
+      assume k1: ImpCode b c bc and PrH h bc
+      ibc: ImpCode b c bc                 by and_e k1
+      pbc: PrH h bc                       by and_e k1
+      lemma wx:
+        variable x
+        assume k2: Form x and Node2 T2 eb c x
+        ix: ImpCode eb c x                by and_e k2
+        px: PrH h x                       by imp_e exe_imp fs0 form logax prf nu fb fc nfc nfh ibc pbc eeb ix
+        t:  ImpCode eb c x and PrH h x    by and_i ix px
+        r:  QI h eb c                     by exists_i t
+        therefore forall x. (Form x and Node2 T2 eb c x) -> QI h eb c
+      r: QI h eb c                        by exists_e e wx
+      therefore forall bc. (ImpCode b c bc and PrH h bc) -> QI h eb c
+    r: QI h eb c                          by exists_e q wbc
+    therefore forall h u b c eb. Nat u -> Form b -> Form c -> not (Fr u c) -> NoFree u h -> QI h b c -> ExCode u b eb
+                -> QI h eb c
+  therefore FS0 -> FORM -> LOGAX -> PRF QAx -> forall h u b c eb. Nat u -> Form b -> Form c -> not (Fr u c)
+              -> NoFree u h -> QI h b c -> ExCode u b eb -> QI h eb c
+
+-- The parts of an implication and of a universal are formulas when it is.
+theorem form_imp:
+  variable a b x
+  assume form:  FORM
+  assume least: FormLeast FormInv
+  assume fx:    Form x
+  assume nd:    Node2 T2 a b x
+  nat: NAT                                by and_e form
+  fs0: FS0                                by and_e nat
+  qf:  Qf                                 by and_e form
+  a12: forall s s1. T1 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_2 fs0
+  a23: forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_3 fs0
+  a24: forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_4 fs0
+  a25: forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_5 fs0
+  a26: forall s s1. T2 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_6 fs0
+  sh: FormShape x                         by imp_e form_inv form least fx
+  lemma c0:
+    assume ex: exists n1. Nil n1 and Node1 T0 n1 x
+    lemma wit:
+      variable n1
+      assume hw: Nil n1 and Node1 T0 n1 x
+      nn: Nil n1                          by and_e hw
+      n0: Node1 T0 n1 x                   by and_e hw
+      f:  absurd                          by imp_e node1_node2_apart T0 T2 fs0 nn n0 nd
+      r:  Form a and Form b               by absurd_e f
+      therefore forall n1. (Nil n1 and Node1 T0 n1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists n1. Nil n1 and Node1 T0 n1 x) -> Form a and Form b
+  lemma c1:
+    assume ex: exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x
+    lemma wit:
+      variable p1 l1
+      assume hw: Nat p1 and Vs l1 and Node2 T1 p1 l1 x
+      n0: Node2 T1 p1 l1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T1 T2 fs0 a12 n0 nd
+      r:  Form a and Form b               by absurd_e f
+      therefore forall p1 l1. (Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Form a and Form b
+  lemma c2:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T2 a1 b1 x
+      f1: Form a1                         by and_e hw
+      f2: Form b1                         by and_e hw
+      n0: Node2 T2 a1 b1 x                by and_e hw
+      e:  Eq a1 a and Eq b1 b             by imp_e node2_parts T2 T2 fs0 n0 nd
+      ea: Eq a1 a                         by and_e e
+      eb: Eq b1 b                         by and_e e
+      ga: Form a                          by imp_e qf ea f1
+      gb: Form b                          by imp_e qf eb f2
+      r:  Form a and Form b               by and_i ga gb
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Form a and Form b
+  lemma c3:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T3 a1 b1 x
+      n0: Node2 T3 a1 b1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T2 T3 fs0 a23 nd n0
+      r:  Form a and Form b               by absurd_e f
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Form a and Form b
+  lemma c4:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T4 a1 b1 x
+      n0: Node2 T4 a1 b1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T2 T4 fs0 a24 nd n0
+      r:  Form a and Form b               by absurd_e f
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Form a and Form b
+  lemma c5:
+    assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x
+    lemma wit:
+      variable v1 a1
+      assume hw: Nat v1 and Form a1 and Node2 T5 v1 a1 x
+      n0: Node2 T5 v1 a1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T2 T5 fs0 a25 nd n0
+      r:  Form a and Form b               by absurd_e f
+      therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Form a and Form b
+  lemma c6:
+    assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x
+    lemma wit:
+      variable v1 a1
+      assume hw: Nat v1 and Form a1 and Node2 T6 v1 a1 x
+      n0: Node2 T6 v1 a1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T2 T6 fs0 a26 nd n0
+      r:  Form a and Form b               by absurd_e f
+      therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
+    r: Form a and Form b                  by exists_e ex wit
+    therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Form a and Form b
+  r: Form a and Form b                    by or_e sh c0 c1 c2 c3 c4 c5 c6
+  therefore forall a b x. FORM -> FormLeast FormInv -> Form x -> Node2 T2 a b x -> Form a and Form b
+
+theorem form_all:
+  variable v a x
+  assume form:  FORM
+  assume least: FormLeast FormInv
+  assume fx:    Form x
+  assume nd:    Node2 T5 v a x
+  nat: NAT                                by and_e form
+  fs0: FS0                                by and_e nat
+  qf:  Qf                                 by and_e form
+  qn:  Qn                                 by and_e nat
+  a15: forall s s1. T1 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_5 fs0
+  a25: forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_5 fs0
+  a35: forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_5 fs0
+  a45: forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_4_5 fs0
+  a56: forall s s1. T5 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_5_6 fs0
+  sh: FormShape x                         by imp_e form_inv form least fx
+  lemma c0:
+    assume ex: exists n1. Nil n1 and Node1 T0 n1 x
+    lemma wit:
+      variable n1
+      assume hw: Nil n1 and Node1 T0 n1 x
+      nn: Nil n1                          by and_e hw
+      n0: Node1 T0 n1 x                   by and_e hw
+      f:  absurd                          by imp_e node1_node2_apart T0 T5 fs0 nn n0 nd
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall n1. (Nil n1 and Node1 T0 n1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists n1. Nil n1 and Node1 T0 n1 x) -> Nat v and Form a
+  lemma c1:
+    assume ex: exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x
+    lemma wit:
+      variable p1 l1
+      assume hw: Nat p1 and Vs l1 and Node2 T1 p1 l1 x
+      n0: Node2 T1 p1 l1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T1 T5 fs0 a15 n0 nd
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall p1 l1. (Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists p1 l1. Nat p1 and Vs l1 and Node2 T1 p1 l1 x) -> Nat v and Form a
+  lemma c2:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T2 a1 b1 x
+      n0: Node2 T2 a1 b1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T2 T5 fs0 a25 n0 nd
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T2 a1 b1 x) -> Nat v and Form a
+  lemma c3:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T3 a1 b1 x
+      n0: Node2 T3 a1 b1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T3 T5 fs0 a35 n0 nd
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T3 a1 b1 x) -> Nat v and Form a
+  lemma c4:
+    assume ex: exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x
+    lemma wit:
+      variable a1 b1
+      assume hw: Form a1 and Form b1 and Node2 T4 a1 b1 x
+      n0: Node2 T4 a1 b1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T4 T5 fs0 a45 n0 nd
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall a1 b1. (Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists a1 b1. Form a1 and Form b1 and Node2 T4 a1 b1 x) -> Nat v and Form a
+  lemma c5:
+    assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x
+    lemma wit:
+      variable v1 a1
+      assume hw: Nat v1 and Form a1 and Node2 T5 v1 a1 x
+      f1: Nat v1                          by and_e hw
+      f2: Form a1                         by and_e hw
+      n0: Node2 T5 v1 a1 x                by and_e hw
+      e:  Eq v1 v and Eq a1 a             by imp_e node2_parts T5 T5 fs0 n0 nd
+      ev: Eq v1 v                         by and_e e
+      ea: Eq a1 a                         by and_e e
+      gv: Nat v                           by imp_e qn ev f1
+      ga: Form a                          by imp_e qf ea f2
+      r:  Nat v and Form a                by and_i gv ga
+      therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T5 v1 a1 x) -> Nat v and Form a
+  lemma c6:
+    assume ex: exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x
+    lemma wit:
+      variable v1 a1
+      assume hw: Nat v1 and Form a1 and Node2 T6 v1 a1 x
+      n0: Node2 T6 v1 a1 x                by and_e hw
+      f:  absurd                          by imp_e node2_apart T5 T6 fs0 a56 nd n0
+      r:  Nat v and Form a                by absurd_e f
+      therefore forall v1 a1. (Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Nat v and Form a
+    r: Nat v and Form a                   by exists_e ex wit
+    therefore (exists v1 a1. Nat v1 and Form a1 and Node2 T6 v1 a1 x) -> Nat v and Form a
+  r: Nat v and Form a                     by or_e sh c0 c1 c2 c3 c4 c5 c6
+  therefore forall v a x. FORM -> FormLeast FormInv -> Form x -> Node2 T5 v a x -> Nat v and Form a
+
+-- The chain context survives a hypothesis whose variables are even or in the chain.
+theorem ctx_add:
+  variable n z h m b h1
+  assume fs0:  FS0
+  assume free: FREE
+  assume list: LIST
+  assume lt:   LT
+  assume mc:   MemLeast MemCons
+  assume leq:  LtLeast LtEq
+  assume ctx:  Ctx n z h
+  assume sm:   Suc n m
+  assume vb:   forall u. Fr u b -> VarOK m u
+  assume pl:   Pair b h h1
+  refl: Refl                              by and_e fs0
+  qfr:  Qfr                               by and_e free
+  mt:   Mt                                by and_e list
+  eqs:  forall n1 m1. Lt n1 m1 -> LtEq n1 m1    by imp_e lt_eq fs0 lt leq
+  pz:   Pool n z                          by and_e ctx
+  fv:   FvOK n h                          by and_e ctx
+  ech:  exists c. Chain n z c and (forall b1. Mem b1 c -> Mem b1 h)
+                                          by and_e ctx
+  rn: Eq n n                              by forall_e refl n
+  lemma fv2:
+    variable m2
+    assume sm2: Suc n m2
+    emm: Eq m m2                          by imp_e suc_fun fs0 rn sm sm2
+    lemma each:
+      variable u c
+      assume mcl: Mem c h1
+      assume fr:  Fr u c
+      mcb: MemCons c h1                   by imp_e mem_cons list mc mcl
+      o:   Eq c b or Mem c h              by imp_e mcb pl
+      lemma head:
+        assume ecb: Eq c b
+        ru: Eq u u                        by forall_e refl u
+        fu: Fr u b                        by imp_e qfr ru ecb fr
+        ok: VarOK m u                     by imp_e vb fu
+        lemma ev:
+          assume e: Even u
+          r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_i e
+          therefore Even u -> Even u or exists j. Pool j u and Lt j m2
+        lemma po:
+          assume ex: exists j. Pool j u and Lt j m
+          lemma wit:
+            variable j
+            assume hj: Pool j u and Lt j m
+            pu:  Pool j u                 by and_e hj
+            ljm: Lt j m                   by and_e hj
+            rj:  Eq j j                   by forall_e refl j
+            qq:  LtEq j m                 by imp_e eqs ljm
+            lj2: Lt j m2                  by imp_e qq rj emm
+            k:   Pool j u and Lt j m2     by and_i pu lj2
+            x:   exists j1. Pool j1 u and Lt j1 m2
+                                          by exists_i k
+            r:   Even u or exists j1. Pool j1 u and Lt j1 m2
+                                          by or_i x
+            therefore forall j. (Pool j u and Lt j m) -> Even u or exists j1. Pool j1 u and Lt j1 m2
+          r: Even u or exists j. Pool j u and Lt j m2
+                                          by exists_e ex wit
+          therefore (exists j. Pool j u and Lt j m) -> Even u or exists j. Pool j u and Lt j m2
+        r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_e ok ev po
+        therefore Eq c b -> Even u or exists j. Pool j u and Lt j m2
+      lemma tail:
+        assume mh: Mem c h
+        r: Even u or exists j. Pool j u and Lt j m2
+                                          by imp_e fv sm2 mh fr
+        therefore Mem c h -> Even u or exists j. Pool j u and Lt j m2
+      r: Even u or exists j. Pool j u and Lt j m2
+                                          by or_e o head tail
+      therefore forall u c. Mem c h1 -> Fr u c -> Even u or exists j. Pool j u and Lt j m2
+    therefore forall m2. Suc n m2 -> forall u c. Mem c h1 -> Fr u c -> Even u or exists j. Pool j u and Lt j m2
+  lemma ch2:
+    variable c1
+    assume hc: Chain n z c1 and (forall b1. Mem b1 c1 -> Mem b1 h)
+    cc:  Chain n z c1                     by and_e hc
+    sub: forall b1. Mem b1 c1 -> Mem b1 h    by and_e hc
+    lemma sub2:
+      variable b1
+      assume mb: Mem b1 c1
+      m1: Mem b1 h                        by imp_e sub mb
+      r:  Mem b1 h1                       by imp_e mt pl m1
+      therefore forall b1. Mem b1 c1 -> Mem b1 h1
+    k: Chain n z c1 and (forall b1. Mem b1 c1 -> Mem b1 h1)
+                                          by and_i cc sub2
+    r: exists c2. Chain n z c2 and (forall b1. Mem b1 c2 -> Mem b1 h1)
+                                          by exists_i k
+    therefore forall c1. (Chain n z c1 and (forall b1. Mem b1 c1 -> Mem b1 h)) -> exists c2. Chain n z c2 and (forall b2. Mem b2 c2 -> Mem b2 h1)
+  ech2: exists c1. Chain n z c1 and (forall b1. Mem b1 c1 -> Mem b1 h1)
+                                          by exists_e ech ch2
+  r: Ctx n z h1                           by and_i pz fv2 ech2
+  therefore forall n z h m b h1. FS0 -> FREE -> LIST -> LT -> MemLeast MemCons -> LtLeast LtEq -> Ctx n z h -> Suc n m
+              -> (forall u. Fr u b -> VarOK m u) -> Pair b h h1 -> Ctx n z h1
+
+-- A variable below c has its membership name.
+define BelowNames h u j c m = NamesM h u j
+
+theorem belowin_names:
+  assume least: BelowInLeast BelowNames
+  lemma base:
+    variable h u j c m s
+    assume un: NamesM h u j
+    assume sa: SuccAt u c s
+    assume ms: Mem s h
+    assume sj: Suc j m
+    r: NamesM h u j                       by reit un
+    therefore forall h u j c m s. NamesM h u j -> SuccAt u c s -> Mem s h -> Suc j m -> BelowNames h u j c m
+  lemma step:
+    variable h u j c0 m0 c m s
+    assume ih: BelowNames h u j c0 m0
+    assume sa: SuccAt c0 c s
+    assume ms: Mem s h
+    assume sm: Suc m0 m
+    r: NamesM h u j                       by reit ih
+    therefore forall h u j c0 m0 c m s. BelowNames h u j c0 m0 -> SuccAt c0 c s -> Mem s h -> Suc m0 m -> BelowNames h u j c m
+  r: forall h u j c m. BelowIn h u j c m -> BelowNames h u j c m
+                                          by imp_e least base step
+  therefore BelowInLeast BelowNames -> forall h u j c m. BelowIn h u j c m -> BelowNames h u j c m
+
+-- The variable of a Zero atom is free in it, and so is the second of a Succ atom.
+theorem zeroat_fr:
+  variable a x
+  assume free: FREE
+  assume za:   ZeroAt a x
+  frl1: Frl1                              by and_e free
+  frat: Frat                              by and_e free
+  lemma wit:
+    variable p l
+    assume h: T0 p and List1 a l and Node2 T1 p l x
+    nd: Node2 T1 p l x                    by and_e h
+    li: List1 a l                         by and_e h
+    lemma w2:
+      variable n
+      assume hn: Nil n and Pair a n l
+      pl: Pair a n l                      by and_e hn
+      fl: FrL a l                         by imp_e frl1 pl
+      r:  Fr a x                          by imp_e frat nd fl
+      therefore forall n. (Nil n and Pair a n l) -> Fr a x
+    r: Fr a x                             by exists_e li w2
+    therefore forall p l. (T0 p and List1 a l and Node2 T1 p l x) -> Fr a x
+  r: Fr a x                               by exists_e za wit
+  therefore forall a x. FREE -> ZeroAt a x -> Fr a x
+
+theorem succat_fr2:
+  variable a b x
+  assume free: FREE
+  assume sa:   SuccAt a b x
+  frl1: Frl1                              by and_e free
+  frl2: Frl2                              by and_e free
+  frat: Frat                              by and_e free
+  lemma wit:
+    variable p l
+    assume h: T1 p and List2 a b l and Node2 T1 p l x
+    nd: Node2 T1 p l x                    by and_e h
+    li: List2 a b l                       by and_e h
+    lemma w2:
+      variable t
+      assume ht: List1 b t and Pair a t l
+      lt1: List1 b t                      by and_e ht
+      pl:  Pair a t l                     by and_e ht
+      lemma w3:
+        variable n
+        assume hn: Nil n and Pair b n t
+        pt: Pair b n t                    by and_e hn
+        ft: FrL b t                       by imp_e frl1 pt
+        fl: FrL b l                       by imp_e frl2 pl ft
+        r:  Fr b x                        by imp_e frat nd fl
+        therefore forall n. (Nil n and Pair b n t) -> Fr b x
+      r: Fr b x                           by exists_e lt1 w3
+      therefore forall t. (List1 b t and Pair a t l) -> Fr b x
+    r: Fr b x                             by exists_e li w2
+    therefore forall p l. (T1 p and List2 a b l and Node2 T1 p l x) -> Fr b x
+  r: Fr b x                               by exists_e sa wit
+  therefore forall a b x. FREE -> SuccAt a b x -> Fr b x
+
+-- A membership name is free in some member of the list.
+define NamesFr h z j = exists b. Mem b h and Fr z b
+
+theorem namesm_fr:
+  assume free:  FREE
+  assume least: NamesMLeast NamesFr
+  lemma base:
+    variable h z j c
+    assume nz: Nat z
+    assume nj: Nil j
+    assume za: ZeroAt z c
+    assume mc: Mem c h
+    fz: Fr z c                            by imp_e zeroat_fr free za
+    k:  Mem c h and Fr z c                by and_i mc fz
+    r:  exists b. Mem b h and Fr z b      by exists_i k
+    therefore forall h z j c. Nat z -> Nil j -> ZeroAt z c -> Mem c h -> NamesFr h z j
+  lemma step:
+    variable h z j z1 j1 c
+    assume ih:  NamesFr h z j
+    assume nz1: Nat z1
+    assume sj:  Suc j j1
+    assume sa:  SuccAt z z1 c
+    assume mc:  Mem c h
+    fz: Fr z1 c                           by imp_e succat_fr2 free sa
+    k:  Mem c h and Fr z1 c               by and_i mc fz
+    r:  exists b. Mem b h and Fr z1 b     by exists_i k
+    therefore forall h z j z1 j1 c. NamesFr h z j -> Nat z1 -> Suc j j1 -> SuccAt z z1 c -> Mem c h -> NamesFr h z1 j1
+  r: forall h z j. NamesM h z j -> NamesFr h z j
+                                          by imp_e least base step
+  therefore FREE -> NamesMLeast NamesFr -> forall h z j. NamesM h z j -> NamesFr h z j

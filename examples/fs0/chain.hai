@@ -1,0 +1,18 @@
+-- The chain of pool variables Sigma1-completeness names numbers with: Chain n z h says h is the
+-- list of hypotheses Zero z_0, Succ z_0 z_1, ..., Succ z_(n-1) z_n, with z = z_n. They are all
+-- atoms, so nothing is bound.
+
+import sigma
+import pool
+
+predicate Chain n z h
+
+define Cz = forall n z a h0 h. Nil n -> Pool n z -> ZeroAt z a -> Nil h0 -> Pair a h0 h -> Chain n z h
+define Cs = forall n z h m z1 s h1. Chain n z h -> Suc n m -> Pool m z1 -> SuccAt z z1 s -> Pair s h h1
+              -> Chain m z1 h1
+
+define CHAIN = Cz and Cs
+
+define ChainLeast (P n z h) = (forall n z a h0 h. Nil n -> Pool n z -> ZeroAt z a -> Nil h0 -> Pair a h0 h -> P n z h)
+    -> (forall n z h m z1 s h1. P n z h -> Suc n m -> Pool m z1 -> SuccAt z z1 s -> Pair s h h1 -> P m z1 h1)
+    -> forall n z h. Chain n z h -> P n z h

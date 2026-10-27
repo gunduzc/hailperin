@@ -1,0 +1,822 @@
+-- Free occurrence inverted: what a free occurrence of u in a code says about the code's shape,
+-- and so the facts a variable is not free, which generalization and the quantifier axioms ask for.
+
+import proof
+
+-- A connective node stays one when its code is replaced by an equal one.
+theorem binnode_eq_right:
+  variable a b x x1
+  assume fs0: FS0
+  assume nd:  BinNode a b x
+  assume ex:  Eq x x1
+  lemma c2:
+    assume n: Node2 T2 a b x
+    n1: Node2 T2 a b x1                   by imp_e node2_eq_right T2 fs0 n ex
+    r:  BinNode a b x1                    by or_i n1
+    therefore Node2 T2 a b x -> BinNode a b x1
+  lemma c3:
+    assume n: Node2 T3 a b x
+    n1: Node2 T3 a b x1                   by imp_e node2_eq_right T3 fs0 n ex
+    r:  BinNode a b x1                    by or_i n1
+    therefore Node2 T3 a b x -> BinNode a b x1
+  lemma c4:
+    assume n: Node2 T4 a b x
+    n1: Node2 T4 a b x1                   by imp_e node2_eq_right T4 fs0 n ex
+    r:  BinNode a b x1                    by or_i n1
+    therefore Node2 T4 a b x -> BinNode a b x1
+  r: BinNode a b x1                       by or_e nd c2 c3 c4
+  therefore forall a b x x1. FS0 -> BinNode a b x -> Eq x x1 -> BinNode a b x1
+
+-- A quantifier node stays one when its code is replaced by an equal one.
+theorem qnode_eq_right:
+  variable v a x x1
+  assume fs0: FS0
+  assume nd:  QNode v a x
+  assume ex:  Eq x x1
+  lemma c5:
+    assume n: Node2 T5 v a x
+    n1: Node2 T5 v a x1                   by imp_e node2_eq_right T5 fs0 n ex
+    r:  QNode v a x1                      by or_i n1
+    therefore Node2 T5 v a x -> QNode v a x1
+  lemma c6:
+    assume n: Node2 T6 v a x
+    n1: Node2 T6 v a x1                   by imp_e node2_eq_right T6 fs0 n ex
+    r:  QNode v a x1                      by or_i n1
+    therefore Node2 T6 v a x -> QNode v a x1
+  r: QNode v a x1                         by or_e nd c5 c6
+  therefore forall v a x x1. FS0 -> QNode v a x -> Eq x x1 -> QNode v a x1
+
+-- An atom is no connective node, an atom no quantifier node, a connective no quantifier.
+theorem at_bin_apart:
+  variable p l a b x
+  assume fs0: FS0
+  assume n1:  Node2 T1 p l x
+  assume n2:  BinNode a b x
+  a12: forall s s1. T1 s -> T2 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_2 fs0
+  a13: forall s s1. T1 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_3 fs0
+  a14: forall s s1. T1 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_4 fs0
+  lemma d2:
+    assume n: Node2 T2 a b x
+    f: absurd                             by imp_e node2_apart T1 T2 fs0 a12 n1 n
+    therefore Node2 T2 a b x -> absurd
+  lemma d3:
+    assume n: Node2 T3 a b x
+    f: absurd                             by imp_e node2_apart T1 T3 fs0 a13 n1 n
+    therefore Node2 T3 a b x -> absurd
+  lemma d4:
+    assume n: Node2 T4 a b x
+    f: absurd                             by imp_e node2_apart T1 T4 fs0 a14 n1 n
+    therefore Node2 T4 a b x -> absurd
+  f: absurd                               by or_e n2 d2 d3 d4
+  therefore forall p l a b x. FS0 -> Node2 T1 p l x -> BinNode a b x -> absurd
+
+theorem at_q_apart:
+  variable p l v a x
+  assume fs0: FS0
+  assume n1:  Node2 T1 p l x
+  assume n2:  QNode v a x
+  a15: forall s s1. T1 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_5 fs0
+  a16: forall s s1. T1 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_1_6 fs0
+  lemma d5:
+    assume n: Node2 T5 v a x
+    f: absurd                             by imp_e node2_apart T1 T5 fs0 a15 n1 n
+    therefore Node2 T5 v a x -> absurd
+  lemma d6:
+    assume n: Node2 T6 v a x
+    f: absurd                             by imp_e node2_apart T1 T6 fs0 a16 n1 n
+    therefore Node2 T6 v a x -> absurd
+  f: absurd                               by or_e n2 d5 d6
+  therefore forall p l v a x. FS0 -> Node2 T1 p l x -> QNode v a x -> absurd
+
+theorem bin_q_apart:
+  variable a b v c x
+  assume fs0: FS0
+  assume n1:  BinNode a b x
+  assume n2:  QNode v c x
+  a25: forall s s1. T2 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_5 fs0
+  a26: forall s s1. T2 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_6 fs0
+  a35: forall s s1. T3 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_5 fs0
+  a36: forall s s1. T3 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_6 fs0
+  a45: forall s s1. T4 s -> T5 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_4_5 fs0
+  a46: forall s s1. T4 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_4_6 fs0
+  lemma c2:
+    assume m: Node2 T2 a b x
+    lemma d5:
+      assume n: Node2 T5 v c x
+      f: absurd                           by imp_e node2_apart T2 T5 fs0 a25 m n
+      therefore Node2 T5 v c x -> absurd
+    lemma d6:
+      assume n: Node2 T6 v c x
+      f: absurd                           by imp_e node2_apart T2 T6 fs0 a26 m n
+      therefore Node2 T6 v c x -> absurd
+    f: absurd                             by or_e n2 d5 d6
+    therefore Node2 T2 a b x -> absurd
+  lemma c3:
+    assume m: Node2 T3 a b x
+    lemma d5:
+      assume n: Node2 T5 v c x
+      f: absurd                           by imp_e node2_apart T3 T5 fs0 a35 m n
+      therefore Node2 T5 v c x -> absurd
+    lemma d6:
+      assume n: Node2 T6 v c x
+      f: absurd                           by imp_e node2_apart T3 T6 fs0 a36 m n
+      therefore Node2 T6 v c x -> absurd
+    f: absurd                             by or_e n2 d5 d6
+    therefore Node2 T3 a b x -> absurd
+  lemma c4:
+    assume m: Node2 T4 a b x
+    lemma d5:
+      assume n: Node2 T5 v c x
+      f: absurd                           by imp_e node2_apart T4 T5 fs0 a45 m n
+      therefore Node2 T5 v c x -> absurd
+    lemma d6:
+      assume n: Node2 T6 v c x
+      f: absurd                           by imp_e node2_apart T4 T6 fs0 a46 m n
+      therefore Node2 T6 v c x -> absurd
+    f: absurd                             by or_e n2 d5 d6
+    therefore Node2 T4 a b x -> absurd
+  f: absurd                               by or_e n1 c2 c3 c4
+  therefore forall a b v c x. FS0 -> BinNode a b x -> QNode v c x -> absurd
+
+-- Two connective nodes with one code have the same parts.
+theorem binnode_parts:
+  variable a b c d x
+  assume fs0: FS0
+  assume n1:  BinNode a b x
+  assume n2:  BinNode c d x
+  a23: forall s s1. T2 s -> T3 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_3 fs0
+  a24: forall s s1. T2 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_2_4 fs0
+  a34: forall s s1. T3 s -> T4 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_3_4 fs0
+  lemma c2:
+    assume m: Node2 T2 a b x
+    lemma d2:
+      assume n: Node2 T2 c d x
+      r: Eq a c and Eq b d                by imp_e node2_parts T2 T2 fs0 m n
+      therefore Node2 T2 c d x -> Eq a c and Eq b d
+    lemma d3:
+      assume n: Node2 T3 c d x
+      f: absurd                           by imp_e node2_apart T2 T3 fs0 a23 m n
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T3 c d x -> Eq a c and Eq b d
+    lemma d4:
+      assume n: Node2 T4 c d x
+      f: absurd                           by imp_e node2_apart T2 T4 fs0 a24 m n
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T4 c d x -> Eq a c and Eq b d
+    r: Eq a c and Eq b d                  by or_e n2 d2 d3 d4
+    therefore Node2 T2 a b x -> Eq a c and Eq b d
+  lemma c3:
+    assume m: Node2 T3 a b x
+    lemma d2:
+      assume n: Node2 T2 c d x
+      f: absurd                           by imp_e node2_apart T2 T3 fs0 a23 n m
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T2 c d x -> Eq a c and Eq b d
+    lemma d3:
+      assume n: Node2 T3 c d x
+      r: Eq a c and Eq b d                by imp_e node2_parts T3 T3 fs0 m n
+      therefore Node2 T3 c d x -> Eq a c and Eq b d
+    lemma d4:
+      assume n: Node2 T4 c d x
+      f: absurd                           by imp_e node2_apart T3 T4 fs0 a34 m n
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T4 c d x -> Eq a c and Eq b d
+    r: Eq a c and Eq b d                  by or_e n2 d2 d3 d4
+    therefore Node2 T3 a b x -> Eq a c and Eq b d
+  lemma c4:
+    assume m: Node2 T4 a b x
+    lemma d2:
+      assume n: Node2 T2 c d x
+      f: absurd                           by imp_e node2_apart T2 T4 fs0 a24 n m
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T2 c d x -> Eq a c and Eq b d
+    lemma d3:
+      assume n: Node2 T3 c d x
+      f: absurd                           by imp_e node2_apart T3 T4 fs0 a34 n m
+      r: Eq a c and Eq b d                by absurd_e f
+      therefore Node2 T3 c d x -> Eq a c and Eq b d
+    lemma d4:
+      assume n: Node2 T4 c d x
+      r: Eq a c and Eq b d                by imp_e node2_parts T4 T4 fs0 m n
+      therefore Node2 T4 c d x -> Eq a c and Eq b d
+    r: Eq a c and Eq b d                  by or_e n2 d2 d3 d4
+    therefore Node2 T4 a b x -> Eq a c and Eq b d
+  r: Eq a c and Eq b d                    by or_e n1 c2 c3 c4
+  therefore forall a b c d x. FS0 -> BinNode a b x -> BinNode c d x -> Eq a c and Eq b d
+
+-- Two quantifier nodes with one code have the same parts.
+theorem qnode_parts:
+  variable v a w c x
+  assume fs0: FS0
+  assume n1:  QNode v a x
+  assume n2:  QNode w c x
+  a56: forall s s1. T5 s -> T6 s1 -> Eq s s1 -> absurd
+                                          by imp_e ap_5_6 fs0
+  lemma c5:
+    assume m: Node2 T5 v a x
+    lemma d5:
+      assume n: Node2 T5 w c x
+      r: Eq v w and Eq a c                by imp_e node2_parts T5 T5 fs0 m n
+      therefore Node2 T5 w c x -> Eq v w and Eq a c
+    lemma d6:
+      assume n: Node2 T6 w c x
+      f: absurd                           by imp_e node2_apart T5 T6 fs0 a56 m n
+      r: Eq v w and Eq a c                by absurd_e f
+      therefore Node2 T6 w c x -> Eq v w and Eq a c
+    r: Eq v w and Eq a c                  by or_e n2 d5 d6
+    therefore Node2 T5 v a x -> Eq v w and Eq a c
+  lemma c6:
+    assume m: Node2 T6 v a x
+    lemma d5:
+      assume n: Node2 T5 w c x
+      f: absurd                           by imp_e node2_apart T5 T6 fs0 a56 n m
+      r: Eq v w and Eq a c                by absurd_e f
+      therefore Node2 T5 w c x -> Eq v w and Eq a c
+    lemma d6:
+      assume n: Node2 T6 w c x
+      r: Eq v w and Eq a c                by imp_e node2_parts T6 T6 fs0 m n
+      therefore Node2 T6 w c x -> Eq v w and Eq a c
+    r: Eq v w and Eq a c                  by or_e n2 d5 d6
+    therefore Node2 T6 v a x -> Eq v w and Eq a c
+  r: Eq v w and Eq a c                    by or_e n1 c5 c6
+  therefore forall v a w c x. FS0 -> QNode v a x -> QNode w c x -> Eq v w and Eq a c
+
+-- A free occurrence in a list is at its head or in its tail.
+define FrLShape u l = (exists t. Pair u t l) or (exists v t. Pair v t l and FrL u t)
+define FrLInv u l   = FrL u l and FrLShape u l
+
+theorem frl_inv:
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLLeast FrLInv
+  ep:   Ep                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  frl1: Frl1                              by and_e free
+  frl2: Frl2                              by and_e free
+  qfrl: Qfrl                              by and_e free
+  lemma c_head:
+    variable u t l
+    assume p: Pair u t l
+    f:  FrL u l                           by imp_e frl1 p
+    e:  exists t1. Pair u t1 l              by exists_i p
+    sh: FrLShape u l                      by or_i e
+    r:  FrLInv u l                        by and_i f sh
+    therefore forall u t l. Pair u t l -> FrLInv u l
+  lemma c_tail:
+    variable u v t l
+    assume p:  Pair v t l
+    assume ih: FrLInv u t
+    ft: FrL u t                           by and_e ih
+    f:  FrL u l                           by imp_e frl2 p ft
+    c:  Pair v t l and FrL u t            by and_i p ft
+    e:  exists v1 t1. Pair v1 t1 l and FrL u t1
+                                          by exists_i c
+    sh: FrLShape u l                      by or_i e
+    r:  FrLInv u l                        by and_i f sh
+    therefore forall u v t l. Pair v t l -> FrLInv u t -> FrLInv u l
+  lemma c_eq:
+    variable u l u1 l1
+    assume eu: Eq u u1
+    assume el: Eq l l1
+    assume ih: FrLInv u l
+    f:  FrL u l                           by and_e ih
+    f1: FrL u1 l1                         by imp_e qfrl eu el f
+    sh: FrLShape u l                      by and_e ih
+    lemma head:
+      assume h: exists t. Pair u t l
+      lemma k:
+        variable t
+        assume p: Pair u t l
+        rt: Eq t t                        by forall_e refl t
+        p1: Pair u1 t l1                  by imp_e ep eu rt el p
+        e:  exists t1. Pair u1 t1 l1        by exists_i p1
+        s1: FrLShape u1 l1                by or_i e
+        therefore forall t. Pair u t l -> FrLShape u1 l1
+      s1: FrLShape u1 l1                  by exists_e h k
+      therefore (exists t. Pair u t l) -> FrLShape u1 l1
+    lemma tail:
+      assume h: exists v t. Pair v t l and FrL u t
+      lemma k:
+        variable v t
+        assume c: Pair v t l and FrL u t
+        p:   Pair v t l                   by and_e c
+        ft:  FrL u t                      by and_e c
+        rv:  Eq v v                       by forall_e refl v
+        rt:  Eq t t                       by forall_e refl t
+        p1:  Pair v t l1                  by imp_e ep rv rt el p
+        ft1: FrL u1 t                     by imp_e qfrl eu rt ft
+        c1:  Pair v t l1 and FrL u1 t     by and_i p1 ft1
+        e:   exists v1 t1. Pair v1 t1 l1 and FrL u1 t1
+                                          by exists_i c1
+        s1:  FrLShape u1 l1               by or_i e
+        therefore forall v t. (Pair v t l and FrL u t) -> FrLShape u1 l1
+      s1: FrLShape u1 l1                  by exists_e h k
+      therefore (exists v t. Pair v t l and FrL u t) -> FrLShape u1 l1
+    s1: FrLShape u1 l1                    by or_e sh head tail
+    r:  FrLInv u1 l1                      by and_i f1 s1
+    therefore forall u l u1 l1. Eq u u1 -> Eq l l1 -> FrLInv u l -> FrLInv u1 l1
+  r: forall u l. FrL u l -> FrLInv u l    by imp_e least c_head c_tail c_eq
+  therefore FS0 -> FREE -> FrLLeast FrLInv -> forall u l. FrL u l -> FrLInv u l
+
+-- So a variable free in the list with head w and tail s is w or free in s.
+theorem frl_cons:
+  variable u w s l
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLLeast FrLInv
+  assume fl:    FrL u l
+  assume pl:    Pair w s l
+  refl: Refl                              by and_e fs0
+  qfrl: Qfrl                              by and_e free
+  inv:  forall u1 l1. FrL u1 l1 -> FrLInv u1 l1 by imp_e frl_inv fs0 free least
+  i:    FrLInv u l                        by imp_e inv fl
+  sh:   FrLShape u l                      by and_e i
+  lemma head:
+    assume h: exists t. Pair u t l
+    lemma k:
+      variable t
+      assume p: Pair u t l
+      e: Eq u w and Eq t s                by imp_e pair_parts fs0 p pl
+      r: Eq u w                           by and_e e
+      o: Eq u w or FrL u s                by or_i r
+      therefore forall t. Pair u t l -> Eq u w or FrL u s
+    o: Eq u w or FrL u s                  by exists_e h k
+    therefore (exists t. Pair u t l) -> Eq u w or FrL u s
+  lemma tail:
+    assume h: exists v t. Pair v t l and FrL u t
+    lemma k:
+      variable v t
+      assume c: Pair v t l and FrL u t
+      p:  Pair v t l                      by and_e c
+      ft: FrL u t                         by and_e c
+      e:  Eq v w and Eq t s               by imp_e pair_parts fs0 p pl
+      et: Eq t s                          by and_e e
+      ru: Eq u u                          by forall_e refl u
+      fs: FrL u s                         by imp_e qfrl ru et ft
+      o:  Eq u w or FrL u s               by or_i fs
+      therefore forall v t. (Pair v t l and FrL u t) -> Eq u w or FrL u s
+    o: Eq u w or FrL u s                  by exists_e h k
+    therefore (exists v t. Pair v t l and FrL u t) -> Eq u w or FrL u s
+  o: Eq u w or FrL u s                    by or_e sh head tail
+  therefore forall u w s l. FS0 -> FREE -> FrLLeast FrLInv -> FrL u l -> Pair w s l -> Eq u w or FrL u s
+
+-- And nothing is free in the empty list.
+theorem frl_nil:
+  variable u l
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLLeast FrLInv
+  assume fl:    FrL u l
+  assume nl:    Nil l
+  pn:   Pn                                by and_e fs0
+  refl: Refl                              by and_e fs0
+  rl:   Eq l l                            by forall_e refl l
+  inv:  forall u1 l1. FrL u1 l1 -> FrLInv u1 l1 by imp_e frl_inv fs0 free least
+  i:    FrLInv u l                        by imp_e inv fl
+  sh:   FrLShape u l                      by and_e i
+  lemma head:
+    assume h: exists t. Pair u t l
+    lemma k:
+      variable t
+      assume p: Pair u t l
+      f: absurd                           by imp_e pn p nl rl
+      therefore forall t. Pair u t l -> absurd
+    f: absurd                             by exists_e h k
+    therefore (exists t. Pair u t l) -> absurd
+  lemma tail:
+    assume h: exists v t. Pair v t l and FrL u t
+    lemma k:
+      variable v t
+      assume c: Pair v t l and FrL u t
+      p: Pair v t l                       by and_e c
+      f: absurd                           by imp_e pn p nl rl
+      therefore forall v t. (Pair v t l and FrL u t) -> absurd
+    f: absurd                             by exists_e h k
+    therefore (exists v t. Pair v t l and FrL u t) -> absurd
+  f: absurd                               by or_e sh head tail
+  therefore forall u l. FS0 -> FREE -> FrLLeast FrLInv -> FrL u l -> Nil l -> absurd
+
+-- A free occurrence in a formula is in an atom's list, in a part of a connective, or in the body
+-- of a quantifier binding another variable.
+define FrShape u x = (exists p l. Node2 T1 p l x and FrL u l)
+                     or (exists a b. BinNode a b x and (Fr u a or Fr u b))
+                     or (exists v a. QNode v a x and not (Eq v u) and Fr u a)
+define FrInv u x   = Fr u x and FrShape u x
+
+theorem fr_inv:
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  refl:    Refl                           by and_e fs0
+  qfrl:    Qfrl                           by and_e free
+  frat:    Frat                           by and_e free
+  frleft:  Frleft                         by and_e free
+  frright: Frright                        by and_e free
+  frq:     Frq                            by and_e free
+  qfr:     Qfr                            by and_e free
+  lemma c_at:
+    variable u p l x
+    assume nd: Node2 T1 p l x
+    assume fl: FrL u l
+    f:  Fr u x                            by imp_e frat nd fl
+    c:  Node2 T1 p l x and FrL u l        by and_i nd fl
+    e:  exists p1 l1. Node2 T1 p1 l1 x and FrL u l1
+                                          by exists_i c
+    sh: FrShape u x                       by or_i e
+    r:  FrInv u x                         by and_i f sh
+    therefore forall u p l x. Node2 T1 p l x -> FrL u l -> FrInv u x
+  lemma c_left:
+    variable u a b x
+    assume bn: BinNode a b x
+    assume ih: FrInv u a
+    fa: Fr u a                            by and_e ih
+    f:  Fr u x                            by imp_e frleft bn fa
+    o:  Fr u a or Fr u b                  by or_i fa
+    c:  BinNode a b x and (Fr u a or Fr u b)
+                                          by and_i bn o
+    e:  exists a1 b1. BinNode a1 b1 x and (Fr u a1 or Fr u b1)
+                                          by exists_i c
+    sh: FrShape u x                       by or_i e
+    r:  FrInv u x                         by and_i f sh
+    therefore forall u a b x. BinNode a b x -> FrInv u a -> FrInv u x
+  lemma c_right:
+    variable u a b x
+    assume bn: BinNode a b x
+    assume ih: FrInv u b
+    fb: Fr u b                            by and_e ih
+    f:  Fr u x                            by imp_e frright bn fb
+    o:  Fr u a or Fr u b                  by or_i fb
+    c:  BinNode a b x and (Fr u a or Fr u b)
+                                          by and_i bn o
+    e:  exists a1 b1. BinNode a1 b1 x and (Fr u a1 or Fr u b1)
+                                          by exists_i c
+    sh: FrShape u x                       by or_i e
+    r:  FrInv u x                         by and_i f sh
+    therefore forall u a b x. BinNode a b x -> FrInv u b -> FrInv u x
+  lemma c_q:
+    variable u v a x
+    assume qn: QNode v a x
+    assume ne: not (Eq v u)
+    assume ih: FrInv u a
+    fa: Fr u a                            by and_e ih
+    f:  Fr u x                            by imp_e frq qn ne fa
+    c:  QNode v a x and not (Eq v u) and Fr u a
+                                          by and_i qn ne fa
+    e:  exists v1 a1. QNode v1 a1 x and not (Eq v1 u) and Fr u a1
+                                          by exists_i c
+    sh: FrShape u x                       by or_i e
+    r:  FrInv u x                         by and_i f sh
+    therefore forall u v a x. QNode v a x -> not (Eq v u) -> FrInv u a -> FrInv u x
+  lemma c_eq:
+    variable u x u1 x1
+    assume eu: Eq u u1
+    assume ex: Eq x x1
+    assume ih: FrInv u x
+    f:  Fr u x                            by and_e ih
+    f1: Fr u1 x1                          by imp_e qfr eu ex f
+    sh: FrShape u x                       by and_e ih
+    lemma at:
+      assume h: exists p l. Node2 T1 p l x and FrL u l
+      lemma k:
+        variable p l
+        assume c: Node2 T1 p l x and FrL u l
+        nd:  Node2 T1 p l x               by and_e c
+        nd1: Node2 T1 p l x1              by imp_e node2_eq_right T1 fs0 nd ex
+        fl:  FrL u l                      by and_e c
+        rl:  Eq l l                       by forall_e refl l
+        fl1: FrL u1 l                     by imp_e qfrl eu rl fl
+        c1:  Node2 T1 p l x1 and FrL u1 l by and_i nd1 fl1
+        e:   exists p1 l1. Node2 T1 p1 l1 x1 and FrL u1 l1
+                                          by exists_i c1
+        s1:  FrShape u1 x1                by or_i e
+        therefore forall p l. (Node2 T1 p l x and FrL u l) -> FrShape u1 x1
+      s1: FrShape u1 x1                   by exists_e h k
+      therefore (exists p l. Node2 T1 p l x and FrL u l) -> FrShape u1 x1
+    lemma bin:
+      assume h: exists a b. BinNode a b x and (Fr u a or Fr u b)
+      lemma k:
+        variable a b
+        assume c: BinNode a b x and (Fr u a or Fr u b)
+        bn:  BinNode a b x                by and_e c
+        bn1: BinNode a b x1               by imp_e binnode_eq_right fs0 bn ex
+        o:   Fr u a or Fr u b             by and_e c
+        ra:  Eq a a                       by forall_e refl a
+        rb:  Eq b b                       by forall_e refl b
+        lemma left:
+          assume fa: Fr u a
+          g: Fr u1 a                      by imp_e qfr eu ra fa
+          o1: Fr u1 a or Fr u1 b          by or_i g
+          therefore Fr u a -> Fr u1 a or Fr u1 b
+        lemma right:
+          assume fb: Fr u b
+          g: Fr u1 b                      by imp_e qfr eu rb fb
+          o1: Fr u1 a or Fr u1 b          by or_i g
+          therefore Fr u b -> Fr u1 a or Fr u1 b
+        o1:  Fr u1 a or Fr u1 b           by or_e o left right
+        c1:  BinNode a b x1 and (Fr u1 a or Fr u1 b)
+                                          by and_i bn1 o1
+        e:   exists a1 b1. BinNode a1 b1 x1 and (Fr u1 a1 or Fr u1 b1)
+                                          by exists_i c1
+        s1:  FrShape u1 x1                by or_i e
+        therefore forall a b. (BinNode a b x and (Fr u a or Fr u b)) -> FrShape u1 x1
+      s1: FrShape u1 x1                   by exists_e h k
+      therefore (exists a b. BinNode a b x and (Fr u a or Fr u b)) -> FrShape u1 x1
+    lemma q:
+      assume h: exists v a. QNode v a x and not (Eq v u) and Fr u a
+      lemma k:
+        variable v a
+        assume c: QNode v a x and not (Eq v u) and Fr u a
+        qn:  QNode v a x                  by and_e c
+        qn1: QNode v a x1                 by imp_e qnode_eq_right fs0 qn ex
+        ne:  not (Eq v u)                 by and_e c
+        fa:  Fr u a                       by and_e c
+        eu1: Eq u1 u                      by imp_e eq_sym fs0 eu
+        lemma ne1:
+          assume e1: Eq v u1
+          evu: Eq v u                     by imp_e eq_trans fs0 e1 eu1
+          g:   absurd                     by imp_e ne evu
+          therefore not (Eq v u1)
+        ra:  Eq a a                       by forall_e refl a
+        fa1: Fr u1 a                      by imp_e qfr eu ra fa
+        c1:  QNode v a x1 and not (Eq v u1) and Fr u1 a
+                                          by and_i qn1 ne1 fa1
+        e:   exists v1 a1. QNode v1 a1 x1 and not (Eq v1 u1) and Fr u1 a1
+                                          by exists_i c1
+        s1:  FrShape u1 x1                by or_i e
+        therefore forall v a. (QNode v a x and not (Eq v u) and Fr u a) -> FrShape u1 x1
+      s1: FrShape u1 x1                   by exists_e h k
+      therefore (exists v a. QNode v a x and not (Eq v u) and Fr u a) -> FrShape u1 x1
+    s1: FrShape u1 x1                     by or_e sh at bin q
+    r:  FrInv u1 x1                       by and_i f1 s1
+    therefore forall u x u1 x1. Eq u u1 -> Eq x x1 -> FrInv u x -> FrInv u1 x1
+  r: forall u x. Fr u x -> FrInv u x      by imp_e least c_at c_left c_right c_q c_eq
+  therefore FS0 -> FREE -> FrLeast FrInv -> forall u x. Fr u x -> FrInv u x
+
+-- So a variable free in an atom is free in its list.
+theorem fr_at:
+  variable u q m x
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  assume fr:    Fr u x
+  assume nd:    Node2 T1 q m x
+  inv:  forall u1 x1. Fr u1 x1 -> FrInv u1 x1   by imp_e fr_inv fs0 free least
+  i:    FrInv u x                         by imp_e inv fr
+  sh:   FrShape u x                       by and_e i
+  refl: Refl                              by and_e fs0
+  qfrl: Qfrl                              by and_e free
+  lemma c_at:
+    assume h: exists p l. Node2 T1 p l x and FrL u l
+    lemma k:
+      variable p l
+      assume hc: Node2 T1 p l x and FrL u l
+      n:  Node2 T1 p l x                  by and_e hc
+      fl: FrL u l                         by and_e hc
+      e:  Eq p q and Eq l m               by imp_e node2_parts T1 T1 fs0 n nd
+      el: Eq l m                          by and_e e
+      ru: Eq u u                          by forall_e refl u
+      r:  FrL u m                         by imp_e qfrl ru el fl
+      therefore forall p l. (Node2 T1 p l x and FrL u l) -> FrL u m
+    r: FrL u m                            by exists_e h k
+    therefore (exists p l. Node2 T1 p l x and FrL u l) -> FrL u m
+  lemma c_bin:
+    assume h: exists a b. BinNode a b x and (Fr u a or Fr u b)
+    lemma k:
+      variable a b
+      assume hc: BinNode a b x and (Fr u a or Fr u b)
+      n: BinNode a b x                    by and_e hc
+      f: absurd                           by imp_e at_bin_apart fs0 nd n
+      r: FrL u m                          by absurd_e f
+      therefore forall a b. (BinNode a b x and (Fr u a or Fr u b)) -> FrL u m
+    r: FrL u m                            by exists_e h k
+    therefore (exists a b. BinNode a b x and (Fr u a or Fr u b)) -> FrL u m
+  lemma c_q:
+    assume h: exists v a. QNode v a x and not (Eq v u) and Fr u a
+    lemma k:
+      variable v a
+      assume hc: QNode v a x and not (Eq v u) and Fr u a
+      n: QNode v a x                      by and_e hc
+      f: absurd                           by imp_e at_q_apart fs0 nd n
+      r: FrL u m                          by absurd_e f
+      therefore forall v a. (QNode v a x and not (Eq v u) and Fr u a) -> FrL u m
+    r: FrL u m                            by exists_e h k
+    therefore (exists v a. QNode v a x and not (Eq v u) and Fr u a) -> FrL u m
+  r: FrL u m                              by or_e sh c_at c_bin c_q
+  therefore forall u q m x. FS0 -> FREE -> FrLeast FrInv -> Fr u x -> Node2 T1 q m x -> FrL u m
+
+-- A variable free in a connective is free in one of its parts.
+theorem fr_bin:
+  variable u c d x
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  assume fr:    Fr u x
+  assume bn:    BinNode c d x
+  inv:  forall u1 x1. Fr u1 x1 -> FrInv u1 x1   by imp_e fr_inv fs0 free least
+  i:    FrInv u x                         by imp_e inv fr
+  sh:   FrShape u x                       by and_e i
+  refl: Refl                              by and_e fs0
+  qfr:  Qfr                               by and_e free
+  lemma c_at:
+    assume h: exists p l. Node2 T1 p l x and FrL u l
+    lemma k:
+      variable p l
+      assume hc: Node2 T1 p l x and FrL u l
+      n: Node2 T1 p l x                   by and_e hc
+      f: absurd                           by imp_e at_bin_apart fs0 n bn
+      r: Fr u c or Fr u d                 by absurd_e f
+      therefore forall p l. (Node2 T1 p l x and FrL u l) -> Fr u c or Fr u d
+    r: Fr u c or Fr u d                   by exists_e h k
+    therefore (exists p l. Node2 T1 p l x and FrL u l) -> Fr u c or Fr u d
+  lemma c_bin:
+    assume h: exists a b. BinNode a b x and (Fr u a or Fr u b)
+    lemma k:
+      variable a b
+      assume hc: BinNode a b x and (Fr u a or Fr u b)
+      n:  BinNode a b x                   by and_e hc
+      o:  Fr u a or Fr u b                by and_e hc
+      e:  Eq a c and Eq b d               by imp_e binnode_parts fs0 n bn
+      ea: Eq a c                          by and_e e
+      eb: Eq b d                          by and_e e
+      ru: Eq u u                          by forall_e refl u
+      lemma left:
+        assume g: Fr u a
+        g1: Fr u c                        by imp_e qfr ru ea g
+        r:  Fr u c or Fr u d              by or_i g1
+        therefore Fr u a -> Fr u c or Fr u d
+      lemma right:
+        assume g: Fr u b
+        g1: Fr u d                        by imp_e qfr ru eb g
+        r:  Fr u c or Fr u d              by or_i g1
+        therefore Fr u b -> Fr u c or Fr u d
+      r:  Fr u c or Fr u d                by or_e o left right
+      therefore forall a b. (BinNode a b x and (Fr u a or Fr u b)) -> Fr u c or Fr u d
+    r: Fr u c or Fr u d                   by exists_e h k
+    therefore (exists a b. BinNode a b x and (Fr u a or Fr u b)) -> Fr u c or Fr u d
+  lemma c_q:
+    assume h: exists v a. QNode v a x and not (Eq v u) and Fr u a
+    lemma k:
+      variable v a
+      assume hc: QNode v a x and not (Eq v u) and Fr u a
+      n: QNode v a x                      by and_e hc
+      f: absurd                           by imp_e bin_q_apart fs0 bn n
+      r: Fr u c or Fr u d                 by absurd_e f
+      therefore forall v a. (QNode v a x and not (Eq v u) and Fr u a) -> Fr u c or Fr u d
+    r: Fr u c or Fr u d                   by exists_e h k
+    therefore (exists v a. QNode v a x and not (Eq v u) and Fr u a) -> Fr u c or Fr u d
+  r: Fr u c or Fr u d                     by or_e sh c_at c_bin c_q
+  therefore forall u c d x. FS0 -> FREE -> FrLeast FrInv -> Fr u x -> BinNode c d x -> Fr u c or Fr u d
+
+-- A variable free in a quantifier is not the one it binds, and is free in its body.
+theorem fr_q:
+  variable u w c x
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  assume fr:    Fr u x
+  assume qn:    QNode w c x
+  inv:  forall u1 x1. Fr u1 x1 -> FrInv u1 x1   by imp_e fr_inv fs0 free least
+  i:    FrInv u x                         by imp_e inv fr
+  sh:   FrShape u x                       by and_e i
+  refl: Refl                              by and_e fs0
+  qfr:  Qfr                               by and_e free
+  lemma c_at:
+    assume h: exists p l. Node2 T1 p l x and FrL u l
+    lemma k:
+      variable p l
+      assume hc: Node2 T1 p l x and FrL u l
+      n: Node2 T1 p l x                   by and_e hc
+      f: absurd                           by imp_e at_q_apart fs0 n qn
+      r: not (Eq w u) and Fr u c          by absurd_e f
+      therefore forall p l. (Node2 T1 p l x and FrL u l) -> not (Eq w u) and Fr u c
+    r: not (Eq w u) and Fr u c            by exists_e h k
+    therefore (exists p l. Node2 T1 p l x and FrL u l) -> not (Eq w u) and Fr u c
+  lemma c_bin:
+    assume h: exists a b. BinNode a b x and (Fr u a or Fr u b)
+    lemma k:
+      variable a b
+      assume hc: BinNode a b x and (Fr u a or Fr u b)
+      n: BinNode a b x                    by and_e hc
+      f: absurd                           by imp_e bin_q_apart fs0 n qn
+      r: not (Eq w u) and Fr u c          by absurd_e f
+      therefore forall a b. (BinNode a b x and (Fr u a or Fr u b)) -> not (Eq w u) and Fr u c
+    r: not (Eq w u) and Fr u c            by exists_e h k
+    therefore (exists a b. BinNode a b x and (Fr u a or Fr u b)) -> not (Eq w u) and Fr u c
+  lemma c_q:
+    assume h: exists v a. QNode v a x and not (Eq v u) and Fr u a
+    lemma k:
+      variable v a
+      assume hc: QNode v a x and not (Eq v u) and Fr u a
+      n:  QNode v a x                     by and_e hc
+      ne: not (Eq v u)                    by and_e hc
+      fa: Fr u a                          by and_e hc
+      e:  Eq v w and Eq a c               by imp_e qnode_parts fs0 n qn
+      ev: Eq v w                          by and_e e
+      ea: Eq a c                          by and_e e
+      lemma nw:
+        assume g: Eq w u
+        evu: Eq v u                       by imp_e eq_trans fs0 ev g
+        f:   absurd                       by imp_e ne evu
+        therefore not (Eq w u)
+      ru: Eq u u                          by forall_e refl u
+      fc: Fr u c                          by imp_e qfr ru ea fa
+      r:  not (Eq w u) and Fr u c         by and_i nw fc
+      therefore forall v a. (QNode v a x and not (Eq v u) and Fr u a) -> not (Eq w u) and Fr u c
+    r: not (Eq w u) and Fr u c            by exists_e h k
+    therefore (exists v a. QNode v a x and not (Eq v u) and Fr u a) -> not (Eq w u) and Fr u c
+  r: not (Eq w u) and Fr u c              by or_e sh c_at c_bin c_q
+  therefore forall u w c x. FS0 -> FREE -> FrLeast FrInv -> Fr u x -> QNode w c x -> not (Eq w u) and Fr u c
+
+-- Nothing is free in absurd.
+theorem fr_bot:
+  variable u o x
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  assume fr:    Fr u x
+  assume no:    Nil o
+  assume nd:    Node1 T0 o x
+  inv:  forall u1 x1. Fr u1 x1 -> FrInv u1 x1   by imp_e fr_inv fs0 free least
+  i:    FrInv u x                         by imp_e inv fr
+  sh:   FrShape u x                       by and_e i
+  lemma c_at:
+    assume h: exists p l. Node2 T1 p l x and FrL u l
+    lemma k:
+      variable p l
+      assume hc: Node2 T1 p l x and FrL u l
+      n: Node2 T1 p l x                   by and_e hc
+      r: absurd                           by imp_e node1_node2_apart T0 T1 fs0 no nd n
+      therefore forall p l. (Node2 T1 p l x and FrL u l) -> absurd
+    r: absurd                             by exists_e h k
+    therefore (exists p l. Node2 T1 p l x and FrL u l) -> absurd
+  lemma c_bin:
+    assume h: exists a b. BinNode a b x and (Fr u a or Fr u b)
+    lemma k:
+      variable a b
+      assume hc: BinNode a b x and (Fr u a or Fr u b)
+      n: BinNode a b x                    by and_e hc
+      lemma c2:
+        assume m: Node2 T2 a b x
+        f: absurd                         by imp_e node1_node2_apart T0 T2 fs0 no nd m
+        therefore Node2 T2 a b x -> absurd
+      lemma c3:
+        assume m: Node2 T3 a b x
+        f: absurd                         by imp_e node1_node2_apart T0 T3 fs0 no nd m
+        therefore Node2 T3 a b x -> absurd
+      lemma c4:
+        assume m: Node2 T4 a b x
+        f: absurd                         by imp_e node1_node2_apart T0 T4 fs0 no nd m
+        therefore Node2 T4 a b x -> absurd
+      r: absurd                           by or_e n c2 c3 c4
+      therefore forall a b. (BinNode a b x and (Fr u a or Fr u b)) -> absurd
+    r: absurd                             by exists_e h k
+    therefore (exists a b. BinNode a b x and (Fr u a or Fr u b)) -> absurd
+  lemma c_q:
+    assume h: exists v a. QNode v a x and not (Eq v u) and Fr u a
+    lemma k:
+      variable v a
+      assume hc: QNode v a x and not (Eq v u) and Fr u a
+      n: QNode v a x                      by and_e hc
+      lemma c5:
+        assume m: Node2 T5 v a x
+        f: absurd                         by imp_e node1_node2_apart T0 T5 fs0 no nd m
+        therefore Node2 T5 v a x -> absurd
+      lemma c6:
+        assume m: Node2 T6 v a x
+        f: absurd                         by imp_e node1_node2_apart T0 T6 fs0 no nd m
+        therefore Node2 T6 v a x -> absurd
+      r: absurd                           by or_e n c5 c6
+      therefore forall v a. (QNode v a x and not (Eq v u) and Fr u a) -> absurd
+    r: absurd                             by exists_e h k
+    therefore (exists v a. QNode v a x and not (Eq v u) and Fr u a) -> absurd
+  r: absurd                               by or_e sh c_at c_bin c_q
+  therefore forall u o x. FS0 -> FREE -> FrLeast FrInv -> Fr u x -> Nil o -> Node1 T0 o x -> absurd
+
+-- And a quantifier's own variable is not free in it.
+theorem fr_bound:
+  variable u a x
+  assume fs0:   FS0
+  assume free:  FREE
+  assume least: FrLeast FrInv
+  assume fr:    Fr u x
+  assume qn:    QNode u a x
+  refl: Refl                              by and_e fs0
+  ru:   Eq u u                            by forall_e refl u
+  k:    not (Eq u u) and Fr u a           by imp_e fr_q fs0 free least fr qn
+  ne:   not (Eq u u)                      by and_e k
+  f:    absurd                            by imp_e ne ru
+  therefore forall u a x. FS0 -> FREE -> FrLeast FrInv -> Fr u x -> QNode u a x -> absurd
