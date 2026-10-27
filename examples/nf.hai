@@ -34,7 +34,7 @@ define NF = Ext and AntiExists and SingleExists and One and Cross and Conv and S
 theorem universe:
   assume nf: NF
   anti: AntiExists by and_e nf
-  one: One         by and_e nf
+  one:  One        by and_e nf
   lemma c1:
     variable u
     assume hu: Singletons u
@@ -56,15 +56,15 @@ theorem universe:
               by and_e hvw
           lemma nk:
             assume k: In w u and In w c
-            wu: In w u                 by and_e k
-            wc: In w c                 by and_e k
-            hcw: Iff (In w c) (not (In w u and In w u))
-                                       by forall_e hc w
-            fwd: In w c -> not (In w u and In w u)
-                                       by and_e hcw
-            n: not (In w u and In w u) by imp_e fwd wc
-            both: In w u and In w u    by and_i wu wu
-            f: absurd                  by imp_e n both
+            wu:   In w u                  by and_e k
+            wc:   In w c                  by and_e k
+            hcw:  Iff (In w c) (not (In w u and In w u))
+                                          by forall_e hc w
+            fwd:  In w c -> not (In w u and In w u)
+                                          by and_e hcw
+            n:    not (In w u and In w u) by imp_e fwd wc
+            both: In w u and In w u       by and_i wu wu
+            f:    absurd                  by imp_e n both
             therefore not (In w u and In w c)
           wv: In w v by imp_e bwd nk
           therefore forall w. In w v
@@ -87,5 +87,5 @@ theorem self_member:
     ex: exists u. In u u by exists_i vv
     therefore forall v. (forall w. In w v) -> exists u. In u u
   univ: exists v. forall w. In w v by imp_e universe nf
-  k: exists u. In u u              by exists_e univ c
+  k:    exists u. In u u           by exists_e univ c
   therefore NF -> exists u. In u u

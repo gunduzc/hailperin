@@ -18,7 +18,7 @@ theorem zero_or_succ:
     therefore forall x. Zero x -> ZeroOrSucc x
   lemma step:
     variable y x
-    assume ih: ZeroOrSucc x
+    assume ih:  ZeroOrSucc x
     assume sxy: Succ x y
     e: exists p. Succ p y by exists_i sxy
     k: ZeroOrSucc y       by or_i e

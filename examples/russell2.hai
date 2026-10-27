@@ -9,16 +9,16 @@ theorem russell:
   lemma c:
     variable r
     assume hr: forall x. Iff (In x r) (not (In x x))
-    rr: Iff (In r r) (not (In r r)) by forall_e hr r
-    fwd: In r r -> not (In r r)     by and_e rr
-    bwd: not (In r r) -> In r r     by and_e rr
+    rr:  Iff (In r r) (not (In r r)) by forall_e hr r
+    fwd: In r r -> not (In r r)      by and_e rr
+    bwd: not (In r r) -> In r r      by and_e rr
     lemma nr:
       assume in_rr: In r r
       n: not (In r r) by imp_e fwd in_rr
       f: absurd       by imp_e n in_rr
       therefore not (In r r)
     r1: In r r by imp_e bwd nr
-    f: absurd  by imp_e nr r1
+    f:  absurd by imp_e nr r1
     therefore forall r. not (forall x. Iff (In x r) (not (In x x)))
   k: absurd by exists_e h c
   therefore not (exists r. forall x. Iff (In x r) (not (In x x)))

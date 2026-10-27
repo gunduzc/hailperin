@@ -7,23 +7,23 @@ import sc
 
 -- The one-atom chain Zero z_0 is a context.
 theorem ctx_base:
-  assume g: GrowCtx
+  assume g:  GrowCtx
   assume mp: MemLeast MemPair
-  q: QCtx              by and_e g
-  pc: PoolCtx          by and_e g
-  list: LIST           by and_e g
-  mc: MemLeast MemCons by and_e g
-  free: FREE           by and_e g
-  chain: CHAIN         by and_e g
-  ll: FrLLeast FrLInv  by and_e g
-  lf: FrLeast FrInv    by and_e g
-  fs0: FS0             by and_e q
-  lt: LT               by and_e pc
-  lt0: Lt0             by and_e lt
-  cz: Cz               by and_e chain
-  qfr: Qfr             by and_e free
-  refl: Refl           by and_e fs0
-  pn: Pn               by and_e fs0
+  q:     QCtx             by and_e g
+  pc:    PoolCtx          by and_e g
+  list:  LIST             by and_e g
+  mc:    MemLeast MemCons by and_e g
+  free:  FREE             by and_e g
+  chain: CHAIN            by and_e g
+  ll:    FrLLeast FrLInv  by and_e g
+  lf:    FrLeast FrInv    by and_e g
+  fs0:   FS0              by and_e q
+  lt:    LT               by and_e pc
+  lt0:   Lt0              by and_e lt
+  cz:    Cz               by and_e chain
+  qfr:   Qfr              by and_e free
+  refl:  Refl             by and_e fs0
+  pn:    Pn               by and_e fs0
   lemma all:
     variable n z a h
     assume nn: Nil n
@@ -39,33 +39,33 @@ theorem ctx_base:
         variable u b
         assume mb: Mem b h
         assume fr: Fr u b
-        mcb: MemCons b h     by imp_e mem_cons list mc mb
-        o: Eq b a or Mem b n by imp_e mcb ph
+        mcb: MemCons b h       by imp_e mem_cons list mc mb
+        o:   Eq b a or Mem b n by imp_e mcb ph
         lemma isa:
           assume e: Eq b a
-          ru: Eq u u             by forall_e refl u
-          fa: Fr u a             by imp_e qfr ru e fr
-          euz: Eq u z            by imp_e fr_zeroat fs0 free ll lf za fa
-          ezu: Eq z u            by imp_e eq_sym fs0 euz
-          pu: Pool n u           by imp_e pool_eq fs0 pz ezu
-          c: Pool n u and Lt n m by and_i pu lnm
-          ex: exists j. Pool j u and Lt j m
-                                 by exists_i c
-          r: Even u or exists j. Pool j u and Lt j m
-                                 by or_i ex
+          ru:  Eq u u              by forall_e refl u
+          fa:  Fr u a              by imp_e qfr ru e fr
+          euz: Eq u z              by imp_e fr_zeroat fs0 free ll lf za fa
+          ezu: Eq z u              by imp_e eq_sym fs0 euz
+          pu:  Pool n u            by imp_e pool_eq fs0 pz ezu
+          c:   Pool n u and Lt n m by and_i pu lnm
+          ex:  exists j. Pool j u and Lt j m
+                                   by exists_i c
+          r:   Even u or exists j. Pool j u and Lt j m
+                                   by or_i ex
           therefore Eq b a -> Even u or exists j. Pool j u and Lt j m
         lemma inn:
           assume mn: Mem b n
-          mpn: MemPair b n           by imp_e mem_pair list mp mn
-          ep: exists x y. Pair x y n by and_e mpn
+          mpn: MemPair b n            by imp_e mem_pair list mp mn
+          ep:  exists x y. Pair x y n by and_e mpn
           lemma wit:
             variable x y
             assume pxy: Pair x y n
-            rn: Eq n n  by forall_e refl n
+            rn:  Eq n n by forall_e refl n
             bad: absurd by imp_e pn pxy nn rn
             therefore forall x y. Pair x y n -> absurd
           bad: absurd by exists_e ep wit
-          r: Even u or exists j. Pool j u and Lt j m
+          r:   Even u or exists j. Pool j u and Lt j m
                       by absurd_e bad
           therefore Mem b n -> Even u or exists j. Pool j u and Lt j m
         r: Even u or exists j. Pool j u and Lt j m
@@ -78,20 +78,20 @@ theorem ctx_base:
       r: Mem b h by reit mb
       therefore forall b. Mem b h -> Mem b h
     cc: Chain n z h and (forall b. Mem b h -> Mem b h)
-                 by and_i ch inc
+                  by and_i ch inc
     ec: exists c. Chain n z c and (forall b. Mem b c -> Mem b h)
-                 by exists_i cc
-    r: Ctx n z h by and_i pz fv ec
+                  by exists_i cc
+    r:  Ctx n z h by and_i pz fv ec
     therefore forall n z a h. Nil n -> Pool n z -> ZeroAt z a -> Pair a n h -> Ctx n z h
   therefore GrowCtx -> MemLeast MemPair -> forall n z a h. Nil n -> Pool n z -> ZeroAt z a -> Pair a n h -> Ctx n z h
 
 -- The empty assignment gives no variable a value, so any hypotheses cover it.
 theorem covers_nil:
   assume fs0: FS0
-  assume tr: TRUTH
-  assume lv: ValLeast ValInv
+  assume tr:  TRUTH
+  assume lv:  ValLeast ValInv
   refl: Refl by and_e fs0
-  pn: Pn     by and_e fs0
+  pn:   Pn   by and_e fs0
   lemma all:
     variable e h
     assume ne: Nil e
@@ -107,8 +107,8 @@ theorem covers_nil:
         lemma wit:
           variable en r
           assume k: Pair v n en and Pair en r e
-          pe: Pair en r e by and_e k
-          bad: absurd     by imp_e pn pe ne re
+          pe:  Pair en r e by and_e k
+          bad: absurd      by imp_e pn pe ne re
           therefore forall en r. (Pair v n en and Pair en r e) -> absurd
         bad: absurd by exists_e ex wit
         therefore (exists en r. Pair v n en and Pair en r e) -> absurd
@@ -117,13 +117,13 @@ theorem covers_nil:
         lemma wit:
           variable u m en r
           assume k: Pair u m en and not (Eq u v) and Pair en r e and Val r v n
-          pe: Pair en r e by and_e k
-          bad: absurd     by imp_e pn pe ne re
+          pe:  Pair en r e by and_e k
+          bad: absurd      by imp_e pn pe ne re
           therefore forall u m en r. (Pair u m en and not (Eq u v) and Pair en r e and Val r v n) -> absurd
         bad: absurd by exists_e ex wit
         therefore (exists u m en r. Pair u m en and not (Eq u v) and Pair en r e and Val r v n) -> absurd
       bad: absurd by or_e sh first later
-      r: exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
+      r:   exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
                   by absurd_e bad
       therefore forall v n. Val e v n -> exists z c. Nat v and NamesM h z n and EqAt z v c and Mem c h
     therefore forall e h. Nil e -> Covers e h
@@ -131,37 +131,37 @@ theorem covers_nil:
 
 -- D3 outside: a true clean Sigma1 sentence binding only even variables is a theorem of Q.
 theorem d3_sentence:
-  assume c: SC1Ctx
+  assume c:     SC1Ctx
   assume least: HoldsLeast SC
-  assume mp: MemLeast MemPair
-  sb: SBCtx             by and_e c
-  sc: SCCtx             by and_e sb
-  tr: TRUTH             by and_e sb
-  lv: ValLeast ValInv   by and_e sb
-  q: QCtx               by and_e sc
-  g: GrowCtx            by and_e sc
-  fs0: FS0              by and_e q
-  form: FORM            by and_e q
-  logax: LOGAX          by and_e q
-  prf: PRF QAx          by and_e q
-  pc: PoolCtx           by and_e g
-  list: LIST            by and_e g
-  dtp: PrfLeast QAx DTP by and_e g
-  mc: MemLeast MemCons  by and_e g
-  free: FREE            by and_e g
-  ll: FrLLeast FrLInv   by and_e g
-  lf: FrLeast FrInv     by and_e g
-  lde: NatLeast DblEx   by and_e g
-  nat: NAT              by and_e form
-  zn: Zn                by and_e nat
-  fex: Fex              by and_e form
-  pe: Pe                by and_e fs0
-  dbl: DBL              by and_e pc
-  dinv: DblLeast DblInv by and_e pc
-  dodd: DblLeast DblOdd by and_e pc
-  dnat: DblLeast DblNat by and_e pc
-  tags: Tags            by imp_e tag_exists fs0
-  t6: exists t. T6 t    by and_e tags
+  assume mp:    MemLeast MemPair
+  sb:    SBCtx            by and_e c
+  sc:    SCCtx            by and_e sb
+  tr:    TRUTH            by and_e sb
+  lv:    ValLeast ValInv  by and_e sb
+  q:     QCtx             by and_e sc
+  g:     GrowCtx          by and_e sc
+  fs0:   FS0              by and_e q
+  form:  FORM             by and_e q
+  logax: LOGAX            by and_e q
+  prf:   PRF QAx          by and_e q
+  pc:    PoolCtx          by and_e g
+  list:  LIST             by and_e g
+  dtp:   PrfLeast QAx DTP by and_e g
+  mc:    MemLeast MemCons by and_e g
+  free:  FREE             by and_e g
+  ll:    FrLLeast FrLInv  by and_e g
+  lf:    FrLeast FrInv    by and_e g
+  lde:   NatLeast DblEx   by and_e g
+  nat:   NAT              by and_e form
+  zn:    Zn               by and_e nat
+  fex:   Fex              by and_e form
+  pe:    Pe               by and_e fs0
+  dbl:   DBL              by and_e pc
+  dinv:  DblLeast DblInv  by and_e pc
+  dodd:  DblLeast DblOdd  by and_e pc
+  dnat:  DblLeast DblNat  by and_e pc
+  tags:  Tags             by imp_e tag_exists fs0
+  t6:    exists t. T6 t   by and_e tags
   lemma all:
     variable e f
     assume ne: Nil e
@@ -179,15 +179,15 @@ theorem d3_sentence:
     lemma each:
       variable n
       assume nn: Nil n
-      natn: Nat n            by imp_e zn nn
-      ez: exists z. Pool n z by imp_e pool_exists fs0 dbl lde natn
+      natn: Nat n              by imp_e zn nn
+      ez:   exists z. Pool n z by imp_e pool_exists fs0 dbl lde natn
       lemma wz:
         variable z
         assume pz: Pool n z
-        nz: Nat z                by imp_e pool_nat nat dnat pz
-        nfz: not (Fr z f)        by forall_e sf z
-        nfzn: NoFree z n         by imp_e nil_nofree list mp nn
-        ea: exists x. ZeroAt z x by imp_e zeroat_exists fs0
+        nz:   Nat z                by imp_e pool_nat nat dnat pz
+        nfz:  not (Fr z f)         by forall_e sf z
+        nfzn: NoFree z n           by imp_e nil_nofree list mp nn
+        ea:   exists x. ZeroAt z x by imp_e zeroat_exists fs0
         lemma wa:
           variable a
           assume za: ZeroAt z a
@@ -202,7 +202,7 @@ theorem d3_sentence:
             lemma av:
               variable v
               assume bv: Bound v f
-              ev: Even v        by imp_e eb bv
+              ev:  Even v       by imp_e eb bv
               nvz: not (Eq v z) by imp_e even_pool_ne fs0 dbl dinv dodd ev pz
               lemma nfa:
                 assume fr: Fr v a
@@ -210,23 +210,23 @@ theorem d3_sentence:
                 bad: absurd by imp_e nvz evz
                 therefore not (Fr v a)
               nfn: NoFree v n by imp_e nil_nofree list mp nn
-              r: NoFree v h   by imp_e nofree_cons free list mc nfn nfa ph
+              r:   NoFree v h by imp_e nofree_cons free list mc nfn nfa ph
               therefore forall v. Bound v f -> NoFree v h
-            ph2: PrH h f                 by imp_e scf ff cf cov ctx av np eb
+            ph2: PrH h f                  by imp_e scf ff cf cov ctx av np eb
             -- discharge Zero z: n proves Zero z -> f, so (exists z. Zero z) -> f, and Ze gives exists z. Zero z
-            qa: QI n a f                 by imp_e qi_ded fs0 form logax list prf dtp mc ph fa ff ph2
-            ex: exists x. Node2 T6 z a x by imp_e node2_exists T6 fs0 t6
+            qa:  QI n a f                 by imp_e qi_ded fs0 form logax list prf dtp mc ph fa ff ph2
+            ex:  exists x. Node2 T6 z a x by imp_e node2_exists T6 fs0 t6
             lemma wx:
               variable x
               assume exa: Node2 T6 z a x
-              qx: QI n x f by imp_e qi_exe fs0 form logax prf nz fa ff nfz nfzn qa exa
-              fx: Form x   by imp_e fex nz fa exa
-              k: Nat z and ExCode z a x and ZeroAt z a
-                           by and_i nz exa za
-              ze: ZeCode x by exists_i k
-              qx2: QAx x   by or_i ze
-              px: PrH n x  by imp_e prh_axiom QAx fs0 prf fx qx2
-              r: PrH n f   by imp_e qi_mp fs0 prf ff qx px
+              qx:  QI n x f by imp_e qi_exe fs0 form logax prf nz fa ff nfz nfzn qa exa
+              fx:  Form x   by imp_e fex nz fa exa
+              k:   Nat z and ExCode z a x and ZeroAt z a
+                            by and_i nz exa za
+              ze:  ZeCode x by exists_i k
+              qx2: QAx x    by or_i ze
+              px:  PrH n x  by imp_e prh_axiom QAx fs0 prf fx qx2
+              r:   PrH n f  by imp_e qi_mp fs0 prf ff qx px
               therefore forall x. Node2 T6 z a x -> PrH n f
             r: PrH n f by exists_e ex wx
             therefore forall h. Pair a n h -> PrH n f

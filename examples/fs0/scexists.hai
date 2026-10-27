@@ -7,80 +7,80 @@ import scex
 
 theorem sc_ex:
   variable e v n e2 a x
-  assume sc: SCCtx
+  assume sc:  SCCtx
   assume syn: SynCtx
-  assume tr: TRUTH
-  assume lv: ValLeast ValInv
+  assume tr:  TRUTH
+  assume lv:  ValLeast ValInv
   assume lmn: NamesMLeast NamesMNum
   assume sub: SUB
-  assume nn: Nat n
+  assume nn:  Nat n
   assume ext: Ext e v n e2
-  assume ih: SC e2 a
-  assume ex: ExCode v a x
-  q: QCtx                             by and_e sc
-  nc: NamesCtx                        by and_e sc
-  g: GrowCtx                          by and_e sc
-  lcn: ChainLeast ChainNM             by and_e sc
-  ldm: NatLeast Demand                by and_e sc
-  fs0: FS0                            by and_e q
-  form: FORM                          by and_e q
-  logax: LOGAX                        by and_e q
-  prf: PRF QAx                        by and_e q
-  sid: forall x1. Form x1 -> SubId x1 by and_e q
-  nat: NAT                            by and_e form
-  pe: Pe                              by and_e fs0
-  list: LIST                          by and_e g
-  pc: PoolCtx                         by and_e g
-  dtp: PrfLeast QAx DTP               by and_e g
-  mc: MemLeast MemCons                by and_e g
-  free: FREE                          by and_e g
-  ll: FrLLeast FrLInv                 by and_e g
-  lf: FrLeast FrInv                   by and_e g
-  dbl: DBL                            by and_e pc
-  lt: LT                              by and_e pc
-  dinv: DblLeast DblInv               by and_e pc
-  dodd: DblLeast DblOdd               by and_e pc
-  dnat: DblLeast DblNat               by and_e pc
-  ltinv: LtLeast LtInv                by and_e pc
-  lteq: LtLeast LtEq                  by and_e pc
-  nm: NAMESM                          by and_e nc
-  lmm: NamesMLeast NamesMMono         by and_e nc
-  flf: FormLeast FormInv              by and_e syn
-  bound: BOUND                        by and_e syn
-  clean: CLEAN                        by and_e syn
-  lcl: CleanLeast CleanInv            by and_e syn
-  bq: Bq                              by and_e bound
-  binq: Binq                          by and_e bound
-  frq: Frq                            by and_e free
-  mh: Mh                              by and_e list
-  mt: Mt                              by and_e list
-  tags: Tags                          by imp_e tag_exists fs0
-  t6: exists t. T6 t                  by and_e tags
-  dem: forall x1. Nat x1 -> Demand x1 by imp_e on_demand g ldm
-  cnm: forall n1 z c. Chain n1 z c -> ChainNM n1 z c
-                                      by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
-  mono: forall h z j. NamesM h z j -> NamesMMono h z j
-                                      by imp_e namesm_mono nm lmm
-  qn: QNode v a x                     by or_i ex
+  assume ih:  SC e2 a
+  assume ex:  ExCode v a x
+  q:     QCtx                           by and_e sc
+  nc:    NamesCtx                       by and_e sc
+  g:     GrowCtx                        by and_e sc
+  lcn:   ChainLeast ChainNM             by and_e sc
+  ldm:   NatLeast Demand                by and_e sc
+  fs0:   FS0                            by and_e q
+  form:  FORM                           by and_e q
+  logax: LOGAX                          by and_e q
+  prf:   PRF QAx                        by and_e q
+  sid:   forall x1. Form x1 -> SubId x1 by and_e q
+  nat:   NAT                            by and_e form
+  pe:    Pe                             by and_e fs0
+  list:  LIST                           by and_e g
+  pc:    PoolCtx                        by and_e g
+  dtp:   PrfLeast QAx DTP               by and_e g
+  mc:    MemLeast MemCons               by and_e g
+  free:  FREE                           by and_e g
+  ll:    FrLLeast FrLInv                by and_e g
+  lf:    FrLeast FrInv                  by and_e g
+  dbl:   DBL                            by and_e pc
+  lt:    LT                             by and_e pc
+  dinv:  DblLeast DblInv                by and_e pc
+  dodd:  DblLeast DblOdd                by and_e pc
+  dnat:  DblLeast DblNat                by and_e pc
+  ltinv: LtLeast LtInv                  by and_e pc
+  lteq:  LtLeast LtEq                   by and_e pc
+  nm:    NAMESM                         by and_e nc
+  lmm:   NamesMLeast NamesMMono         by and_e nc
+  flf:   FormLeast FormInv              by and_e syn
+  bound: BOUND                          by and_e syn
+  clean: CLEAN                          by and_e syn
+  lcl:   CleanLeast CleanInv            by and_e syn
+  bq:    Bq                             by and_e bound
+  binq:  Binq                           by and_e bound
+  frq:   Frq                            by and_e free
+  mh:    Mh                             by and_e list
+  mt:    Mt                             by and_e list
+  tags:  Tags                           by imp_e tag_exists fs0
+  t6:    exists t. T6 t                 by and_e tags
+  dem:   forall x1. Nat x1 -> Demand x1 by imp_e on_demand g ldm
+  cnm:   forall n1 z c. Chain n1 z c -> ChainNM n1 z c
+                                        by imp_e chain_namesm nat list lt nm dnat ltinv lteq lcn
+  mono:  forall h z j. NamesM h z j -> NamesMMono h z j
+                                        by imp_e namesm_mono nm lmm
+  qn:    QNode v a x                    by or_i ex
   lemma each:
     variable n0 z0 h
-    assume fx: Form x
-    assume cl: Clean x
-    assume cv: Covers e h
+    assume fx:  Form x
+    assume cl:  Clean x
+    assume cv:  Covers e h
     assume ctx: Ctx n0 z0 h
-    assume av: Avoids h x
-    assume np: NoPool x
-    assume eb: EvenB x
-    fv: Nat v and Form a             by imp_e form_ex form flf fx ex
-    nv: Nat v                        by and_e fv
-    fa: Form a                       by and_e fv
-    clq: Clean a and not (Bound v a) by imp_e clean_q fs0 clean bound lcl cl qn
-    ca: Clean a                      by and_e clq
-    nba: not (Bound v a)             by and_e clq
-    bvx: Bound v x                   by imp_e bq qn
-    evv: Even v                      by imp_e eb bvx
-    aq: NoFree v h and Avoids h a    by imp_e avoids_q bound av qn
-    nfvh: NoFree v h                 by and_e aq
+    assume av:  Avoids h x
+    assume np:  NoPool x
+    assume eb:  EvenB x
+    fv:   Nat v and Form a            by imp_e form_ex form flf fx ex
+    nv:   Nat v                       by and_e fv
+    fa:   Form a                      by and_e fv
+    clq:  Clean a and not (Bound v a) by imp_e clean_q fs0 clean bound lcl cl qn
+    ca:   Clean a                     by and_e clq
+    nba:  not (Bound v a)             by and_e clq
+    bvx:  Bound v x                   by imp_e bq qn
+    evv:  Even v                      by imp_e eb bvx
+    aq:   NoFree v h and Avoids h a   by imp_e avoids_q bound av qn
+    nfvh: NoFree v h                  by and_e aq
     lemma nfvx:
       assume fr: Fr v x
       bad: absurd by imp_e fr_bound fs0 free lf fr qn
@@ -92,7 +92,7 @@ theorem sc_ex:
       assume fr: Fr u a
       lemma isv:
         assume e1: Eq v u
-        e3: Eq u v  by imp_e eq_sym fs0 e1
+        e3:  Eq u v by imp_e eq_sym fs0 e1
         bad: absurd by imp_e even_pool fs0 dbl dinv dodd evv pu e3
         therefore not (Eq v u)
       fx2: Fr u x by imp_e frq qn isv fr
@@ -102,39 +102,39 @@ theorem sc_ex:
       variable w
       assume bw: Bound w a
       bx: Bound w x by imp_e binq qn bw
-      r: Even w     by imp_e eb bx
+      r:  Even w    by imp_e eb bx
       therefore forall w. Bound w a -> Even w
     dd: Demand n by imp_e dem nn
     lemma k:
       variable n1 z1 h1 m1
-      assume cx: Ctx n1 z1 h1
-      assume i1: Incl h h1
+      assume cx:  Ctx n1 z1 h1
+      assume i1:  Incl h h1
       assume nf1: forall w. Even w -> NoFree w h -> NoFree w h1
-      assume s1: Suc n1 m1
-      assume l1: Lt n m1
-      cv1: Covers e h1  by imp_e covers_mono nc cv i1
+      assume s1:  Suc n1 m1
+      assume l1:  Lt n m1
+      cv1:  Covers e h1 by imp_e covers_mono nc cv i1
       nfv1: NoFree v h1 by imp_e nf1 evv nfvh
-      ech: exists c. Chain n1 z1 c and Incl c h1
+      ech:  exists c. Chain n1 z1 c and Incl c h1
                         by and_e cx
       lemma wc:
         variable c
         assume hc: Chain n1 z1 c and Incl c h1
-        ch: Chain n1 z1 c   by and_e hc
-        ic: Incl c h1       by and_e hc
-        cn: ChainNM n1 z1 c by imp_e cnm ch
+        ch:  Chain n1 z1 c   by and_e hc
+        ic:  Incl c h1       by and_e hc
+        cn:  ChainNM n1 z1 c by imp_e cnm ch
         cnh: NamesM h1 z1 n1 and (forall m j. Suc n1 m -> Lt j m -> exists u i. Pool i u and Lt i m and NamesM h1 u j)
-                            by imp_e cn ic
+                             by imp_e cn ic
         bel: forall m j. Suc n1 m -> Lt j m -> exists u i. Pool i u and Lt i m and NamesM h1 u j
-                            by and_e cnh
-        eu: exists u i. Pool i u and Lt i m1 and NamesM h1 u n
-                            by imp_e bel s1 l1
+                             by and_e cnh
+        eu:  exists u i. Pool i u and Lt i m1 and NamesM h1 u n
+                             by imp_e bel s1 l1
         lemma wu:
           variable u i
           assume hu: Pool i u and Lt i m1 and NamesM h1 u n
-          pu: Pool i u      by and_e hu
-          lim: Lt i m1      by and_e hu
-          um: NamesM h1 u n by and_e hu
-          nu: Nat u         by imp_e pool_nat nat dnat pu
+          pu:  Pool i u      by and_e hu
+          lim: Lt i m1       by and_e hu
+          um:  NamesM h1 u n by and_e hu
+          nu:  Nat u         by imp_e pool_nat nat dnat pu
           lemma nuv:
             assume e1: Eq u v
             bad: absurd by imp_e even_pool fs0 dbl dinv dodd evv pu e1
@@ -154,26 +154,26 @@ theorem sc_ex:
                 assume mb: Mem b h1
                 r: Mem b h2 by imp_e mt ph mb
                 therefore forall b. Mem b h1 -> Mem b h2
-              mo: NamesMMono h1 u n by imp_e mono um
-              um2: NamesM h2 u n    by imp_e mo i2
-              cv2: Covers e2 h2     by imp_e covers_ext q nc tr lv lmn cv1 ext i2 nv um2 ea mc1
-              cx2: Ctx n1 z1 h2     by imp_e ctx_eq fs0 free list lt ll lf mc lteq cx s1 pu lim evv ea ph
+              mo:  NamesMMono h1 u n by imp_e mono um
+              um2: NamesM h2 u n     by imp_e mo i2
+              cv2: Covers e2 h2      by imp_e covers_ext q nc tr lv lmn cv1 ext i2 nv um2 ea mc1
+              cx2: Ctx n1 z1 h2      by imp_e ctx_eq fs0 free list lt ll lf mc lteq cx s1 pu lim evv ea ph
               -- the body's bound variables stay free in no hypothesis, the new one included
               lemma av2:
                 variable w
                 assume bw: Bound w a
-                bx: Bound w x      by imp_e binq qn bw
-                ew: Even w         by imp_e eb bx
-                nfh: NoFree w h    by imp_e av bx
-                nfh1: NoFree w h1  by imp_e nf1 ew nfh
-                nwu: not (Eq w u)  by imp_e even_pool_ne fs0 dbl dinv dodd ew pu
-                nwv: not (Eq w v)  by imp_e bound_ne fs0 bound nba bw
-                nfc: not (Fr w c1) by imp_e eqat_nofree fs0 free ll lf ea nwu nwv
-                n2: NoFree w h2    by imp_e nofree_cons free list mc nfh1 nfc ph
+                bx:   Bound w x     by imp_e binq qn bw
+                ew:   Even w        by imp_e eb bx
+                nfh:  NoFree w h    by imp_e av bx
+                nfh1: NoFree w h1   by imp_e nf1 ew nfh
+                nwu:  not (Eq w u)  by imp_e even_pool_ne fs0 dbl dinv dodd ew pu
+                nwv:  not (Eq w v)  by imp_e bound_ne fs0 bound nba bw
+                nfc:  not (Fr w c1) by imp_e eqat_nofree fs0 free ll lf ea nwu nwv
+                n2:   NoFree w h2   by imp_e nofree_cons free list mc nfh1 nfc ph
                 therefore forall w. Bound w a -> NoFree w h2
               pa2: PrH h2 a    by imp_e ih fa ca cv2 cx2 av2 npa eba
-              ia: SubId a      by imp_e sid fa
-              ka: forall v1. Nat v1 -> Sub v1 v1 a a
+              ia:  SubId a     by imp_e sid fa
+              ka:  forall v1. Nat v1 -> Sub v1 v1 a a
                                by and_e ia
               sva: Sub v v a a by imp_e ka nv
               px2: PrH h2 x    by imp_e prh_exi QAx fs0 form logax prf nv nv fa fa sva ex pa2
@@ -183,7 +183,7 @@ theorem sc_ex:
                 variable ev
                 assume exv: Node2 T6 v c1 ev
                 pev: PrH h1 ev by imp_e ex_eq q sub nu nv nuv ea exv
-                r: PrH h1 x    by imp_e prh_exe QAx fs0 form logax list prf dtp mc nv fc1 fx nfvx nfv1 exv pev ph px2
+                r:   PrH h1 x  by imp_e prh_exe QAx fs0 form logax list prf dtp mc nv fc1 fx nfvx nfv1 exv pev ph px2
                 therefore forall ev. Node2 T6 v c1 ev -> PrH h1 x
               r: PrH h1 x by exists_e ex1 wx
               therefore forall h2. Pair c1 h1 h2 -> PrH h1 x

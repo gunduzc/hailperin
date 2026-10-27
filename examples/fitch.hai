@@ -24,23 +24,23 @@ define Fitch = AndOut and NotOut and Fact and Split and Knowable
 -- The secret is known nowhere: knowing it means knowing p, yet it says p is unknown.
 theorem unknowable:
   variable p known unknown secret secret_known v
-  assume ax: Fitch
-  assume known_is: Kn p known
-  assume unknown_is: Not known unknown
-  assume secret_is: And p unknown secret
+  assume ax:              Fitch
+  assume known_is:        Kn p known
+  assume unknown_is:      Not known unknown
+  assume secret_is:       And p unknown secret
   assume secret_known_is: Kn secret secret_known
-  assume secret_known_v: True secret_known v
-  fact: Fact                      by and_e ax
-  and_out: AndOut                 by and_e ax
-  not_out: NotOut                 by and_e ax
-  split: Split                    by and_e ax
-  secret_v: True secret v         by imp_e fact secret_known_is secret_known_v
-  both_v: True p v and True unknown v
+  assume secret_known_v:  True secret_known v
+  fact:        Fact               by and_e ax
+  and_out:     AndOut             by and_e ax
+  not_out:     NotOut             by and_e ax
+  split:       Split              by and_e ax
+  secret_v:    True secret v      by imp_e fact secret_known_is secret_known_v
+  both_v:      True p v and True unknown v
                                   by imp_e and_out secret_is secret_v
-  unknown_v: True unknown v       by and_e both_v
+  unknown_v:   True unknown v     by and_e both_v
   not_known_v: not (True known v) by imp_e not_out unknown_is unknown_v
-  known_v: True known v           by imp_e split secret_is secret_known_is known_is secret_known_v
-  bad: absurd                     by imp_e not_known_v known_v
+  known_v:     True known v       by imp_e split secret_is secret_known_is known_is secret_known_v
+  bad:         absurd             by imp_e not_known_v known_v
   therefore forall p known unknown secret secret_known v. Fitch -> Kn p known -> Not known unknown
       -> And p unknown secret -> Kn secret secret_known -> True secret_known v -> absurd
 
@@ -48,20 +48,20 @@ theorem unknowable:
 -- Intuitionistic: not (p and not known), not p -> known.
 theorem fitch:
   variable p known unknown secret secret_known w
-  assume ax: Fitch
-  assume known_is: Kn p known
-  assume unknown_is: Not known unknown
-  assume secret_is: And p unknown secret
+  assume ax:              Fitch
+  assume known_is:        Kn p known
+  assume unknown_is:      Not known unknown
+  assume secret_is:       And p unknown secret
   assume secret_known_is: Kn secret secret_known
-  assume secret_w: True secret w
-  knowable: Knowable by and_e ax
+  assume secret_w:        True secret w
+  knowable:  Knowable by and_e ax
   somewhere: exists v. R w v and True secret_known v
-                     by imp_e knowable secret_known_is secret_w
+                      by imp_e knowable secret_known_is secret_w
   lemma at_v:
     variable v
     assume rv: R w v and True secret_known v
     secret_known_v: True secret_known v by and_e rv
-    bad: absurd                         by imp_e unknowable ax known_is unknown_is secret_is secret_known_is secret_known_v
+    bad:            absurd              by imp_e unknowable ax known_is unknown_is secret_is secret_known_is secret_known_v
     therefore forall v. R w v and True secret_known v -> absurd
   bad: absurd by exists_e somewhere at_v
   therefore forall p known unknown secret secret_known w. Fitch -> Kn p known -> Not known unknown

@@ -17,24 +17,24 @@ define CodeEx a = exists n. Code a n and Nat n
 
 theorem code_exists:
   assume times: TIMES
-  assume code: CODE
-  assume addl: forall x. NatLeast (AddEx x)
-  assume natl: AddLeast AddNat
-  assume mull: forall x. NatLeast (MulEx x)
-  assume ind: Induction CodeEx
-  fs0: FS0                          by and_e times
-  zn: Zn                            by and_e times
-  sn: Sn                            by and_e times
-  cn: Cn                            by and_e code
-  cp: Cp                            by and_e code
+  assume code:  CODE
+  assume addl:  forall x. NatLeast (AddEx x)
+  assume natl:  AddLeast AddNat
+  assume mull:  forall x. NatLeast (MulEx x)
+  assume ind:   Induction CodeEx
+  fs0:  FS0                         by and_e times
+  zn:   Zn                          by and_e times
+  sn:   Sn                          by and_e times
+  cn:   Cn                          by and_e code
+  cp:   Cp                          by and_e code
   sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
   lemma c0:
     variable n
     assume nn: Nil n
-    k: Code n n           by imp_e cn nn nn
-    nm: Nat n             by imp_e zn nn
-    c: Code n n and Nat n by and_i k nm
-    e: CodeEx n           by exists_i c
+    k:  Code n n           by imp_e cn nn nn
+    nm: Nat n              by imp_e zn nn
+    c:  Code n n and Nat n by and_i k nm
+    e:  CodeEx n           by exists_i c
     therefore forall n. Nil n -> CodeEx n
   lemma c1:
     variable a b p
@@ -70,9 +70,9 @@ theorem code_exists:
               po: Pair o z c by and_e ho
               nc: Nat c      by imp_e sn no nz po
               therefore forall o. (Nil o and Pair o z c) -> Nat c
-            nc: Nat c             by exists_e sc w5
-            k: Code p c and Nat c by and_i cc nc
-            e: CodeEx p           by exists_i k
+            nc: Nat c              by exists_e sc w5
+            k:  Code p c and Nat c by and_i cc nc
+            e:  CodeEx p           by exists_i k
             therefore forall c. Suc z c -> CodeEx p
           r: CodeEx p by exists_e ec w4
           therefore forall z. (PairN x y z and Nat z) -> CodeEx p

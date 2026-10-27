@@ -55,12 +55,12 @@ theorem rank_unique:
     variable x v w
     assume a: Rank x v
     assume b: Rank x w
-    la: Iff (Rank x v) (Level x v) by forall_e level x v
-    fa: Rank x v -> Level x v      by and_e la
-    lva: Level x v                 by imp_e fa a
-    lb: Iff (Rank x w) (Level x w) by forall_e level x w
-    fb: Rank x w -> Level x w      by and_e lb
-    lvb: Level x w                 by imp_e fb b
+    la:  Iff (Rank x v) (Level x v) by forall_e level x v
+    fa:  Rank x v -> Level x v      by and_e la
+    lva: Level x v                  by imp_e fa a
+    lb:  Iff (Rank x w) (Level x w) by forall_e level x w
+    fb:  Rank x w -> Level x w      by and_e lb
+    lvb: Level x w                  by imp_e fb b
     lemma eq:
       variable y
       iv: Iff (In y v) (Below x y) by forall_e lva y
@@ -68,14 +68,14 @@ theorem rank_unique:
       lemma f:
         assume yv: In y v
         fv: In y v -> Below x y by and_e iv
-        c: Below x y            by imp_e fv yv
+        c:  Below x y           by imp_e fv yv
         bw: Below x y -> In y w by and_e iw
         yw: In y w              by imp_e bw c
         therefore In y v -> In y w
       lemma g:
         assume yw: In y w
         fw: In y w -> Below x y by and_e iw
-        c: Below x y            by imp_e fw yw
+        c:  Below x y           by imp_e fw yw
         bv: Below x y -> In y v by and_e iv
         yv: In y v              by imp_e bv c
         therefore In y w -> In y v
@@ -98,15 +98,15 @@ theorem rank_of_empty:
     lemma n:
       variable y
       assume yv: In y v
-      iy: Iff (In y v) (Below x y) by forall_e lv y
-      fwd: In y v -> Below x y     by and_e iy
-      ex: Below x y                by imp_e fwd yv
+      iy:  Iff (In y v) (Below x y) by forall_e lv y
+      fwd: In y v -> Below x y      by and_e iy
+      ex:  Below x y                by imp_e fwd yv
       lemma c:
         variable z
         assume h: In z x and exists w. Rank z w and Sub y w
         zx: In z x       by and_e h
         nz: not (In z x) by forall_e e z
-        f: absurd        by imp_e nz zx
+        f:  absurd       by imp_e nz zx
         therefore forall z. (In z x and exists w. Rank z w and Sub y w) -> absurd
       k: absurd by exists_e ex c
       therefore Empty v
@@ -136,20 +136,20 @@ theorem one_in_two:
     lemma d:
       variable y
       assume g: Nmb1 y and Successor y x
-      ny: Nmb1 y                         by and_e g
-      s: Successor y x                   by and_e g
-      iy: Iff (In y x) (In y y or Eq y y)
-                                         by forall_e s y
-      bwd: In y y or Eq y y -> In y x    by and_e iy
-      ryy: Eq y y                        by forall_e eq_refl y
-      o: In y y or Eq y y                by or_i ryy
-      yx: In y x                         by imp_e bwd o
-      k: Nmb1 y and In y x               by and_i ny yx
-      ey: exists y1. Nmb1 y1 and In y1 x by exists_i k
-      k2: Nmb2 x and exists y1. Nmb1 y1 and In y1 x
-                                         by and_i h ey
-      ex: exists x1. Nmb2 x1 and exists y1. Nmb1 y1 and In y1 x1
-                                         by exists_i k2
+      ny:  Nmb1 y                         by and_e g
+      s:   Successor y x                  by and_e g
+      iy:  Iff (In y x) (In y y or Eq y y)
+                                          by forall_e s y
+      bwd: In y y or Eq y y -> In y x     by and_e iy
+      ryy: Eq y y                         by forall_e eq_refl y
+      o:   In y y or Eq y y               by or_i ryy
+      yx:  In y x                         by imp_e bwd o
+      k:   Nmb1 y and In y x              by and_i ny yx
+      ey:  exists y1. Nmb1 y1 and In y1 x by exists_i k
+      k2:  Nmb2 x and exists y1. Nmb1 y1 and In y1 x
+                                          by and_i h ey
+      ex:  exists x1. Nmb2 x1 and exists y1. Nmb1 y1 and In y1 x1
+                                          by exists_i k2
       therefore forall y. (Nmb1 y and Successor y x) -> exists x1. Nmb2 x1 and exists y1. Nmb1 y1 and In y1 x1
     d1: exists x1. Nmb2 x1 and exists y. Nmb1 y and In y x1
         by exists_e h d

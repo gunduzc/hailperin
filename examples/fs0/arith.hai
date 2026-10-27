@@ -18,11 +18,11 @@ define AddEx x y = exists z. Add x y z
 
 -- Addition is total on numerals.
 theorem add_total:
-  assume plus: PLUS
+  assume plus:  PLUS
   assume least: forall x. NatLeast (AddEx x)
-  fs0: FS0                          by and_e plus
-  ab: Ab                            by and_e plus
-  as: As                            by and_e plus
+  fs0:  FS0                         by and_e plus
+  ab:   Ab                          by and_e plus
+  as:   As                          by and_e plus
   sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
   lemma all:
     variable x y
@@ -46,18 +46,18 @@ theorem add_total:
         lemma w2:
           variable t
           assume st: Suc w t
-          c: Nil z and Pair z n s by and_i nz pz
-          sn: Suc n s             by exists_i c
-          a: Add x s t            by imp_e as aw sn st
-          e: AddEx x s            by exists_i a
+          c:  Nil z and Pair z n s by and_i nz pz
+          sn: Suc n s              by exists_i c
+          a:  Add x s t            by imp_e as aw sn st
+          e:  AddEx x s            by exists_i a
           therefore forall t. Suc w t -> AddEx x s
         f1: AddEx x s by exists_e su w2
         therefore forall w. Add x n w -> AddEx x s
       f2: AddEx x s by exists_e ih w1
       therefore forall z n s. Nil z -> AddEx x n -> Pair z n s -> AddEx x s
-    lx: NatLeast (AddEx x)             by forall_e least x
-    r: forall y1. Nat y1 -> AddEx x y1 by imp_e lx base step
-    k: AddEx x y                       by imp_e r hy
+    lx: NatLeast (AddEx x)              by forall_e least x
+    r:  forall y1. Nat y1 -> AddEx x y1 by imp_e lx base step
+    k:  AddEx x y                       by imp_e r hy
     therefore forall x y. Nat x -> Nat y -> AddEx x y
   therefore PLUS -> (forall x. NatLeast (AddEx x)) -> forall x y. Nat x -> Nat y -> AddEx x y
 
@@ -65,7 +65,7 @@ theorem add_total:
 define AddNat x y z = Nat x -> Nat z
 
 theorem add_nat:
-  assume plus: PLUS
+  assume plus:  PLUS
   assume least: AddLeast AddNat
   sn: Sn by and_e plus
   lemma c0:
@@ -79,7 +79,7 @@ theorem add_nat:
     therefore forall x z. Nat x -> Nil z -> AddNat x z x
   lemma c1:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddNat x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -104,16 +104,16 @@ theorem add_nat:
 define AddShape x y z = (Nil y and Eq z x) or (exists y0 z0. Add x y0 z0 and Suc y0 y and Suc z0 z)
 
 theorem add_inv:
-  assume fs0: FS0
+  assume fs0:   FS0
   assume least: AddLeast AddShape
   refl: Refl by and_e fs0
   lemma c0:
     variable x z
     assume nx: Nat x
     assume nz: Nil z
-    rx: Eq x x          by forall_e refl x
-    b: Nil z and Eq x x by and_i nz rx
-    r: AddShape x z x   by or_i b
+    rx: Eq x x           by forall_e refl x
+    b:  Nil z and Eq x x by and_i nz rx
+    r:  AddShape x z x   by or_i b
     therefore forall x z. Nat x -> Nil z -> AddShape x z x
   lemma c1:
     variable x y z y1 z1
@@ -149,13 +149,13 @@ define MulEx x y = exists z. Mul x y z and Nat z
 
 theorem mul_total:
   assume times: TIMES
-  assume addl: forall x. NatLeast (AddEx x)
-  assume natl: AddLeast AddNat
+  assume addl:  forall x. NatLeast (AddEx x)
+  assume natl:  AddLeast AddNat
   assume least: forall x. NatLeast (MulEx x)
   plus: PLUS by and_e times
-  zn: Zn     by and_e times
-  mb: Mb     by and_e times
-  ms: Ms     by and_e times
+  zn:   Zn   by and_e times
+  mb:   Mb   by and_e times
+  ms:   Ms   by and_e times
   lemma all:
     variable x
     assume nx: Nat x
@@ -163,10 +163,10 @@ theorem mul_total:
     lemma c0:
       variable n
       assume nn: Nil n
-      m: Mul x n n           by imp_e mb nx nn
-      nm: Nat n              by imp_e zn nn
-      c: Mul x n n and Nat n by and_i m nm
-      e: MulEx x n           by exists_i c
+      m:  Mul x n n           by imp_e mb nx nn
+      nm: Nat n               by imp_e zn nn
+      c:  Mul x n n and Nat n by and_i m nm
+      e:  MulEx x n           by exists_i c
       therefore forall n. Nil n -> MulEx x n
     lemma c1:
       variable o n s
@@ -184,11 +184,11 @@ theorem mul_total:
         lemma w2:
           variable z1
           assume az: Add z x z1
-          m1: Mul x s z1           by imp_e ms mz sn az
-          an: AddNat z x z1        by imp_e add_nat plus natl az
-          n1: Nat z1               by imp_e an nz
-          c: Mul x s z1 and Nat z1 by and_i m1 n1
-          e: MulEx x s             by exists_i c
+          m1: Mul x s z1            by imp_e ms mz sn az
+          an: AddNat z x z1         by imp_e add_nat plus natl az
+          n1: Nat z1                by imp_e an nz
+          c:  Mul x s z1 and Nat z1 by and_i m1 n1
+          e:  MulEx x s             by exists_i c
           therefore forall z1. Add z x z1 -> MulEx x s
         r: MulEx x s by exists_e ea w2
         therefore forall z. (Mul x n z and Nat z) -> MulEx x s
@@ -234,13 +234,13 @@ define PairN x y z = exists s q. Add x y s and Mul s s q and Add q x z
 theorem pairn_exists:
   variable x y
   assume times: TIMES
-  assume addl: forall x1. NatLeast (AddEx x1)
-  assume natl: AddLeast AddNat
-  assume mull: forall x1. NatLeast (MulEx x1)
-  assume nx: Nat x
-  assume ny: Nat y
-  plus: PLUS    by and_e times
-  es: AddEx x y by imp_e add_total plus addl nx ny
+  assume addl:  forall x1. NatLeast (AddEx x1)
+  assume natl:  AddLeast AddNat
+  assume mull:  forall x1. NatLeast (MulEx x1)
+  assume nx:    Nat x
+  assume ny:    Nat y
+  plus: PLUS      by and_e times
+  es:   AddEx x y by imp_e add_total plus addl nx ny
   lemma w1:
     variable s
     assume a1: Add x y s
@@ -249,19 +249,19 @@ theorem pairn_exists:
     lemma w2:
       variable q
       assume h: Mul s s q and Nat q
-      m: Mul s s q  by and_e h
+      m:  Mul s s q by and_e h
       nq: Nat q     by and_e h
       ez: AddEx q x by imp_e add_total plus addl nq nx
       lemma w3:
         variable z
         assume a2: Add q x z
-        c: Add x y s and Mul s s q and Add q x z
-                                 by and_i a1 m a2
-        pz: PairN x y z          by exists_i c
-        nz: Nat z                by imp_e add_nat plus natl a2 nq
-        k: PairN x y z and Nat z by and_i pz nz
-        e: exists z1. PairN x y z1 and Nat z1
-                                 by exists_i k
+        c:  Add x y s and Mul s s q and Add q x z
+                                  by and_i a1 m a2
+        pz: PairN x y z           by exists_i c
+        nz: Nat z                 by imp_e add_nat plus natl a2 nq
+        k:  PairN x y z and Nat z by and_i pz nz
+        e:  exists z1. PairN x y z1 and Nat z1
+                                  by exists_i k
         therefore forall z. Add q x z -> exists z1. PairN x y z1 and Nat z1
       r: exists z. PairN x y z and Nat z by exists_e ez w3
       therefore forall q. (Mul s s q and Nat q) -> exists z. PairN x y z and Nat z

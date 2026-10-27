@@ -11,12 +11,12 @@ define LtN n m = exists k k1. Suc k k1 and Add n k1 m
 define AddFun x y z = forall w. Add x y w -> Eq z w
 
 theorem add_fun:
-  assume plus: PLUS
-  assume linv: AddLeast AddShape
+  assume plus:  PLUS
+  assume linv:  AddLeast AddShape
   assume least: AddLeast AddFun
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  qa: Qa     by and_e plus
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
@@ -38,9 +38,9 @@ theorem add_fun:
         lemma wit:
           variable y0 z0
           assume k: Add x y0 z0 and Suc y0 z and Suc z0 w
-          sy: Suc y0 z by and_e k
-          bad: absurd  by imp_e suc_nil fs0 sy nz
-          r: Eq x w    by absurd_e bad
+          sy:  Suc y0 z by and_e k
+          bad: absurd   by imp_e suc_nil fs0 sy nz
+          r:   Eq x w   by absurd_e bad
           therefore forall y0 z0. (Add x y0 z0 and Suc y0 z and Suc z0 w) -> Eq x w
         r: Eq x w by exists_e ex wit
         therefore (exists y0 z0. Add x y0 z0 and Suc y0 z and Suc z0 w) -> Eq x w
@@ -49,7 +49,7 @@ theorem add_fun:
     therefore forall x z. Nat x -> Nil z -> AddFun x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddFun x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -59,25 +59,25 @@ theorem add_fun:
       sh: AddShape x y1 w by imp_e ainv aw
       lemma at0:
         assume b: Nil y1 and Eq w x
-        n: Nil y1   by and_e b
-        bad: absurd by imp_e suc_nil fs0 sy n
-        r: Eq z1 w  by absurd_e bad
+        n:   Nil y1  by and_e b
+        bad: absurd  by imp_e suc_nil fs0 sy n
+        r:   Eq z1 w by absurd_e bad
         therefore (Nil y1 and Eq w x) -> Eq z1 w
       lemma atsuc:
         assume ex: exists y0 z0. Add x y0 z0 and Suc y0 y1 and Suc z0 w
         lemma wit:
           variable y0 z0
           assume k: Add x y0 z0 and Suc y0 y1 and Suc z0 w
-          a0: Add x y0 z0 by and_e k
-          s0: Suc y0 y1   by and_e k
-          s1: Suc z0 w    by and_e k
-          ry1: Eq y1 y1   by forall_e refl y1
-          e0: Eq y0 y     by imp_e suc_inj fs0 s0 sy ry1
-          rx: Eq x x      by forall_e refl x
-          rz0: Eq z0 z0   by forall_e refl z0
-          a1: Add x y z0  by imp_e qa rx e0 rz0 a0
-          e1: Eq z z0     by imp_e ih a1
-          r: Eq z1 w      by imp_e suc_fun fs0 e1 sz s1
+          a0:  Add x y0 z0 by and_e k
+          s0:  Suc y0 y1   by and_e k
+          s1:  Suc z0 w    by and_e k
+          ry1: Eq y1 y1    by forall_e refl y1
+          e0:  Eq y0 y     by imp_e suc_inj fs0 s0 sy ry1
+          rx:  Eq x x      by forall_e refl x
+          rz0: Eq z0 z0    by forall_e refl z0
+          a1:  Add x y z0  by imp_e qa rx e0 rz0 a0
+          e1:  Eq z z0     by imp_e ih a1
+          r:   Eq z1 w     by imp_e suc_fun fs0 e1 sz s1
           therefore forall y0 z0. (Add x y0 z0 and Suc y0 y1 and Suc z0 w) -> Eq z1 w
         r: Eq z1 w by exists_e ex wit
         therefore (exists y0 z0. Add x y0 z0 and Suc y0 y1 and Suc z0 w) -> Eq z1 w
@@ -92,15 +92,15 @@ theorem add_fun:
 define AddZL x = forall n. Nil n -> Add n x x
 
 theorem add_zero_left:
-  assume plus: PLUS
+  assume plus:  PLUS
   assume least: NatLeast AddZL
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  zn: Zn     by and_e nat
-  ab: Ab     by and_e plus
-  as: As     by and_e plus
-  qa: Qa     by and_e plus
-  nu: Nu     by and_e fs0
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  zn:   Zn   by and_e nat
+  ab:   Ab   by and_e plus
+  as:   As   by and_e plus
+  qa:   Qa   by and_e plus
+  nu:   Nu   by and_e fs0
   refl: Refl by and_e fs0
   lemma base:
     variable m
@@ -108,12 +108,12 @@ theorem add_zero_left:
     lemma each:
       variable n
       assume nn: Nil n
-      natn: Nat n  by imp_e zn nn
-      a: Add n m n by imp_e ab natn nm
-      e: Eq n m    by imp_e nu nn nm
-      rn: Eq n n   by forall_e refl n
-      rm: Eq m m   by forall_e refl m
-      r: Add n m m by imp_e qa rn rm e a
+      natn: Nat n     by imp_e zn nn
+      a:    Add n m n by imp_e ab natn nm
+      e:    Eq n m    by imp_e nu nn nm
+      rn:   Eq n n    by forall_e refl n
+      rm:   Eq m m    by forall_e refl m
+      r:    Add n m m by imp_e qa rn rm e a
       therefore forall n. Nil n -> Add n m m
     therefore forall m. Nil m -> AddZL m
   lemma step:
@@ -121,8 +121,8 @@ theorem add_zero_left:
     assume nz: Nil z
     assume ih: AddZL k
     assume ps: Pair z k s
-    c: Nil z and Pair z k s by and_i nz ps
-    sk: Suc k s             by exists_i c
+    c:  Nil z and Pair z k s by and_i nz ps
+    sk: Suc k s              by exists_i c
     lemma each:
       variable n
       assume nn: Nil n
@@ -137,13 +137,13 @@ theorem add_zero_left:
 define AddSL x y z = forall x1 z1. Suc x x1 -> Suc z z1 -> Add x1 y z1
 
 theorem add_succ_left:
-  assume plus: PLUS
+  assume plus:  PLUS
   assume least: AddLeast AddSL
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  ab: Ab     by and_e plus
-  as: As     by and_e plus
-  qa: Qa     by and_e plus
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  ab:   Ab   by and_e plus
+  as:   As   by and_e plus
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   lemma base:
     variable x z
@@ -153,18 +153,18 @@ theorem add_succ_left:
       variable x1 z1
       assume s1: Suc x x1
       assume s2: Suc x z1
-      nx1: Nat x1    by imp_e nat_suc nat nx s1
-      a: Add x1 z x1 by imp_e ab nx1 nz
-      rx: Eq x x     by forall_e refl x
-      e: Eq x1 z1    by imp_e suc_fun fs0 rx s1 s2
-      rx1: Eq x1 x1  by forall_e refl x1
-      rz: Eq z z     by forall_e refl z
-      r: Add x1 z z1 by imp_e qa rx1 rz e a
+      nx1: Nat x1      by imp_e nat_suc nat nx s1
+      a:   Add x1 z x1 by imp_e ab nx1 nz
+      rx:  Eq x x      by forall_e refl x
+      e:   Eq x1 z1    by imp_e suc_fun fs0 rx s1 s2
+      rx1: Eq x1 x1    by forall_e refl x1
+      rz:  Eq z z      by forall_e refl z
+      r:   Add x1 z z1 by imp_e qa rx1 rz e a
       therefore forall x1 z1. Suc x x1 -> Suc x z1 -> Add x1 z z1
     therefore forall x z. Nat x -> Nil z -> AddSL x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddSL x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -173,7 +173,7 @@ theorem add_succ_left:
       assume s1: Suc x x1
       assume s2: Suc z1 w
       a1: Add x1 y z1 by imp_e ih s1 sz
-      r: Add x1 y1 w  by imp_e as a1 sy s2
+      r:  Add x1 y1 w by imp_e as a1 sy s2
       therefore forall x1 w. Suc x x1 -> Suc z1 w -> Add x1 y1 w
     therefore forall x y z y1 z1. Add x y z -> AddSL x y z -> Suc y y1 -> Suc z z1 -> AddSL x y1 z1
   r: forall x y z. Add x y z -> AddSL x y z
@@ -185,9 +185,9 @@ define AddC x y z = Add y x z
 
 theorem add_comm:
   assume plus: PLUS
-  assume lzl: NatLeast AddZL
-  assume lsl: AddLeast AddSL
-  assume lc: AddLeast AddC
+  assume lzl:  NatLeast AddZL
+  assume lsl:  AddLeast AddSL
+  assume lc:   AddLeast AddC
   zl: forall x. Nat x -> AddZL x by imp_e add_zero_left plus lzl
   sl: forall x y z. Add x y z -> AddSL x y z
                                  by imp_e add_succ_left plus lsl
@@ -200,7 +200,7 @@ theorem add_comm:
     therefore forall x z. Nat x -> Nil z -> AddC x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddC x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -215,13 +215,13 @@ theorem add_comm:
 define AddA a z b = forall x y c. Add x y a -> Add y z c -> Add x c b
 
 theorem add_assoc:
-  assume plus: PLUS
-  assume linv: AddLeast AddShape
+  assume plus:  PLUS
+  assume linv:  AddLeast AddShape
   assume least: AddLeast AddA
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  as: As     by and_e plus
-  qa: Qa     by and_e plus
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  as:   As   by and_e plus
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
@@ -236,20 +236,20 @@ theorem add_assoc:
       sh: AddShape y z c by imp_e ainv a2
       lemma at0:
         assume hb: Nil z and Eq c y
-        ecy: Eq c y  by and_e hb
-        eyc: Eq y c  by imp_e eq_sym fs0 ecy
-        rx: Eq x x   by forall_e refl x
-        ra: Eq a a   by forall_e refl a
-        r: Add x c a by imp_e qa rx eyc ra a1
+        ecy: Eq c y    by and_e hb
+        eyc: Eq y c    by imp_e eq_sym fs0 ecy
+        rx:  Eq x x    by forall_e refl x
+        ra:  Eq a a    by forall_e refl a
+        r:   Add x c a by imp_e qa rx eyc ra a1
         therefore (Nil z and Eq c y) -> Add x c a
       lemma atsuc:
         assume ex: exists y0 z0. Add y y0 z0 and Suc y0 z and Suc z0 c
         lemma wit:
           variable y0 z0
           assume k: Add y y0 z0 and Suc y0 z and Suc z0 c
-          sz: Suc y0 z by and_e k
-          bad: absurd  by imp_e suc_nil fs0 sz nz
-          r: Add x c a by absurd_e bad
+          sz:  Suc y0 z  by and_e k
+          bad: absurd    by imp_e suc_nil fs0 sz nz
+          r:   Add x c a by absurd_e bad
           therefore forall y0 z0. (Add y y0 z0 and Suc y0 z and Suc z0 c) -> Add x c a
         r: Add x c a by exists_e ex wit
         therefore (exists y0 z0. Add y y0 z0 and Suc y0 z and Suc z0 c) -> Add x c a
@@ -269,25 +269,25 @@ theorem add_assoc:
       sh: AddShape y z1 c by imp_e ainv a2
       lemma at0:
         assume hb: Nil z1 and Eq c y
-        n: Nil z1     by and_e hb
-        bad: absurd   by imp_e suc_nil fs0 sz n
-        r: Add x c b1 by absurd_e bad
+        n:   Nil z1     by and_e hb
+        bad: absurd     by imp_e suc_nil fs0 sz n
+        r:   Add x c b1 by absurd_e bad
         therefore (Nil z1 and Eq c y) -> Add x c b1
       lemma atsuc:
         assume ex: exists y0 z0. Add y y0 z0 and Suc y0 z1 and Suc z0 c
         lemma wit:
           variable y0 c0
           assume k: Add y y0 c0 and Suc y0 z1 and Suc c0 c
-          a0: Add y y0 c0 by and_e k
-          s0: Suc y0 z1   by and_e k
-          s1: Suc c0 c    by and_e k
-          rz1: Eq z1 z1   by forall_e refl z1
-          e0: Eq y0 z     by imp_e suc_inj fs0 s0 sz rz1
-          ry: Eq y y      by forall_e refl y
-          rc0: Eq c0 c0   by forall_e refl c0
-          a3: Add y z c0  by imp_e qa ry e0 rc0 a0
-          a4: Add x c0 b  by imp_e ih a1 a3
-          r: Add x c b1   by imp_e as a4 s1 sb
+          a0:  Add y y0 c0 by and_e k
+          s0:  Suc y0 z1   by and_e k
+          s1:  Suc c0 c    by and_e k
+          rz1: Eq z1 z1    by forall_e refl z1
+          e0:  Eq y0 z     by imp_e suc_inj fs0 s0 sz rz1
+          ry:  Eq y y      by forall_e refl y
+          rc0: Eq c0 c0    by forall_e refl c0
+          a3:  Add y z c0  by imp_e qa ry e0 rc0 a0
+          a4:  Add x c0 b  by imp_e ih a1 a3
+          r:   Add x c b1  by imp_e as a4 s1 sb
           therefore forall y0 c0. (Add y y0 c0 and Suc y0 z1 and Suc c0 c) -> Add x c b1
         r: Add x c b1 by exists_e ex wit
         therefore (exists y0 z0. Add y y0 z0 and Suc y0 z1 and Suc z0 c) -> Add x c b1
@@ -302,12 +302,12 @@ theorem add_assoc:
 define AddCR x y z = forall x1. Add x1 y z -> Eq x x1
 
 theorem add_cancel_right:
-  assume plus: PLUS
-  assume linv: AddLeast AddShape
+  assume plus:  PLUS
+  assume linv:  AddLeast AddShape
   assume least: AddLeast AddCR
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  qa: Qa     by and_e plus
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
@@ -328,9 +328,9 @@ theorem add_cancel_right:
         lemma wit:
           variable y0 z0
           assume k: Add x1 y0 z0 and Suc y0 z and Suc z0 x
-          sz: Suc y0 z by and_e k
-          bad: absurd  by imp_e suc_nil fs0 sz nz
-          r: Eq x x1   by absurd_e bad
+          sz:  Suc y0 z by and_e k
+          bad: absurd   by imp_e suc_nil fs0 sz nz
+          r:   Eq x x1  by absurd_e bad
           therefore forall y0 z0. (Add x1 y0 z0 and Suc y0 z and Suc z0 x) -> Eq x x1
         r: Eq x x1 by exists_e ex wit
         therefore (exists y0 z0. Add x1 y0 z0 and Suc y0 z and Suc z0 x) -> Eq x x1
@@ -339,7 +339,7 @@ theorem add_cancel_right:
     therefore forall x z. Nat x -> Nil z -> AddCR x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddCR x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -349,25 +349,25 @@ theorem add_cancel_right:
       sh: AddShape x1 y1 z1 by imp_e ainv a1
       lemma at0:
         assume b: Nil y1 and Eq z1 x1
-        n: Nil y1   by and_e b
-        bad: absurd by imp_e suc_nil fs0 sy n
-        r: Eq x x1  by absurd_e bad
+        n:   Nil y1  by and_e b
+        bad: absurd  by imp_e suc_nil fs0 sy n
+        r:   Eq x x1 by absurd_e bad
         therefore (Nil y1 and Eq z1 x1) -> Eq x x1
       lemma atsuc:
         assume ex: exists y0 z0. Add x1 y0 z0 and Suc y0 y1 and Suc z0 z1
         lemma wit:
           variable y0 z0
           assume k: Add x1 y0 z0 and Suc y0 y1 and Suc z0 z1
-          a0: Add x1 y0 z0 by and_e k
-          s0: Suc y0 y1    by and_e k
-          s1: Suc z0 z1    by and_e k
-          ry1: Eq y1 y1    by forall_e refl y1
-          rz1: Eq z1 z1    by forall_e refl z1
-          e0: Eq y0 y      by imp_e suc_inj fs0 s0 sy ry1
-          e1: Eq z0 z      by imp_e suc_inj fs0 s1 sz rz1
-          rx1: Eq x1 x1    by forall_e refl x1
-          a2: Add x1 y z   by imp_e qa rx1 e0 e1 a0
-          r: Eq x x1       by imp_e ih a2
+          a0:  Add x1 y0 z0 by and_e k
+          s0:  Suc y0 y1    by and_e k
+          s1:  Suc z0 z1    by and_e k
+          ry1: Eq y1 y1     by forall_e refl y1
+          rz1: Eq z1 z1     by forall_e refl z1
+          e0:  Eq y0 y      by imp_e suc_inj fs0 s0 sy ry1
+          e1:  Eq z0 z      by imp_e suc_inj fs0 s1 sz rz1
+          rx1: Eq x1 x1     by forall_e refl x1
+          a2:  Add x1 y z   by imp_e qa rx1 e0 e1 a0
+          r:   Eq x x1      by imp_e ih a2
           therefore forall y0 z0. (Add x1 y0 z0 and Suc y0 y1 and Suc z0 z1) -> Eq x x1
         r: Eq x x1 by exists_e ex wit
         therefore (exists y0 z0. Add x1 y0 z0 and Suc y0 y1 and Suc z0 z1) -> Eq x x1
@@ -382,18 +382,18 @@ theorem add_cancel_right:
 theorem add_cancel_left:
   assume plus: PLUS
   assume linv: AddLeast AddShape
-  assume lzl: NatLeast AddZL
-  assume lsl: AddLeast AddSL
-  assume lc: AddLeast AddC
-  assume lcr: AddLeast AddCR
+  assume lzl:  NatLeast AddZL
+  assume lsl:  AddLeast AddSL
+  assume lc:   AddLeast AddC
+  assume lcr:  AddLeast AddCR
   lemma all:
     variable x y y1 z
     assume a1: Add x y z
     assume a2: Add x y1 z
-    c1: Add y x z  by imp_e add_comm plus lzl lsl lc a1
-    c2: Add y1 x z by imp_e add_comm plus lzl lsl lc a2
-    k: AddCR y x z by imp_e add_cancel_right plus linv lcr c1
-    r: Eq y y1     by imp_e k c2
+    c1: Add y x z   by imp_e add_comm plus lzl lsl lc a1
+    c2: Add y1 x z  by imp_e add_comm plus lzl lsl lc a2
+    k:  AddCR y x z by imp_e add_cancel_right plus linv lcr c1
+    r:  Eq y y1     by imp_e k c2
     therefore forall x y y1 z. Add x y z -> Add x y1 z -> Eq y y1
   therefore PLUS -> AddLeast AddShape -> NatLeast AddZL -> AddLeast AddSL -> AddLeast AddC -> AddLeast AddCR
       -> forall x y y1 z. Add x y z -> Add x y1 z -> Eq y y1
@@ -402,14 +402,14 @@ theorem add_cancel_left:
 theorem lt_suc_split:
   assume plus: PLUS
   assume linv: AddLeast AddShape
-  assume lsl: AddLeast AddSL
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  qa: Qa     by and_e plus
+  assume lsl:  AddLeast AddSL
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
-  sl: forall x y z. Add x y z -> AddSL x y z
+  sl:   forall x y z. Add x y z -> AddSL x y z
              by imp_e add_succ_left plus lsl
   lemma all:
     variable r d r1
@@ -423,25 +423,25 @@ theorem lt_suc_split:
       sh: AddShape r k1 d by imp_e ainv ak
       lemma at0:
         assume hb: Nil k1 and Eq d r
-        n: Nil k1              by and_e hb
-        bad: absurd            by imp_e suc_nil fs0 sk n
-        g: LtN r1 d or Eq r1 d by absurd_e bad
+        n:   Nil k1              by and_e hb
+        bad: absurd              by imp_e suc_nil fs0 sk n
+        g:   LtN r1 d or Eq r1 d by absurd_e bad
         therefore (Nil k1 and Eq d r) -> LtN r1 d or Eq r1 d
       lemma atsuc:
         assume ex: exists y0 z0. Add r y0 z0 and Suc y0 k1 and Suc z0 d
         lemma wit:
           variable y0 z0
           assume hy: Add r y0 z0 and Suc y0 k1 and Suc z0 d
-          a0: Add r y0 z0      by and_e hy
-          s0: Suc y0 k1        by and_e hy
-          s1: Suc z0 d         by and_e hy
+          a0:  Add r y0 z0     by and_e hy
+          s0:  Suc y0 k1       by and_e hy
+          s1:  Suc z0 d        by and_e hy
           rk1: Eq k1 k1        by forall_e refl k1
-          e0: Eq y0 k          by imp_e suc_inj fs0 s0 sk rk1
-          rr: Eq r r           by forall_e refl r
+          e0:  Eq y0 k         by imp_e suc_inj fs0 s0 sk rk1
+          rr:  Eq r r          by forall_e refl r
           rz0: Eq z0 z0        by forall_e refl z0
-          a1: Add r k z0       by imp_e qa rr e0 rz0 a0
-          l1: AddSL r k z0     by imp_e sl a1
-          a2: Add r1 k d       by imp_e l1 sr s1
+          a1:  Add r k z0      by imp_e qa rr e0 rz0 a0
+          l1:  AddSL r k z0    by imp_e sl a1
+          a2:  Add r1 k d      by imp_e l1 sr s1
           -- k is 0, and r1 is d, or k is a successor, and r1 < d
           sh2: AddShape r1 k d by imp_e ainv a2
           lemma k0:
@@ -455,10 +455,10 @@ theorem lt_suc_split:
             lemma wit2:
               variable y1 z1
               assume k2: Add r1 y1 z1 and Suc y1 k and Suc z1 d
-              s2: Suc y1 k               by and_e k2
-              c: Suc y1 k and Add r1 k d by and_i s2 a2
-              l: LtN r1 d                by exists_i c
-              g: LtN r1 d or Eq r1 d     by or_i l
+              s2: Suc y1 k                by and_e k2
+              c:  Suc y1 k and Add r1 k d by and_i s2 a2
+              l:  LtN r1 d                by exists_i c
+              g:  LtN r1 d or Eq r1 d     by or_i l
               therefore forall y1 z1. (Add r1 y1 z1 and Suc y1 k and Suc z1 d) -> LtN r1 d or Eq r1 d
             g: LtN r1 d or Eq r1 d by exists_e ex2 wit2
             therefore (exists y1 z1. Add r1 y1 z1 and Suc y1 k and Suc z1 d) -> LtN r1 d or Eq r1 d
@@ -477,19 +477,19 @@ define DivP d n = Nat n and exists q a r. Mul d q a and Add a r n and LtN r d
 
 theorem div_exists:
   assume times: TIMES
-  assume linv: AddLeast AddShape
-  assume lsl: AddLeast AddSL
+  assume linv:  AddLeast AddShape
+  assume lsl:   AddLeast AddSL
   assume least: forall d. NatLeast (DivP d)
   plus: PLUS                        by and_e times
-  nat: NAT                          by and_e plus
-  fs0: FS0                          by and_e nat
-  zn: Zn                            by and_e nat
-  sn: Sn                            by and_e nat
-  ab: Ab                            by and_e plus
-  as: As                            by and_e plus
-  qa: Qa                            by and_e plus
-  mb: Mb                            by and_e times
-  ms: Ms                            by and_e times
+  nat:  NAT                         by and_e plus
+  fs0:  FS0                         by and_e nat
+  zn:   Zn                          by and_e nat
+  sn:   Sn                          by and_e nat
+  ab:   Ab                          by and_e plus
+  as:   As                          by and_e plus
+  qa:   Qa                          by and_e plus
+  mb:   Mb                          by and_e times
+  ms:   Ms                          by and_e times
   refl: Refl                        by and_e fs0
   sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
   lemma all:
@@ -499,39 +499,39 @@ theorem div_exists:
     lemma base:
       variable n
       assume nn: Nil n
-      natn: Nat n  by imp_e zn nn
-      m: Mul d n n by imp_e mb nd nn
-      a: Add n n n by imp_e ab natn nn
-      l: LtN n d   by imp_e pd nn
-      c: Mul d n n and Add n n n and LtN n d
-                   by and_i m a l
-      e: exists q a1 r. Mul d q a1 and Add a1 r n and LtN r d
-                   by exists_i c
-      g: DivP d n  by and_i natn e
+      natn: Nat n     by imp_e zn nn
+      m:    Mul d n n by imp_e mb nd nn
+      a:    Add n n n by imp_e ab natn nn
+      l:    LtN n d   by imp_e pd nn
+      c:    Mul d n n and Add n n n and LtN n d
+                      by and_i m a l
+      e:    exists q a1 r. Mul d q a1 and Add a1 r n and LtN r d
+                      by exists_i c
+      g:    DivP d n  by and_i natn e
       therefore forall n. Nil n -> DivP d n
     lemma step:
       variable z m s
       assume nz: Nil z
       assume ih: DivP d m
       assume ps: Pair z m s
-      nm: Nat m                by and_e ih
-      ns: Nat s                by imp_e sn nz nm ps
-      cs: Nil z and Pair z m s by and_i nz ps
-      sms: Suc m s             by exists_i cs
-      ex: exists q a r. Mul d q a and Add a r m and LtN r d
-                               by and_e ih
+      nm:  Nat m                by and_e ih
+      ns:  Nat s                by imp_e sn nz nm ps
+      cs:  Nil z and Pair z m s by and_i nz ps
+      sms: Suc m s              by exists_i cs
+      ex:  exists q a r. Mul d q a and Add a r m and LtN r d
+                                by and_e ih
       lemma wit:
         variable q a r
         assume k: Mul d q a and Add a r m and LtN r d
-        mq: Mul d q a          by and_e k
-        ar: Add a r m          by and_e k
-        lr: LtN r d            by and_e k
+        mq:  Mul d q a         by and_e k
+        ar:  Add a r m         by and_e k
+        lr:  LtN r d           by and_e k
         er1: exists t. Suc r t by forall_e sucs r
         lemma wr:
           variable r1
           assume sr: Suc r r1
-          ar1: Add a r1 s        by imp_e as ar sr sms
-          o: LtN r1 d or Eq r1 d by imp_e lt_suc_split plus linv lsl lr sr
+          ar1: Add a r1 s          by imp_e as ar sr sms
+          o:   LtN r1 d or Eq r1 d by imp_e lt_suc_split plus linv lsl lr sr
           -- the remainder grows by one, or reaches d, and the quotient grows instead
           lemma below:
             assume l1: LtN r1 d
@@ -543,9 +543,9 @@ theorem div_exists:
             therefore LtN r1 d -> DivP d s
           lemma at:
             assume e1: Eq r1 d
-            ra: Eq a a             by forall_e refl a
-            rs: Eq s s             by forall_e refl s
-            ad: Add a d s          by imp_e qa ra e1 rs ar1
+            ra:  Eq a a            by forall_e refl a
+            rs:  Eq s s            by forall_e refl s
+            ad:  Add a d s         by imp_e qa ra e1 rs ar1
             eq1: exists t. Suc q t by forall_e sucs q
             lemma wq:
               variable q1
@@ -553,11 +553,11 @@ theorem div_exists:
               m1: Mul d q1 s by imp_e ms mq sq ad
               a0: Add s z s  by imp_e ab ns nz
               l0: LtN z d    by imp_e pd nz
-              c: Mul d q1 s and Add s z s and LtN z d
+              c:  Mul d q1 s and Add s z s and LtN z d
                              by and_i m1 a0 l0
-              e: exists q2 a1 r2. Mul d q2 a1 and Add a1 r2 s and LtN r2 d
+              e:  exists q2 a1 r2. Mul d q2 a1 and Add a1 r2 s and LtN r2 d
                              by exists_i c
-              g: DivP d s    by and_i ns e
+              g:  DivP d s   by and_i ns e
               therefore forall q1. Suc q q1 -> DivP d s
             g: DivP d s by exists_e eq1 wq
             therefore Eq r1 d -> DivP d s
@@ -567,8 +567,8 @@ theorem div_exists:
         therefore forall q a r. (Mul d q a and Add a r m and LtN r d) -> DivP d s
       g: DivP d s by exists_e ex wit
       therefore forall z m s. Nil z -> DivP d m -> Pair z m s -> DivP d s
-    ld: NatLeast (DivP d)          by forall_e least d
-    g: forall n. Nat n -> DivP d n by imp_e ld base step
+    ld: NatLeast (DivP d)           by forall_e least d
+    g:  forall n. Nat n -> DivP d n by imp_e ld base step
     therefore forall d. Nat d -> (forall z. Nil z -> LtN z d) -> forall n. Nat n -> DivP d n
   therefore TIMES -> AddLeast AddShape -> AddLeast AddSL -> (forall d. NatLeast (DivP d))
       -> forall d. Nat d -> (forall z. Nil z -> LtN z d) -> forall n. Nat n -> DivP d n
@@ -578,12 +578,12 @@ define MulNat x y z = Nat z
 
 theorem mul_nat:
   assume times: TIMES
-  assume ladd: AddLeast AddNat
+  assume ladd:  AddLeast AddNat
   assume least: MulLeast MulNat
   plus: PLUS by and_e times
-  nat: NAT   by and_e plus
-  zn: Zn     by and_e nat
-  an: forall x y z. Add x y z -> AddNat x y z
+  nat:  NAT  by and_e plus
+  zn:   Zn   by and_e nat
+  an:   forall x y z. Add x y z -> AddNat x y z
              by imp_e add_nat plus ladd
   lemma base:
     variable x z
@@ -593,10 +593,10 @@ theorem mul_nat:
     therefore forall x z. Nat x -> Nil z -> MulNat x z z
   lemma step:
     variable x y z y1 z1
-    assume m: Mul x y z
+    assume m:  Mul x y z
     assume ih: MulNat x y z
     assume sy: Suc y y1
-    assume a: Add z x z1
+    assume a:  Add z x z1
     k: AddNat z x z1 by imp_e an a
     g: Nat z1        by imp_e k ih
     therefore forall x y z y1 z1. Mul x y z -> MulNat x y z -> Suc y y1 -> Add z x z1 -> MulNat x y1 z1
@@ -609,20 +609,20 @@ define MulFun x y z = forall w. Mul x y w -> Eq z w
 
 theorem mul_fun:
   assume times: TIMES
-  assume linv: AddLeast AddShape
-  assume lfun: AddLeast AddFun
-  assume minv: MulLeast MulShape
+  assume linv:  AddLeast AddShape
+  assume lfun:  AddLeast AddFun
+  assume minv:  MulLeast MulShape
   assume least: MulLeast MulFun
   plus: PLUS by and_e times
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  qa: Qa     by and_e plus
-  qm: Qm     by and_e times
-  nu: Nu     by and_e fs0
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  qa:   Qa   by and_e plus
+  qm:   Qm   by and_e times
+  nu:   Nu   by and_e fs0
   refl: Refl by and_e fs0
-  mi: forall x y z. Mul x y z -> MulShape x y z
+  mi:   forall x y z. Mul x y z -> MulShape x y z
              by imp_e mul_inv minv
-  af: forall x y z. Add x y z -> AddFun x y z
+  af:   forall x y z. Add x y z -> AddFun x y z
              by imp_e add_fun plus linv lfun
   lemma base:
     variable x z
@@ -634,17 +634,17 @@ theorem mul_fun:
       sh: MulShape x z w by imp_e mi mw
       lemma at0:
         assume hb: Nil z and Nil w
-        nw: Nil w by and_e hb
-        g: Eq z w by imp_e nu nz nw
+        nw: Nil w  by and_e hb
+        g:  Eq z w by imp_e nu nz nw
         therefore (Nil z and Nil w) -> Eq z w
       lemma atsuc:
         assume ex: exists y0 z0. Mul x y0 z0 and Suc y0 z and Add z0 x w
         lemma wit:
           variable y0 z0
           assume hy: Mul x y0 z0 and Suc y0 z and Add z0 x w
-          sz: Suc y0 z by and_e hy
-          bad: absurd  by imp_e suc_nil fs0 sz nz
-          g: Eq z w    by absurd_e bad
+          sz:  Suc y0 z by and_e hy
+          bad: absurd   by imp_e suc_nil fs0 sz nz
+          g:   Eq z w   by absurd_e bad
           therefore forall y0 z0. (Mul x y0 z0 and Suc y0 z and Add z0 x w) -> Eq z w
         g: Eq z w by exists_e ex wit
         therefore (exists y0 z0. Mul x y0 z0 and Suc y0 z and Add z0 x w) -> Eq z w
@@ -653,39 +653,39 @@ theorem mul_fun:
     therefore forall x z. Nat x -> Nil z -> MulFun x z z
   lemma step:
     variable x y z y1 z1
-    assume m: Mul x y z
+    assume m:  Mul x y z
     assume ih: MulFun x y z
     assume sy: Suc y y1
-    assume a: Add z x z1
+    assume a:  Add z x z1
     lemma each:
       variable w
       assume mw: Mul x y1 w
       sh: MulShape x y1 w by imp_e mi mw
       lemma at0:
         assume hb: Nil y1 and Nil w
-        n: Nil y1   by and_e hb
-        bad: absurd by imp_e suc_nil fs0 sy n
-        g: Eq z1 w  by absurd_e bad
+        n:   Nil y1  by and_e hb
+        bad: absurd  by imp_e suc_nil fs0 sy n
+        g:   Eq z1 w by absurd_e bad
         therefore (Nil y1 and Nil w) -> Eq z1 w
       lemma atsuc:
         assume ex: exists y0 z0. Mul x y0 z0 and Suc y0 y1 and Add z0 x w
         lemma wit:
           variable y0 z0
           assume hy: Mul x y0 z0 and Suc y0 y1 and Add z0 x w
-          m0: Mul x y0 z0  by and_e hy
-          s0: Suc y0 y1    by and_e hy
-          a0: Add z0 x w   by and_e hy
-          ry1: Eq y1 y1    by forall_e refl y1
-          e0: Eq y0 y      by imp_e suc_inj fs0 s0 sy ry1
-          rx: Eq x x       by forall_e refl x
-          rz0: Eq z0 z0    by forall_e refl z0
-          m1: Mul x y z0   by imp_e qm rx e0 rz0 m0
-          e1: Eq z z0      by imp_e ih m1
-          e2: Eq z0 z      by imp_e eq_sym fs0 e1
-          rw: Eq w w       by forall_e refl w
-          a1: Add z x w    by imp_e qa e2 rx rw a0
-          k: AddFun z x z1 by imp_e af a
-          g: Eq z1 w       by imp_e k a1
+          m0:  Mul x y0 z0   by and_e hy
+          s0:  Suc y0 y1     by and_e hy
+          a0:  Add z0 x w    by and_e hy
+          ry1: Eq y1 y1      by forall_e refl y1
+          e0:  Eq y0 y       by imp_e suc_inj fs0 s0 sy ry1
+          rx:  Eq x x        by forall_e refl x
+          rz0: Eq z0 z0      by forall_e refl z0
+          m1:  Mul x y z0    by imp_e qm rx e0 rz0 m0
+          e1:  Eq z z0       by imp_e ih m1
+          e2:  Eq z0 z       by imp_e eq_sym fs0 e1
+          rw:  Eq w w        by forall_e refl w
+          a1:  Add z x w     by imp_e qa e2 rx rw a0
+          k:   AddFun z x z1 by imp_e af a
+          g:   Eq z1 w       by imp_e k a1
           therefore forall y0 z0. (Mul x y0 z0 and Suc y0 y1 and Add z0 x w) -> Eq z1 w
         g: Eq z1 w by exists_e ex wit
         therefore (exists y0 z0. Mul x y0 z0 and Suc y0 y1 and Add z0 x w) -> Eq z1 w
@@ -702,27 +702,27 @@ theorem mul_fun:
 define MulD y z s = forall x a b c. Mul x y a -> Mul x z b -> Mul x s c -> Add a b c
 
 theorem mul_dist:
-  assume times: TIMES
-  assume linv: AddLeast AddShape
-  assume lfun: AddLeast AddFun
+  assume times:  TIMES
+  assume linv:   AddLeast AddShape
+  assume lfun:   AddLeast AddFun
   assume lassoc: AddLeast AddA
-  assume ladd: AddLeast AddNat
-  assume minv: MulLeast MulShape
-  assume lmfun: MulLeast MulFun
-  assume lmnat: MulLeast MulNat
-  assume least: AddLeast MulD
+  assume ladd:   AddLeast AddNat
+  assume minv:   MulLeast MulShape
+  assume lmfun:  MulLeast MulFun
+  assume lmnat:  MulLeast MulNat
+  assume least:  AddLeast MulD
   plus: PLUS by and_e times
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  ab: Ab     by and_e plus
-  qa: Qa     by and_e plus
-  qm: Qm     by and_e times
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  ab:   Ab   by and_e plus
+  qa:   Qa   by and_e plus
+  qm:   Qm   by and_e times
   refl: Refl by and_e fs0
-  mi: forall x y z. Mul x y z -> MulShape x y z
+  mi:   forall x y z. Mul x y z -> MulShape x y z
              by imp_e mul_inv minv
-  mf: forall x y z. Mul x y z -> MulFun x y z
+  mf:   forall x y z. Mul x y z -> MulFun x y z
              by imp_e mul_fun times linv lfun minv lmfun
-  aa: forall a z b. Add a z b -> AddA a z b
+  aa:   forall a z b. Add a z b -> AddA a z b
              by imp_e add_assoc plus linv lassoc
   lemma base:
     variable y z
@@ -737,22 +737,22 @@ theorem mul_dist:
       sh: MulShape x z b by imp_e mi mb
       lemma at0:
         assume hb: Nil z and Nil b
-        nb: Nil b       by and_e hb
-        a0: Add a b a   by imp_e ab na nb
-        k: MulFun x y a by imp_e mf ma
-        e: Eq a c       by imp_e k mc
-        ra: Eq a a      by forall_e refl a
-        rb: Eq b b      by forall_e refl b
-        g: Add a b c    by imp_e qa ra rb e a0
+        nb: Nil b        by and_e hb
+        a0: Add a b a    by imp_e ab na nb
+        k:  MulFun x y a by imp_e mf ma
+        e:  Eq a c       by imp_e k mc
+        ra: Eq a a       by forall_e refl a
+        rb: Eq b b       by forall_e refl b
+        g:  Add a b c    by imp_e qa ra rb e a0
         therefore (Nil z and Nil b) -> Add a b c
       lemma atsuc:
         assume ex: exists y0 z0. Mul x y0 z0 and Suc y0 z and Add z0 x b
         lemma wit:
           variable y0 z0
           assume hy: Mul x y0 z0 and Suc y0 z and Add z0 x b
-          sz: Suc y0 z by and_e hy
-          bad: absurd  by imp_e suc_nil fs0 sz nz
-          g: Add a b c by absurd_e bad
+          sz:  Suc y0 z  by and_e hy
+          bad: absurd    by imp_e suc_nil fs0 sz nz
+          g:   Add a b c by absurd_e bad
           therefore forall y0 z0. (Mul x y0 z0 and Suc y0 z and Add z0 x b) -> Add a b c
         g: Add a b c by exists_e ex wit
         therefore (exists y0 z0. Mul x y0 z0 and Suc y0 z and Add z0 x b) -> Add a b c
@@ -783,7 +783,7 @@ theorem mul_dist:
           ab0: Add b0 x b  by and_e hb
           rz1: Eq z1 z1    by forall_e refl z1
           ezb: Eq zb z     by imp_e suc_inj fs0 sb0 sz rz1
-          rx: Eq x x       by forall_e refl x
+          rx:  Eq x x      by forall_e refl x
           rb0: Eq b0 b0    by forall_e refl b0
           mb1: Mul x z b0  by imp_e qm rx ezb rb0 mb0
           lemma csuc:
@@ -798,17 +798,17 @@ theorem mul_dist:
               esc: Eq sc s     by imp_e suc_inj fs0 sc0 ss rs1
               rc0: Eq c0 c0    by forall_e refl c0
               mc1: Mul x s c0  by imp_e qm rx esc rc0 mc0
-              a1: Add a b0 c0  by imp_e ih ma mb1 mc1
-              k: AddA c0 x c   by imp_e aa ac0
-              g: Add a b c     by imp_e k a1 ab0
+              a1:  Add a b0 c0 by imp_e ih ma mb1 mc1
+              k:   AddA c0 x c by imp_e aa ac0
+              g:   Add a b c   by imp_e k a1 ab0
               therefore forall sc c0. (Mul x sc c0 and Suc sc s1 and Add c0 x c) -> Add a b c
             g: Add a b c by exists_e exc wc
             therefore (exists y0 z0. Mul x y0 z0 and Suc y0 s1 and Add z0 x c) -> Add a b c
           lemma c0:
             assume hc: Nil s1 and Nil c
-            n: Nil s1    by and_e hc
-            bad: absurd  by imp_e suc_nil fs0 ss n
-            g: Add a b c by absurd_e bad
+            n:   Nil s1    by and_e hc
+            bad: absurd    by imp_e suc_nil fs0 ss n
+            g:   Add a b c by absurd_e bad
             therefore (Nil s1 and Nil c) -> Add a b c
           g: Add a b c by or_e shc c0 csuc
           therefore forall zb b0. (Mul x zb b0 and Suc zb z1 and Add b0 x b) -> Add a b c
@@ -816,9 +816,9 @@ theorem mul_dist:
         therefore (exists y0 z0. Mul x y0 z0 and Suc y0 z1 and Add z0 x b) -> Add a b c
       lemma b0:
         assume hb: Nil z1 and Nil b
-        n: Nil z1    by and_e hb
-        bad: absurd  by imp_e suc_nil fs0 sz n
-        g: Add a b c by absurd_e bad
+        n:   Nil z1    by and_e hb
+        bad: absurd    by imp_e suc_nil fs0 sz n
+        g:   Add a b c by absurd_e bad
         therefore (Nil z1 and Nil b) -> Add a b c
       g: Add a b c by or_e shb b0 bsuc
       therefore forall x a b c. Mul x y a -> Mul x z1 b -> Mul x s1 c -> Add a b c
@@ -836,12 +836,12 @@ define OddN x  = exists k y. Nat k and Add k k y and Suc y x
 theorem double_inv:
   assume plus: PLUS
   assume linv: AddLeast AddShape
-  assume lzl: NatLeast AddZL
-  assume lsl: AddLeast AddSL
-  assume lc: AddLeast AddC
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  qa: Qa     by and_e plus
+  assume lzl:  NatLeast AddZL
+  assume lsl:  AddLeast AddSL
+  assume lc:   AddLeast AddC
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  qa:   Qa   by and_e plus
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
@@ -849,13 +849,13 @@ theorem double_inv:
     variable k k1 x
     assume sk: Suc k k1
     assume ax: Add k1 k1 x
-    rk1: Eq k1 k1        by forall_e refl k1
-    sh: AddShape k1 k1 x by imp_e ainv ax
+    rk1: Eq k1 k1         by forall_e refl k1
+    sh:  AddShape k1 k1 x by imp_e ainv ax
     lemma at0:
       assume hb: Nil k1 and Eq x k1
-      n: Nil k1   by and_e hb
+      n:   Nil k1 by and_e hb
       bad: absurd by imp_e suc_nil fs0 sk n
-      g: exists u u1. Add k k u and Suc u u1 and Suc u1 x
+      g:   exists u u1. Add k k u and Suc u u1 and Suc u1 x
                   by absurd_e bad
       therefore (Nil k1 and Eq x k1) -> exists u u1. Add k k u and Suc u u1 and Suc u1 x
     lemma atsuc:
@@ -863,19 +863,19 @@ theorem double_inv:
       lemma wit:
         variable y0 z0
         assume hy: Add k1 y0 z0 and Suc y0 k1 and Suc z0 x
-        a0: Add k1 y0 z0      by and_e hy
-        s0: Suc y0 k1         by and_e hy
-        s1: Suc z0 x          by and_e hy
-        e0: Eq y0 k           by imp_e suc_inj fs0 s0 sk rk1
+        a0:  Add k1 y0 z0     by and_e hy
+        s0:  Suc y0 k1        by and_e hy
+        s1:  Suc z0 x         by and_e hy
+        e0:  Eq y0 k          by imp_e suc_inj fs0 s0 sk rk1
         rz0: Eq z0 z0         by forall_e refl z0
-        a1: Add k1 k z0       by imp_e qa rk1 e0 rz0 a0
-        a2: Add k k1 z0       by imp_e add_comm plus lzl lsl lc a1
+        a1:  Add k1 k z0      by imp_e qa rk1 e0 rz0 a0
+        a2:  Add k k1 z0      by imp_e add_comm plus lzl lsl lc a1
         sh2: AddShape k k1 z0 by imp_e ainv a2
         lemma b0:
           assume hb: Nil k1 and Eq z0 k
-          n: Nil k1   by and_e hb
+          n:   Nil k1 by and_e hb
           bad: absurd by imp_e suc_nil fs0 sk n
-          g: exists u u1. Add k k u and Suc u u1 and Suc u1 x
+          g:   exists u u1. Add k k u and Suc u u1 and Suc u1 x
                       by absurd_e bad
           therefore (Nil k1 and Eq z0 k) -> exists u u1. Add k k u and Suc u u1 and Suc u1 x
         lemma bsuc:
@@ -890,9 +890,9 @@ theorem double_inv:
             rk: Eq k k     by forall_e refl k
             ru: Eq u u     by forall_e refl u
             a4: Add k k u  by imp_e qa rk e1 ru a3
-            c: Add k k u and Suc u z0 and Suc z0 x
+            c:  Add k k u and Suc u z0 and Suc z0 x
                            by and_i a4 s3 s1
-            g: exists u2 u1. Add k k u2 and Suc u2 u1 and Suc u1 x
+            g:  exists u2 u1. Add k k u2 and Suc u2 u1 and Suc u1 x
                            by exists_i c
             therefore forall y1 u. (Add k y1 u and Suc y1 k1 and Suc u z0)
                 -> exists u2 u1. Add k k u2 and Suc u2 u1 and Suc u1 x
@@ -918,33 +918,33 @@ theorem double_inv:
 define EvOd x = EvenN x or OddN x
 
 theorem even_or_odd:
-  assume plus: PLUS
-  assume lsl: AddLeast AddSL
+  assume plus:  PLUS
+  assume lsl:   AddLeast AddSL
   assume least: NatLeast EvOd
-  nat: NAT                          by and_e plus
-  fs0: FS0                          by and_e nat
-  zn: Zn                            by and_e nat
-  ab: Ab                            by and_e plus
-  as: As                            by and_e plus
+  nat:  NAT                         by and_e plus
+  fs0:  FS0                         by and_e nat
+  zn:   Zn                          by and_e nat
+  ab:   Ab                          by and_e plus
+  as:   As                          by and_e plus
   sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
-  sl: forall x y z. Add x y z -> AddSL x y z
+  sl:   forall x y z. Add x y z -> AddSL x y z
                                     by imp_e add_succ_left plus lsl
   lemma base:
     variable n
     assume nn: Nil n
-    natn: Nat n            by imp_e zn nn
-    a: Add n n n           by imp_e ab natn nn
-    c: Nat n and Add n n n by and_i natn a
-    e: EvenN n             by exists_i c
-    g: EvOd n              by or_i e
+    natn: Nat n               by imp_e zn nn
+    a:    Add n n n           by imp_e ab natn nn
+    c:    Nat n and Add n n n by and_i natn a
+    e:    EvenN n             by exists_i c
+    g:    EvOd n              by or_i e
     therefore forall n. Nil n -> EvOd n
   lemma step:
     variable z m s
     assume nz: Nil z
     assume ih: EvOd m
     assume ps: Pair z m s
-    cs: Nil z and Pair z m s by and_i nz ps
-    sms: Suc m s             by exists_i cs
+    cs:  Nil z and Pair z m s by and_i nz ps
+    sms: Suc m s              by exists_i cs
     lemma ev:
       assume he: EvenN m
       lemma wit:
@@ -952,10 +952,10 @@ theorem even_or_odd:
         assume hk: Nat k and Add k k m
         nk: Nat k     by and_e hk
         ak: Add k k m by and_e hk
-        c: Nat k and Add k k m and Suc m s
+        c:  Nat k and Add k k m and Suc m s
                       by and_i nk ak sms
-        o: OddN s     by exists_i c
-        g: EvOd s     by or_i o
+        o:  OddN s    by exists_i c
+        g:  EvOd s    by or_i o
         therefore forall k. (Nat k and Add k k m) -> EvOd s
       g: EvOd s by exists_e he wit
       therefore EvenN m -> EvOd s
@@ -964,20 +964,20 @@ theorem even_or_odd:
       lemma wit:
         variable k y
         assume hk: Nat k and Add k k y and Suc y m
-        nk: Nat k              by and_e hk
-        ak: Add k k y          by and_e hk
-        sy: Suc y m            by and_e hk
+        nk:  Nat k             by and_e hk
+        ak:  Add k k y         by and_e hk
+        sy:  Suc y m           by and_e hk
         ek1: exists t. Suc k t by forall_e sucs k
         lemma w1:
           variable k1
           assume sk: Suc k k1
-          nk1: Nat k1               by imp_e nat_suc nat nk sk
-          a1: Add k k1 m            by imp_e as ak sk sy
-          l1: AddSL k k1 m          by imp_e sl a1
-          a2: Add k1 k1 s           by imp_e l1 sk sms
-          c: Nat k1 and Add k1 k1 s by and_i nk1 a2
-          e: EvenN s                by exists_i c
-          g: EvOd s                 by or_i e
+          nk1: Nat k1                 by imp_e nat_suc nat nk sk
+          a1:  Add k k1 m             by imp_e as ak sk sy
+          l1:  AddSL k k1 m           by imp_e sl a1
+          a2:  Add k1 k1 s            by imp_e l1 sk sms
+          c:   Nat k1 and Add k1 k1 s by and_i nk1 a2
+          e:   EvenN s                by exists_i c
+          g:   EvOd s                 by or_i e
           therefore forall k1. Suc k k1 -> EvOd s
         g: EvOd s by exists_e ek1 w1
         therefore forall k y. (Nat k and Add k k y and Suc y m) -> EvOd s
@@ -993,16 +993,16 @@ theorem even_or_odd:
 define NotEO k = forall j y x. Nat j -> Add k k x -> Add j j y -> Suc y x -> absurd
 
 theorem parity_unique:
-  assume plus: PLUS
-  assume linv: AddLeast AddShape
-  assume lzl: NatLeast AddZL
-  assume lsl: AddLeast AddSL
-  assume lc: AddLeast AddC
+  assume plus:  PLUS
+  assume linv:  AddLeast AddShape
+  assume lzl:   NatLeast AddZL
+  assume lsl:   AddLeast AddSL
+  assume lc:    AddLeast AddC
   assume lninv: NatLeast NatInv
   assume least: NatLeast NotEO
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  en: En     by and_e fs0
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  en:   En   by and_e fs0
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
@@ -1018,9 +1018,9 @@ theorem parity_unique:
       sh: AddShape n n x by imp_e ainv ax
       lemma at0:
         assume hb: Nil n and Eq x n
-        e1: Eq x n  by and_e hb
-        e2: Eq n x  by imp_e eq_sym fs0 e1
-        nx: Nil x   by imp_e en e2 nn
+        e1:  Eq x n by and_e hb
+        e2:  Eq n x by imp_e eq_sym fs0 e1
+        nx:  Nil x  by imp_e en e2 nn
         bad: absurd by imp_e suc_nil fs0 sy nx
         therefore (Nil n and Eq x n) -> absurd
       lemma atsuc:
@@ -1028,8 +1028,8 @@ theorem parity_unique:
         lemma wit:
           variable y0 z0
           assume hy: Add n y0 z0 and Suc y0 n and Suc z0 x
-          s0: Suc y0 n by and_e hy
-          bad: absurd  by imp_e suc_nil fs0 s0 nn
+          s0:  Suc y0 n by and_e hy
+          bad: absurd   by imp_e suc_nil fs0 s0 nn
           therefore forall y0 z0. (Add n y0 z0 and Suc y0 n and Suc z0 x) -> absurd
         bad: absurd by exists_e ex wit
         therefore (exists y0 z0. Add n y0 z0 and Suc y0 n and Suc z0 x) -> absurd
@@ -1054,23 +1054,23 @@ theorem parity_unique:
       lemma wu:
         variable u u1
         assume hu: Add k k u and Suc u u1 and Suc u1 x
-        aku: Add k k u by and_e hu
-        su: Suc u u1   by and_e hu
-        su1: Suc u1 x  by and_e hu
-        rx: Eq x x     by forall_e refl x
-        e1: Eq u1 y    by imp_e suc_inj fs0 su1 sy rx
-        e3: Eq y u1    by imp_e eq_sym fs0 e1
-        ji: NatInv j   by imp_e nat_inv nat lninv nj
-        sj: NatShape j by and_e ji
+        aku: Add k k u  by and_e hu
+        su:  Suc u u1   by and_e hu
+        su1: Suc u1 x   by and_e hu
+        rx:  Eq x x     by forall_e refl x
+        e1:  Eq u1 y    by imp_e suc_inj fs0 su1 sy rx
+        e3:  Eq y u1    by imp_e eq_sym fs0 e1
+        ji:  NatInv j   by imp_e nat_inv nat lninv nj
+        sj:  NatShape j by and_e ji
         -- j is 0: then y is 0, but y is u1, a successor
         lemma jz:
           assume njl: Nil j
           shy: AddShape j j y by imp_e ainv ay
           lemma c0:
             assume hb: Nil j and Eq y j
-            e2: Eq y j  by and_e hb
-            ej: Eq j y  by imp_e eq_sym fs0 e2
-            ny: Nil y   by imp_e en ej njl
+            e2:  Eq y j by and_e hb
+            ej:  Eq j y by imp_e eq_sym fs0 e2
+            ny:  Nil y  by imp_e en ej njl
             nu1: Nil u1 by imp_e en e3 ny
             bad: absurd by imp_e suc_nil fs0 su nu1
             therefore (Nil j and Eq y j) -> absurd
@@ -1079,8 +1079,8 @@ theorem parity_unique:
             lemma wit:
               variable y0 z0
               assume hy: Add j y0 z0 and Suc y0 j and Suc z0 y
-              s0: Suc y0 j by and_e hy
-              bad: absurd  by imp_e suc_nil fs0 s0 njl
+              s0:  Suc y0 j by and_e hy
+              bad: absurd   by imp_e suc_nil fs0 s0 njl
               therefore forall y0 z0. (Add j y0 z0 and Suc y0 j and Suc z0 y) -> absurd
             bad: absurd by exists_e ex wit
             therefore (exists y0 z0. Add j y0 z0 and Suc y0 j and Suc z0 y) -> absurd
@@ -1092,23 +1092,23 @@ theorem parity_unique:
           lemma wit:
             variable z2 j0
             assume hj: Nil z2 and Nat j0 and Pair z2 j0 j
-            nz2: Nil z2                by and_e hj
-            nj0: Nat j0                by and_e hj
-            pj: Pair z2 j0 j           by and_e hj
-            c: Nil z2 and Pair z2 j0 j by and_i nz2 pj
-            sj0: Suc j0 j              by exists_i c
+            nz2: Nil z2                  by and_e hj
+            nj0: Nat j0                  by and_e hj
+            pj:  Pair z2 j0 j            by and_e hj
+            c:   Nil z2 and Pair z2 j0 j by and_i nz2 pj
+            sj0: Suc j0 j                by exists_i c
             ed2: exists u2 u3. Add j0 j0 u2 and Suc u2 u3 and Suc u3 y
-                                       by imp_e double_inv plus linv lzl lsl lc sj0 ay
+                                         by imp_e double_inv plus linv lzl lsl lc sj0 ay
             lemma ww:
               variable w w1
               assume hw: Add j0 j0 w and Suc w w1 and Suc w1 y
-              aw: Add j0 j0 w by and_e hw
-              sw: Suc w w1    by and_e hw
-              sw1: Suc w1 y   by and_e hw
-              e5: Eq w1 u     by imp_e suc_inj fs0 sw1 su e3
-              rw: Eq w w      by forall_e refl w
-              sw2: Suc w u    by imp_e suc_eq fs0 rw e5 sw
-              bad: absurd     by imp_e ih nj0 aku aw sw2
+              aw:  Add j0 j0 w by and_e hw
+              sw:  Suc w w1    by and_e hw
+              sw1: Suc w1 y    by and_e hw
+              e5:  Eq w1 u     by imp_e suc_inj fs0 sw1 su e3
+              rw:  Eq w w      by forall_e refl w
+              sw2: Suc w u     by imp_e suc_eq fs0 rw e5 sw
+              bad: absurd      by imp_e ih nj0 aku aw sw2
               therefore forall w w1. (Add j0 j0 w and Suc w w1 and Suc w1 y) -> absurd
             bad: absurd by exists_e ed2 ww
             therefore forall z2 j0. (Nil z2 and Nat j0 and Pair z2 j0 j) -> absurd
@@ -1132,11 +1132,11 @@ theorem parity_unique:
       lemma wo:
         variable j y
         assume hj: Nat j and Add j j y and Suc y x
-        nj: Nat j     by and_e hj
-        aj: Add j j y by and_e hj
-        sy: Suc y x   by and_e hj
-        k2: NotEO k   by imp_e ne nk
-        bad: absurd   by imp_e k2 nj ak aj sy
+        nj:  Nat j     by and_e hj
+        aj:  Add j j y by and_e hj
+        sy:  Suc y x   by and_e hj
+        k2:  NotEO k   by imp_e ne nk
+        bad: absurd    by imp_e k2 nj ak aj sy
         therefore forall j y. (Nat j and Add j j y and Suc y x) -> absurd
       bad: absurd by exists_e od wo
       therefore forall k. (Nat k and Add k k x) -> absurd
@@ -1160,9 +1160,9 @@ theorem suc_even:
       assume hk: Nat k and Add k k x
       nk: Nat k     by and_e hk
       ak: Add k k x by and_e hk
-      c: Nat k and Add k k x and Suc x x1
+      c:  Nat k and Add k k x and Suc x x1
                     by and_i nk ak sx
-      g: OddN x1    by exists_i c
+      g:  OddN x1   by exists_i c
       therefore forall k. (Nat k and Add k k x) -> OddN x1
     g: OddN x1 by exists_e ev wit
     therefore forall x x1. EvenN x -> Suc x x1 -> OddN x1
@@ -1170,12 +1170,12 @@ theorem suc_even:
 
 theorem suc_odd:
   assume plus: PLUS
-  assume lsl: AddLeast AddSL
-  nat: NAT                          by and_e plus
-  fs0: FS0                          by and_e nat
-  as: As                            by and_e plus
+  assume lsl:  AddLeast AddSL
+  nat:  NAT                         by and_e plus
+  fs0:  FS0                         by and_e nat
+  as:   As                          by and_e plus
   sucs: forall s. exists t. Suc s t by imp_e suc_exists fs0
-  sl: forall x y z. Add x y z -> AddSL x y z
+  sl:   forall x y z. Add x y z -> AddSL x y z
                                     by imp_e add_succ_left plus lsl
   lemma all:
     variable x x1
@@ -1184,19 +1184,19 @@ theorem suc_odd:
     lemma wit:
       variable k y
       assume hk: Nat k and Add k k y and Suc y x
-      nk: Nat k              by and_e hk
-      ak: Add k k y          by and_e hk
-      sy: Suc y x            by and_e hk
+      nk:  Nat k             by and_e hk
+      ak:  Add k k y         by and_e hk
+      sy:  Suc y x           by and_e hk
       ek1: exists t. Suc k t by forall_e sucs k
       lemma w1:
         variable k1
         assume sk: Suc k k1
-        nk1: Nat k1                by imp_e nat_suc nat nk sk
-        a1: Add k k1 x             by imp_e as ak sk sy
-        l1: AddSL k k1 x           by imp_e sl a1
-        a2: Add k1 k1 x1           by imp_e l1 sk sx
-        c: Nat k1 and Add k1 k1 x1 by and_i nk1 a2
-        g: EvenN x1                by exists_i c
+        nk1: Nat k1                  by imp_e nat_suc nat nk sk
+        a1:  Add k k1 x              by imp_e as ak sk sy
+        l1:  AddSL k k1 x            by imp_e sl a1
+        a2:  Add k1 k1 x1            by imp_e l1 sk sx
+        c:   Nat k1 and Add k1 k1 x1 by and_i nk1 a2
+        g:   EvenN x1                by exists_i c
         therefore forall k1. Suc k k1 -> EvenN x1
       g: EvenN x1 by exists_e ek1 w1
       therefore forall k y. (Nat k and Add k k y and Suc y x) -> EvenN x1
@@ -1209,12 +1209,12 @@ theorem pred_parity:
   assume pc: ParCtx
   plus: PLUS              by and_e pc
   linv: AddLeast AddShape by and_e pc
-  lzl: NatLeast AddZL     by and_e pc
-  lsl: AddLeast AddSL     by and_e pc
-  lc: AddLeast AddC       by and_e pc
-  lni: NatLeast NatInv    by and_e pc
-  lne: NatLeast NotEO     by and_e pc
-  leo: NatLeast EvOd      by and_e pc
+  lzl:  NatLeast AddZL    by and_e pc
+  lsl:  AddLeast AddSL    by and_e pc
+  lc:   AddLeast AddC     by and_e pc
+  lni:  NatLeast NatInv   by and_e pc
+  lne:  NatLeast NotEO    by and_e pc
+  leo:  NatLeast EvOd     by and_e pc
   lemma all:
     variable y y1
     assume ny: Nat y
@@ -1224,9 +1224,9 @@ theorem pred_parity:
       assume e1: EvenN y1
       lemma ev:
         assume ey: EvenN y
-        o1: OddN y1 by imp_e suc_even ey sy
-        bad: absurd by imp_e parity_unique plus linv lzl lsl lc lni lne e1 o1
-        g: OddN y   by absurd_e bad
+        o1:  OddN y1 by imp_e suc_even ey sy
+        bad: absurd  by imp_e parity_unique plus linv lzl lsl lc lni lne e1 o1
+        g:   OddN y  by absurd_e bad
         therefore EvenN y -> OddN y
       lemma od:
         assume oy: OddN y
@@ -1242,9 +1242,9 @@ theorem pred_parity:
         therefore EvenN y -> EvenN y
       lemma od:
         assume oy: OddN y
-        e1: EvenN y1 by imp_e suc_odd plus lsl oy sy
-        bad: absurd  by imp_e parity_unique plus linv lzl lsl lc lni lne e1 o1
-        g: EvenN y   by absurd_e bad
+        e1:  EvenN y1 by imp_e suc_odd plus lsl oy sy
+        bad: absurd   by imp_e parity_unique plus linv lzl lsl lc lni lne e1 o1
+        g:   EvenN y  by absurd_e bad
         therefore OddN y -> EvenN y
       g: EvenN y by or_e eo ev od
       therefore OddN y1 -> EvenN y
@@ -1258,10 +1258,10 @@ define AddMid x y z = Nat y
 define MulMid x y z = Nat y
 
 theorem add_mid:
-  assume plus: PLUS
+  assume plus:  PLUS
   assume least: AddLeast AddMid
   nat: NAT by and_e plus
-  zn: Zn   by and_e nat
+  zn:  Zn  by and_e nat
   lemma base:
     variable x z
     assume nx: Nat x
@@ -1270,7 +1270,7 @@ theorem add_mid:
     therefore forall x z. Nat x -> Nil z -> AddMid x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddMid x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -1284,8 +1284,8 @@ theorem mul_mid:
   assume times: TIMES
   assume least: MulLeast MulMid
   plus: PLUS by and_e times
-  nat: NAT   by and_e plus
-  zn: Zn     by and_e nat
+  nat:  NAT  by and_e plus
+  zn:   Zn   by and_e nat
   lemma base:
     variable x z
     assume nx: Nat x
@@ -1294,10 +1294,10 @@ theorem mul_mid:
     therefore forall x z. Nat x -> Nil z -> MulMid x z z
   lemma step:
     variable x y z y1 z1
-    assume m: Mul x y z
+    assume m:  Mul x y z
     assume ih: MulMid x y z
     assume sy: Suc y y1
-    assume a: Add z x z1
+    assume a:  Add z x z1
     g: Nat y1 by imp_e nat_suc nat ih sy
     therefore forall x y z y1 z1. Mul x y z -> MulMid x y z -> Suc y y1 -> Add z x z1 -> MulMid x y1 z1
   g: forall x y z. Mul x y z -> MulMid x y z
@@ -1309,13 +1309,13 @@ define AddPar x y z = (EvenN y -> EvenN x -> EvenN z) and (EvenN y -> OddN x -> 
     and (OddN y -> EvenN x -> OddN z) and (OddN y -> OddN x -> EvenN z)
 
 theorem add_par:
-  assume pc: ParCtx
-  assume lmid: AddLeast AddMid
+  assume pc:    ParCtx
+  assume lmid:  AddLeast AddMid
   assume least: AddLeast AddPar
-  plus: PLUS          by and_e pc
-  lsl: AddLeast AddSL by and_e pc
-  nat: NAT            by and_e plus
-  fs0: FS0            by and_e nat
+  plus: PLUS           by and_e pc
+  lsl:  AddLeast AddSL by and_e pc
+  nat:  NAT            by and_e plus
+  fs0:  FS0            by and_e nat
   -- zero is not odd
   lemma nil_odd:
     variable z
@@ -1324,8 +1324,8 @@ theorem add_par:
     lemma wit:
       variable k y
       assume hk: Nat k and Add k k y and Suc y z
-      sy: Suc y z by and_e hk
-      bad: absurd by imp_e suc_nil fs0 sy nz
+      sy:  Suc y z by and_e hk
+      bad: absurd  by imp_e suc_nil fs0 sy nz
       therefore forall k y. (Nat k and Add k k y and Suc y z) -> absurd
     bad: absurd by exists_e oz wit
     therefore forall z. Nil z -> OddN z -> absurd
@@ -1347,19 +1347,19 @@ theorem add_par:
       assume oy: OddN z
       assume ex: EvenN x
       bad: absurd by imp_e nil_odd nz oy
-      g: OddN x   by absurd_e bad
+      g:   OddN x by absurd_e bad
       therefore OddN z -> EvenN x -> OddN x
     lemma c4:
       assume oy: OddN z
       assume ox: OddN x
-      bad: absurd by imp_e nil_odd nz oy
-      g: EvenN x  by absurd_e bad
+      bad: absurd  by imp_e nil_odd nz oy
+      g:   EvenN x by absurd_e bad
       therefore OddN z -> OddN x -> EvenN x
     g: AddPar x z x by and_i c1 c2 c3 c4
     therefore forall x z. Nat x -> Nil z -> AddPar x z x
   lemma step:
     variable x y z y1 z1
-    assume a: Add x y z
+    assume a:  Add x y z
     assume ih: AddPar x y z
     assume sy: Suc y y1
     assume sz: Suc z z1
@@ -1375,30 +1375,30 @@ theorem add_par:
     lemma c1:
       assume ey: EvenN y1
       assume ex: EvenN x
-      oy: OddN y  by imp_e de ey
-      oz: OddN z  by imp_e i3 oy ex
-      g: EvenN z1 by imp_e suc_odd plus lsl oz sz
+      oy: OddN y   by imp_e de ey
+      oz: OddN z   by imp_e i3 oy ex
+      g:  EvenN z1 by imp_e suc_odd plus lsl oz sz
       therefore EvenN y1 -> EvenN x -> EvenN z1
     lemma c2:
       assume ey: EvenN y1
       assume ox: OddN x
       oy: OddN y  by imp_e de ey
       ez: EvenN z by imp_e i4 oy ox
-      g: OddN z1  by imp_e suc_even ez sz
+      g:  OddN z1 by imp_e suc_even ez sz
       therefore EvenN y1 -> OddN x -> OddN z1
     lemma c3:
       assume oy: OddN y1
       assume ex: EvenN x
       ey: EvenN y by imp_e do oy
       ez: EvenN z by imp_e i1 ey ex
-      g: OddN z1  by imp_e suc_even ez sz
+      g:  OddN z1 by imp_e suc_even ez sz
       therefore OddN y1 -> EvenN x -> OddN z1
     lemma c4:
       assume oy: OddN y1
       assume ox: OddN x
-      ey: EvenN y by imp_e do oy
-      oz: OddN z  by imp_e i2 ey ox
-      g: EvenN z1 by imp_e suc_odd plus lsl oz sz
+      ey: EvenN y  by imp_e do oy
+      oz: OddN z   by imp_e i2 ey ox
+      g:  EvenN z1 by imp_e suc_odd plus lsl oz sz
       therefore OddN y1 -> OddN x -> EvenN z1
     g: AddPar x y1 z1 by and_i c1 c2 c3 c4
     therefore forall x y z y1 z1. Add x y z -> AddPar x y z -> Suc y y1 -> Suc z z1 -> AddPar x y1 z1
@@ -1411,15 +1411,15 @@ define MulPar d e q = OddN d -> (EvenN e -> EvenN q) and (OddN e -> OddN q)
 
 theorem mul_par:
   assume times: TIMES
-  assume pc: ParCtx
+  assume pc:    ParCtx
   assume lamid: AddLeast AddMid
   assume lapar: AddLeast AddPar
   assume lmmid: MulLeast MulMid
   assume least: MulLeast MulPar
   plus: PLUS by and_e pc
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  ap: forall x y z. Add x y z -> AddPar x y z
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  ap:   forall x y z. Add x y z -> AddPar x y z
              by imp_e add_par pc lamid lapar
   lemma base:
     variable x z
@@ -1436,9 +1436,9 @@ theorem mul_par:
         lemma wit:
           variable k y
           assume hk: Nat k and Add k k y and Suc y z
-          sy: Suc y z by and_e hk
-          bad: absurd by imp_e suc_nil fs0 sy nz
-          g: OddN z   by absurd_e bad
+          sy:  Suc y z by and_e hk
+          bad: absurd  by imp_e suc_nil fs0 sy nz
+          g:   OddN z  by absurd_e bad
           therefore forall k y. (Nat k and Add k k y and Suc y z) -> OddN z
         g: OddN z by exists_e oz wit
         therefore OddN z -> OddN z
@@ -1448,10 +1448,10 @@ theorem mul_par:
     therefore forall x z. Nat x -> Nil z -> MulPar x z z
   lemma step:
     variable d e q e1 q1
-    assume m: Mul d e q
+    assume m:  Mul d e q
     assume ih: MulPar d e q
     assume se: Suc e e1
-    assume a: Add q d q1
+    assume a:  Add q d q1
     ne: Nat e                        by imp_e mul_mid times lmmid m
     pp: (EvenN e1 -> OddN e) and (OddN e1 -> EvenN e)
                                      by imp_e pred_parity pc ne se
@@ -1462,21 +1462,21 @@ theorem mul_par:
     a4: OddN d -> OddN q -> EvenN q1 by and_e pa
     lemma k:
       assume od: OddN d
-      i: (EvenN e -> EvenN q) and (OddN e -> OddN q)
+      i:  (EvenN e -> EvenN q) and (OddN e -> OddN q)
                              by imp_e ih od
       ie: EvenN e -> EvenN q by and_e i
       io: OddN e -> OddN q   by and_e i
       lemma ev:
         assume e2: EvenN e1
-        oe: OddN e  by imp_e de e2
-        oq: OddN q  by imp_e io oe
-        g: EvenN q1 by imp_e a4 od oq
+        oe: OddN e   by imp_e de e2
+        oq: OddN q   by imp_e io oe
+        g:  EvenN q1 by imp_e a4 od oq
         therefore EvenN e1 -> EvenN q1
       lemma odd1:
         assume o2: OddN e1
         ee: EvenN e by imp_e do o2
         eq: EvenN q by imp_e ie ee
-        g: OddN q1  by imp_e a3 od eq
+        g:  OddN q1 by imp_e a3 od eq
         therefore OddN e1 -> OddN q1
       g: (EvenN e1 -> EvenN q1) and (OddN e1 -> OddN q1)
           by and_i ev odd1
@@ -1501,10 +1501,10 @@ theorem mul_first:
     therefore forall x z. Nat x -> Nil z -> MulFirst x z z
   lemma step:
     variable x y z y1 z1
-    assume m: Mul x y z
+    assume m:  Mul x y z
     assume ih: MulFirst x y z
     assume sy: Suc y y1
-    assume a: Add z x z1
+    assume a:  Add z x z1
     g: Nat x by reit ih
     therefore forall x y z y1 z1. Mul x y z -> MulFirst x y z -> Suc y y1 -> Add z x z1 -> MulFirst x y1 z1
   g: forall x y z. Mul x y z -> MulFirst x y z
@@ -1512,14 +1512,14 @@ theorem mul_first:
   therefore MulLeast MulFirst -> forall x y z. Mul x y z -> Nat x
 
 theorem mul_zero_left:
-  assume plus: PLUS
-  assume linv: AddLeast AddShape
+  assume plus:  PLUS
+  assume linv:  AddLeast AddShape
   assume least: MulLeast MulZ
-  nat: NAT by and_e plus
-  fs0: FS0 by and_e nat
-  en: En   by and_e fs0
+  nat:  NAT by and_e plus
+  fs0:  FS0 by and_e nat
+  en:   En  by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
-           by imp_e add_inv fs0 linv
+            by imp_e add_inv fs0 linv
   lemma base:
     variable x z
     assume nx: Nat x
@@ -1531,28 +1531,28 @@ theorem mul_zero_left:
     therefore forall x z. Nat x -> Nil z -> MulZ x z z
   lemma step:
     variable x y z y1 z1
-    assume m: Mul x y z
+    assume m:  Mul x y z
     assume ih: MulZ x y z
     assume sy: Suc y y1
-    assume a: Add z x z1
+    assume a:  Add z x z1
     lemma k:
       assume n: Nil x
       nz: Nil z           by imp_e ih n
       sh: AddShape z x z1 by imp_e ainv a
       lemma at0:
         assume hb: Nil x and Eq z1 z
-        e: Eq z1 z  by and_e hb
+        e:  Eq z1 z by and_e hb
         e2: Eq z z1 by imp_e eq_sym fs0 e
-        g: Nil z1   by imp_e en e2 nz
+        g:  Nil z1  by imp_e en e2 nz
         therefore (Nil x and Eq z1 z) -> Nil z1
       lemma atsuc:
         assume ex: exists y0 z0. Add z y0 z0 and Suc y0 x and Suc z0 z1
         lemma wit:
           variable y0 z0
           assume hy: Add z y0 z0 and Suc y0 x and Suc z0 z1
-          s0: Suc y0 x by and_e hy
-          bad: absurd  by imp_e suc_nil fs0 s0 n
-          g: Nil z1    by absurd_e bad
+          s0:  Suc y0 x by and_e hy
+          bad: absurd   by imp_e suc_nil fs0 s0 n
+          g:   Nil z1   by absurd_e bad
           therefore forall y0 z0. (Add z y0 z0 and Suc y0 x and Suc z0 z1) -> Nil z1
         g: Nil z1 by exists_e ex wit
         therefore (exists y0 z0. Add z y0 z0 and Suc y0 x and Suc z0 z1) -> Nil z1
@@ -1568,53 +1568,53 @@ define One x = exists z. Nil z and Suc z x
 
 theorem mul_one:
   assume times: TIMES
-  assume linv: AddLeast AddShape
-  assume minv: MulLeast MulShape
-  assume lz: MulLeast MulZ
+  assume linv:  AddLeast AddShape
+  assume minv:  MulLeast MulShape
+  assume lz:    MulLeast MulZ
   plus: PLUS by and_e times
-  nat: NAT   by and_e plus
-  fs0: FS0   by and_e nat
-  en: En     by and_e fs0
+  nat:  NAT  by and_e plus
+  fs0:  FS0  by and_e nat
+  en:   En   by and_e fs0
   refl: Refl by and_e fs0
   ainv: forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 linv
-  mi: forall x y z. Mul x y z -> MulShape x y z
+  mi:   forall x y z. Mul x y z -> MulShape x y z
              by imp_e mul_inv minv
   lemma all:
     variable d q p
-    assume m: Mul d q p
+    assume m:  Mul d q p
     assume op: One p
     lemma wz:
       variable z
       assume hz: Nil z and Suc z p
-      nz: Nil z          by and_e hz
-      szp: Suc z p       by and_e hz
-      rp: Eq p p         by forall_e refl p
-      sh: MulShape d q p by imp_e mi m
+      nz:  Nil z          by and_e hz
+      szp: Suc z p        by and_e hz
+      rp:  Eq p p         by forall_e refl p
+      sh:  MulShape d q p by imp_e mi m
       lemma qnil:
         assume hb: Nil q and Nil p
-        np: Nil p   by and_e hb
+        np:  Nil p  by and_e hb
         bad: absurd by imp_e suc_nil fs0 szp np
-        g: One d    by absurd_e bad
+        g:   One d  by absurd_e bad
         therefore (Nil q and Nil p) -> One d
       lemma qsuc:
         assume ex: exists y0 z0. Mul d y0 z0 and Suc y0 q and Add z0 d p
         lemma wit:
           variable q0 a
           assume hq: Mul d q0 a and Suc q0 q and Add a d p
-          ma: Mul d q0 a      by and_e hq
-          ad: Add a d p       by and_e hq
+          ma:  Mul d q0 a     by and_e hq
+          ad:  Add a d p      by and_e hq
           sh2: AddShape a d p by imp_e ainv ad
           -- d = 0 would make a, and so p, zero
           lemma d0:
             assume hb: Nil d and Eq p a
-            nd: Nil d   by and_e hb
-            e: Eq p a   by and_e hb
-            na: Nil a   by imp_e mul_zero_left plus linv lz ma nd
-            e2: Eq a p  by imp_e eq_sym fs0 e
-            np: Nil p   by imp_e en e2 na
+            nd:  Nil d  by and_e hb
+            e:   Eq p a by and_e hb
+            na:  Nil a  by imp_e mul_zero_left plus linv lz ma nd
+            e2:  Eq a p by imp_e eq_sym fs0 e
+            np:  Nil p  by imp_e en e2 na
             bad: absurd by imp_e suc_nil fs0 szp np
-            g: One d    by absurd_e bad
+            g:   One d  by absurd_e bad
             therefore (Nil d and Eq p a) -> One d
           -- d = y0 + 1 with a + y0 = 0, so y0 = 0
           lemma dsuc:
@@ -1622,27 +1622,27 @@ theorem mul_one:
             lemma wit2:
               variable y0 z0
               assume hy: Add a y0 z0 and Suc y0 d and Suc z0 p
-              a0: Add a y0 z0       by and_e hy
-              s0: Suc y0 d          by and_e hy
-              s1: Suc z0 p          by and_e hy
-              ez: Eq z0 z           by imp_e suc_inj fs0 s1 szp rp
+              a0:  Add a y0 z0      by and_e hy
+              s0:  Suc y0 d         by and_e hy
+              s1:  Suc z0 p         by and_e hy
+              ez:  Eq z0 z          by imp_e suc_inj fs0 s1 szp rp
               ez2: Eq z z0          by imp_e eq_sym fs0 ez
               nz0: Nil z0           by imp_e en ez2 nz
               sh3: AddShape a y0 z0 by imp_e ainv a0
               lemma y0nil:
                 assume hb: Nil y0 and Eq z0 a
-                ny0: Nil y0            by and_e hb
-                c: Nil y0 and Suc y0 d by and_i ny0 s0
-                g: One d               by exists_i c
+                ny0: Nil y0              by and_e hb
+                c:   Nil y0 and Suc y0 d by and_i ny0 s0
+                g:   One d               by exists_i c
                 therefore (Nil y0 and Eq z0 a) -> One d
               lemma y0suc:
                 assume ex3: exists y1 z1. Add a y1 z1 and Suc y1 y0 and Suc z1 z0
                 lemma wit3:
                   variable y1 z1
                   assume h3: Add a y1 z1 and Suc y1 y0 and Suc z1 z0
-                  s2: Suc z1 z0 by and_e h3
-                  bad: absurd   by imp_e suc_nil fs0 s2 nz0
-                  g: One d      by absurd_e bad
+                  s2:  Suc z1 z0 by and_e h3
+                  bad: absurd    by imp_e suc_nil fs0 s2 nz0
+                  g:   One d     by absurd_e bad
                   therefore forall y1 z1. (Add a y1 z1 and Suc y1 y0 and Suc z1 z0) -> One d
                 g: One d by exists_e ex3 wit3
                 therefore (exists y1 z1. Add a y1 z1 and Suc y1 y0 and Suc z1 z0) -> One d

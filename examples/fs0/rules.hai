@@ -7,34 +7,34 @@ import proof
 theorem prh_and_i:
   predicate Ax x
   variable h a b ab
-  assume fs0: FS0
-  assume form: FORM
+  assume fs0:   FS0
+  assume form:  FORM
   assume logax: LOGAX
-  assume prf: PRF Ax
-  assume fa: Form a
-  assume fb: Form b
-  assume iab: AndCode a b ab
-  assume pa: PrH h a
-  assume pb: PrH h b
-  fim: Fim                      by and_e form
-  fan: Fan                      by and_e form
-  lai: Lai                      by and_e logax
-  tags: Tags                    by imp_e tag_exists fs0
-  t2: exists t. T2 t            by and_e tags
+  assume prf:   PRF Ax
+  assume fa:    Form a
+  assume fb:    Form b
+  assume iab:   AndCode a b ab
+  assume pa:    PrH h a
+  assume pb:    PrH h b
+  fim:    Fim                       by and_e form
+  fan:    Fan                       by and_e form
+  lai:    Lai                       by and_e logax
+  tags:   Tags                      by imp_e tag_exists fs0
+  t2:     exists t. T2 t            by and_e tags
   leaves: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> Ax a2 -> PrH h2 a2)
       and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
-                                by imp_e prh_leaf Ax fs0 prf
-  log: forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
-                                by and_e leaves
-  mp: forall h1 a1 b1 c. Form b1 -> ImpCode a1 b1 c -> PrH h1 c -> PrH h1 a1 -> PrH h1 b1
-                                by imp_e prh_mp Ax fs0 prf
-  fab: Form ab                  by imp_e fan fa fb iab
-  e1: exists x. Node2 T2 b ab x by imp_e node2_exists T2 fs0 t2
+                                    by imp_e prh_leaf Ax fs0 prf
+  log:    forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
+                                    by and_e leaves
+  mp:     forall h1 a1 b1 c. Form b1 -> ImpCode a1 b1 c -> PrH h1 c -> PrH h1 a1 -> PrH h1 b1
+                                    by imp_e prh_mp Ax fs0 prf
+  fab:    Form ab                   by imp_e fan fa fb iab
+  e1:     exists x. Node2 T2 b ab x by imp_e node2_exists T2 fs0 t2
   lemma w1:
     variable bab
     assume i1: ImpCode b ab bab
-    fbab: Form bab                 by imp_e fim fb fab i1
-    e2: exists x. Node2 T2 a bab x by imp_e node2_exists T2 fs0 t2
+    fbab: Form bab                   by imp_e fim fb fab i1
+    e2:   exists x. Node2 T2 a bab x by imp_e node2_exists T2 fs0 t2
     lemma w2:
       variable d
       assume i2: ImpCode a bab d
@@ -55,31 +55,31 @@ theorem prh_and_i:
 theorem prh_by_axiom:
   predicate Ax x
   variable h a c
-  assume fs0: FS0
+  assume fs0:  FS0
   assume form: FORM
-  assume prf: PRF Ax
-  assume fa: Form a
-  assume fc: Form c
-  assume la: forall d. ImpCode a c d -> LogAx d
-  assume pa: PrH h a
-  fim: Fim                    by and_e form
-  tags: Tags                  by imp_e tag_exists fs0
-  t2: exists t. T2 t          by and_e tags
+  assume prf:  PRF Ax
+  assume fa:   Form a
+  assume fc:   Form c
+  assume la:   forall d. ImpCode a c d -> LogAx d
+  assume pa:   PrH h a
+  fim:    Fim                      by and_e form
+  tags:   Tags                     by imp_e tag_exists fs0
+  t2:     exists t. T2 t           by and_e tags
   leaves: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> Ax a2 -> PrH h2 a2)
       and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
-                              by imp_e prh_leaf Ax fs0 prf
-  log: forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
-                              by and_e leaves
-  mp: forall h1 a1 b c1. Form b -> ImpCode a1 b c1 -> PrH h1 c1 -> PrH h1 a1 -> PrH h1 b
-                              by imp_e prh_mp Ax fs0 prf
-  e: exists x. Node2 T2 a c x by imp_e node2_exists T2 fs0 t2
+                                   by imp_e prh_leaf Ax fs0 prf
+  log:    forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
+                                   by and_e leaves
+  mp:     forall h1 a1 b c1. Form b -> ImpCode a1 b c1 -> PrH h1 c1 -> PrH h1 a1 -> PrH h1 b
+                                   by imp_e prh_mp Ax fs0 prf
+  e:      exists x. Node2 T2 a c x by imp_e node2_exists T2 fs0 t2
   lemma w:
     variable d
     assume id: ImpCode a c d
     fd: Form d  by imp_e fim fa fc id
     ld: LogAx d by imp_e la id
     pd: PrH h d by imp_e log fd ld
-    r: PrH h c  by imp_e mp fc id pd pa
+    r:  PrH h c by imp_e mp fc id pd pa
     therefore forall d. ImpCode a c d -> PrH h c
   r: PrH h c by exists_e e w
   therefore forall h a c. FS0 -> FORM -> PRF Ax -> Form a -> Form c -> (forall d. ImpCode a c d -> LogAx d)
@@ -89,18 +89,18 @@ theorem prh_by_axiom:
 theorem prh_and_e:
   predicate Ax x
   variable h a b ab
-  assume fs0: FS0
-  assume form: FORM
+  assume fs0:   FS0
+  assume form:  FORM
   assume logax: LOGAX
-  assume prf: PRF Ax
-  assume fa: Form a
-  assume fb: Form b
-  assume iab: AndCode a b ab
-  assume pab: PrH h ab
-  fan: Fan     by and_e form
-  lae1: Lae1   by and_e logax
-  lae2: Lae2   by and_e logax
-  fab: Form ab by imp_e fan fa fb iab
+  assume prf:   PRF Ax
+  assume fa:    Form a
+  assume fb:    Form b
+  assume iab:   AndCode a b ab
+  assume pab:   PrH h ab
+  fan:  Fan     by and_e form
+  lae1: Lae1    by and_e logax
+  lae2: Lae2    by and_e logax
+  fab:  Form ab by imp_e fan fa fb iab
   lemma l1:
     variable d
     assume id: ImpCode ab a d
@@ -111,8 +111,8 @@ theorem prh_and_e:
     assume id: ImpCode ab b d
     ld: LogAx d by imp_e lae2 fa fb iab id
     therefore forall d. ImpCode ab b d -> LogAx d
-  p1: PrH h a               by imp_e prh_by_axiom Ax fs0 form prf fab fa l1 pab
-  p2: PrH h b               by imp_e prh_by_axiom Ax fs0 form prf fab fb l2 pab
+  p1:   PrH h a             by imp_e prh_by_axiom Ax fs0 form prf fab fa l1 pab
+  p2:   PrH h b             by imp_e prh_by_axiom Ax fs0 form prf fab fb l2 pab
   both: PrH h a and PrH h b by and_i p1 p2
   therefore forall h a b ab. FS0 -> FORM -> LOGAX -> PRF Ax -> Form a -> Form b -> AndCode a b ab -> PrH h ab
       -> PrH h a and PrH h b
@@ -121,17 +121,17 @@ theorem prh_and_e:
 theorem prh_or_i:
   predicate Ax x
   variable h a b ab
-  assume fs0: FS0
-  assume form: FORM
+  assume fs0:   FS0
+  assume form:  FORM
   assume logax: LOGAX
-  assume prf: PRF Ax
-  assume fa: Form a
-  assume fb: Form b
-  assume iab: OrCode a b ab
-  fo: Fo       by and_e form
-  loi1: Loi1   by and_e logax
-  loi2: Loi2   by and_e logax
-  fab: Form ab by imp_e fo fa fb iab
+  assume prf:   PRF Ax
+  assume fa:    Form a
+  assume fb:    Form b
+  assume iab:   OrCode a b ab
+  fo:   Fo      by and_e form
+  loi1: Loi1    by and_e logax
+  loi2: Loi2    by and_e logax
+  fab:  Form ab by imp_e fo fa fb iab
   lemma l1:
     variable d
     assume id: ImpCode a ab d
@@ -159,20 +159,20 @@ theorem prh_or_i:
 theorem prh_exi:
   predicate Ax x
   variable h v w a a1 ea
-  assume fs0: FS0
-  assume form: FORM
+  assume fs0:   FS0
+  assume form:  FORM
   assume logax: LOGAX
-  assume prf: PRF Ax
-  assume nv: Nat v
-  assume nw: Nat w
-  assume fa: Form a
-  assume fa1: Form a1
-  assume sub: Sub v w a a1
-  assume iea: ExCode v a ea
-  assume pa1: PrH h a1
-  fex: Fex     by and_e form
-  lexi: Lexi   by and_e logax
-  fea: Form ea by imp_e fex nv fa iea
+  assume prf:   PRF Ax
+  assume nv:    Nat v
+  assume nw:    Nat w
+  assume fa:    Form a
+  assume fa1:   Form a1
+  assume sub:   Sub v w a a1
+  assume iea:   ExCode v a ea
+  assume pa1:   PrH h a1
+  fex:  Fex     by and_e form
+  lexi: Lexi    by and_e logax
+  fea:  Form ea by imp_e fex nv fa iea
   lemma l:
     variable d
     assume id: ImpCode a1 ea d
@@ -187,44 +187,44 @@ theorem prh_exi:
 theorem prh_exe:
   predicate Ax x
   variable h hh v a c ea
-  assume fs0: FS0
-  assume form: FORM
+  assume fs0:   FS0
+  assume form:  FORM
   assume logax: LOGAX
-  assume list: LIST
-  assume prf: PRF Ax
-  assume dtl: PrfLeast Ax DTP
-  assume mcl: MemLeast MemCons
-  assume nv: Nat v
-  assume fa: Form a
-  assume fc: Form c
-  assume nfc: not (Fr v c)
-  assume nfh: NoFree v h
-  assume iea: ExCode v a ea
-  assume pea: PrH h ea
-  assume hha: Pair a h hh
-  assume pc: PrH hh c
-  fim: Fim                     by and_e form
-  ffa: Ffa                     by and_e form
-  fex: Fex                     by and_e form
-  lexe: Lexe                   by and_e logax
-  tags: Tags                   by imp_e tag_exists fs0
-  t2: exists t. T2 t           by and_e tags
-  t5: exists t. T5 t           by and_e tags
+  assume list:  LIST
+  assume prf:   PRF Ax
+  assume dtl:   PrfLeast Ax DTP
+  assume mcl:   MemLeast MemCons
+  assume nv:    Nat v
+  assume fa:    Form a
+  assume fc:    Form c
+  assume nfc:   not (Fr v c)
+  assume nfh:   NoFree v h
+  assume iea:   ExCode v a ea
+  assume pea:   PrH h ea
+  assume hha:   Pair a h hh
+  assume pc:    PrH hh c
+  fim:    Fim                      by and_e form
+  ffa:    Ffa                      by and_e form
+  fex:    Fex                      by and_e form
+  lexe:   Lexe                     by and_e logax
+  tags:   Tags                     by imp_e tag_exists fs0
+  t2:     exists t. T2 t           by and_e tags
+  t5:     exists t. T5 t           by and_e tags
   leaves: (forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1) and (forall h2 a2. Form a2 -> Ax a2 -> PrH h2 a2)
       and (forall h3 a3. Form a3 -> Mem a3 h3 -> PrH h3 a3)
-                               by imp_e prh_leaf Ax fs0 prf
-  log: forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
-                               by and_e leaves
-  mp: forall h1 a1 b c1. Form b -> ImpCode a1 b c1 -> PrH h1 c1 -> PrH h1 a1 -> PrH h1 b
-                               by imp_e prh_mp Ax fs0 prf
-  fea: Form ea                 by imp_e fex nv fa iea
-  e1: exists x. Node2 T2 a c x by imp_e node2_exists T2 fs0 t2
+                                   by imp_e prh_leaf Ax fs0 prf
+  log:    forall h1 a1. Form a1 -> LogAx a1 -> PrH h1 a1
+                                   by and_e leaves
+  mp:     forall h1 a1 b c1. Form b -> ImpCode a1 b c1 -> PrH h1 c1 -> PrH h1 a1 -> PrH h1 b
+                                   by imp_e prh_mp Ax fs0 prf
+  fea:    Form ea                  by imp_e fex nv fa iea
+  e1:     exists x. Node2 T2 a c x by imp_e node2_exists T2 fs0 t2
   lemma w1:
     variable ac
     assume iac: ImpCode a c ac
-    fac: Form ac                  by imp_e fim fa fc iac
-    pac: PrH h ac                 by imp_e deduction Ax fs0 form logax list prf dtl mcl hha fa iac pc
-    e2: exists x. Node2 T5 v ac x by imp_e node2_exists T5 fs0 t5
+    fac: Form ac                   by imp_e fim fa fc iac
+    pac: PrH h ac                  by imp_e deduction Ax fs0 form logax list prf dtl mcl hha fa iac pc
+    e2:  exists x. Node2 T5 v ac x by imp_e node2_exists T5 fs0 t5
     lemma w2:
       variable gac
       assume ig: AllCode v ac gac
@@ -243,7 +243,7 @@ theorem prh_exe:
           ld: LogAx d by imp_e lexe nv fa fc nfc iac ig iea ix id
           pd: PrH h d by imp_e log fd ld
           px: PrH h x by imp_e mp fx id pd pg
-          r: PrH h c  by imp_e mp fc ix px pea
+          r:  PrH h c by imp_e mp fc ix px pea
           therefore forall d. ImpCode gac x d -> PrH h c
         r: PrH h c by exists_e e4 w4
         therefore forall x. ImpCode ea c x -> PrH h c
@@ -262,11 +262,11 @@ theorem prh_thm:
   variable z h a
   assume fs0: FS0
   assume prf: PRF Ax
-  assume nz: Nil z
-  assume pa: PrH z a
-  pthm: Pthm         by and_e prf
-  tags: Tags         by imp_e tag_exists fs0
-  t5: exists t. T5 t by and_e tags
+  assume nz:  Nil z
+  assume pa:  PrH z a
+  pthm: Pthm           by and_e prf
+  tags: Tags           by imp_e tag_exists fs0
+  t5:   exists t. T5 t by and_e tags
   lemma w:
     variable d
     assume p: Prf z d a
@@ -275,7 +275,7 @@ theorem prh_thm:
       variable d1
       assume nd: Node1 T5 d d1
       p1: Prf h d1 a by imp_e pthm nz p nd
-      r: PrH h a     by exists_i p1
+      r:  PrH h a    by exists_i p1
       therefore forall d1. Node1 T5 d d1 -> PrH h a
     r: PrH h a by exists_e ed k
     therefore forall d. Prf z d a -> PrH h a

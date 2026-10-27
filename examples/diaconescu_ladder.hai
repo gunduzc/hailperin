@@ -16,12 +16,12 @@ theorem diaconescu_core:
   assume ha: Picks f x a
   assume hb: Picks f y b
   -- a = e or A; b = o or A
-  ax: In a x                 by and_e ha
-  d9: In a u and EqOr A e a  by imp_e sepby_out A hx ax
-  ca: EqOr A e a             by and_e d9
+  ax:  In a x                by and_e ha
+  d9:  In a u and EqOr A e a by imp_e sepby_out A hx ax
+  ca:  EqOr A e a            by and_e d9
   iby: In b y                by and_e hb
   d10: In b u and EqOr A o b by imp_e sepby_out A hy iby
-  cb: EqOr A o b             by and_e d10
+  cb:  EqOr A o b            by and_e d10
   lemma yes:
     assume h: A
     y1: A or not A by or_i h
@@ -30,22 +30,22 @@ theorem diaconescu_core:
   lemma no:
     assume ae: Eq a e
     assume bo: Eq b o
-    assume h: A
+    assume h:  A
     lemma xy:
       variable z
       lemma xy1:
         assume zx: In z x
         d11: In z u and EqOr A e z by imp_e sepby_out A hx zx
-        zu: In z u                 by and_e d11
+        zu:  In z u                by and_e d11
         d12: EqOr A o z            by or_i h
-        zy: In z y                 by imp_e sepby_in A hy zu d12
+        zy:  In z y                by imp_e sepby_in A hy zu d12
         therefore In z x -> In z y
       lemma xy2:
         assume zy: In z y
         d13: In z u and EqOr A o z by imp_e sepby_out A hy zy
-        zu: In z u                 by and_e d13
+        zu:  In z u                by and_e d13
         d14: EqOr A e z            by or_i h
-        zx: In z x                 by imp_e sepby_in A hx zu d14
+        zx:  In z x                by imp_e sepby_in A hx zu d14
         therefore In z y -> In z x
       xyz: Iff (In z x) (In z y) by and_i xy1 xy2
       therefore Eq x y
@@ -55,16 +55,16 @@ theorem diaconescu_core:
     mya: Maps f y a   by imp_e maps_move xy mfa
     hb2: Maps f y b and forall v1. Maps f y v1 -> Eq b v1
                       by and_e hb
-    ub: forall v1. Maps f y v1 -> Eq b v1
+    ub:  forall v1. Maps f y v1 -> Eq b v1
                       by and_e hb2
-    ba: Eq b a        by imp_e ub mya
-    ob: Eq o b        by imp_e eq_sym bo
-    be: Eq b e        by imp_e eq_trans ba ae
-    oe: Eq o e        by imp_e eq_trans ob be
-    eo: In e o        by imp_e pairing_in1 ho
-    ee: In e e        by imp_e eq_in oe eo
+    ba:  Eq b a       by imp_e ub mya
+    ob:  Eq o b       by imp_e eq_sym bo
+    be:  Eq b e       by imp_e eq_trans ba ae
+    oe:  Eq o e       by imp_e eq_trans ob be
+    eo:  In e o       by imp_e pairing_in1 ho
+    ee:  In e e       by imp_e eq_in oe eo
     hee: not (In e e) by forall_e he e
-    f1: absurd        by imp_e hee ee
+    f1:  absurd       by imp_e hee ee
     therefore Eq a e -> Eq b o -> not A
   -- combine the cases
   lemma case_ae:
@@ -86,30 +86,30 @@ theorem diaconescu_choose:
   predicate A
   variable e o u x y s
   assume choice: Choice
-  assume he: Empty e
-  assume ho: Pairing o e e
-  assume hu: Pairing u e o
-  assume hx: SepBy A x u e
-  assume hy: SepBy A y u o
-  assume hs: Pairing s x y
+  assume he:     Empty e
+  assume ho:     Pairing o e e
+  assume hu:     Pairing u e o
+  assume hx:     SepBy A x u e
+  assume hy:     SepBy A y u o
+  assume hs:     Pairing s x y
   -- e, o in u; e in x; o in y; x, y in s
-  eu: In e u     by imp_e pairing_in1 hu
-  ou: In o u     by imp_e pairing_in2 hu
-  ree: Eq e e    by forall_e eq_refl e
-  roo: Eq o o    by forall_e eq_refl o
-  ce: EqOr A e e by or_i ree
-  co: EqOr A o o by or_i roo
-  ein: In e x    by imp_e sepby_in A hx eu ce
-  oin: In o y    by imp_e sepby_in A hy ou co
-  xs: In x s     by imp_e pairing_in1 hs
-  ys: In y s     by imp_e pairing_in2 hs
+  eu:  In e u     by imp_e pairing_in1 hu
+  ou:  In o u     by imp_e pairing_in2 hu
+  ree: Eq e e     by forall_e eq_refl e
+  roo: Eq o o     by forall_e eq_refl o
+  ce:  EqOr A e e by or_i ree
+  co:  EqOr A o o by or_i roo
+  ein: In e x     by imp_e sepby_in A hx eu ce
+  oin: In o y     by imp_e sepby_in A hy ou co
+  xs:  In x s     by imp_e pairing_in1 hs
+  ys:  In y s     by imp_e pairing_in2 hs
   -- every member of s is inhabited
   lemma inh:
     variable w
     assume ws: In w s
-    hsw: Iff (In w s) (Eq w x or Eq w y) by forall_e hs w
-    hsw1: In w s -> Eq w x or Eq w y     by and_e hsw
-    wxy: Eq w x or Eq w y                by imp_e hsw1 ws
+    hsw:  Iff (In w s) (Eq w x or Eq w y) by forall_e hs w
+    hsw1: In w s -> Eq w x or Eq w y      by and_e hsw
+    wxy:  Eq w x or Eq w y                by imp_e hsw1 ws
     lemma i1:
       assume q: Eq w x
       ew: In e w           by imp_e eq_in_back q ein
@@ -122,7 +122,7 @@ theorem diaconescu_choose:
       therefore Eq w y -> exists v. In v w
     iw: exists v. In v w by or_e wxy i1 i2
     therefore forall w. In w s -> exists v. In v w
-  ch: (forall w. In w s -> exists v. In v w) -> exists f. Chooses f s
+  ch:  (forall w. In w s -> exists v. In v w) -> exists f. Chooses f s
                              by forall_e choice s
   chf: exists f. Chooses f s by imp_e ch inh
   lemma wf:
@@ -149,11 +149,11 @@ theorem diaconescu_choose:
 -- Build the six sets, one witness at a time, and conclude.
 theorem diaconescu:
   predicate A
-  assume sets: Sets
+  assume sets:   Sets
   assume choice: Choice
-  assume sep: forall e. Separation (EqOr A e)
+  assume sep:    forall e. Separation (EqOr A e)
   empty: EmptyExists by and_e sets
-  pair: PairExists   by and_e sets
+  pair:  PairExists  by and_e sets
   lemma we:
     variable e
     assume he: Empty e
@@ -194,14 +194,14 @@ theorem diaconescu:
 
 -- `empty_or_not` without excluded middle as an assumption, via Diaconescu.
 theorem empty_or_not_from_choice:
-  assume sets: Sets
+  assume sets:   Sets
   assume choice: Choice
-  assume sep: forall a e. Separation (EqOr (Inhabited a) e)
+  assume sep:    forall a e. Separation (EqOr (Inhabited a) e)
   lemma em:
     variable a
     sep_a: forall e. Separation (EqOr (Inhabited a) e)
-                                        by forall_e sep a
-    k: Inhabited a or not (Inhabited a) by imp_e diaconescu (Inhabited a) sets choice sep_a
+                                            by forall_e sep a
+    k:     Inhabited a or not (Inhabited a) by imp_e diaconescu (Inhabited a) sets choice sep_a
     therefore forall a. Inhabited a or not (Inhabited a)
   r: forall a. Empty a or Inhabited a by imp_e empty_or_not em
   therefore Sets -> Choice -> (forall a e. Separation (EqOr (Inhabited a) e))

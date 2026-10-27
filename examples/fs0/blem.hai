@@ -5,25 +5,25 @@ import qelim
 -- The variables free in a three-variable list, and in Succ and Plus atoms.
 theorem frl_list3:
   variable u v w t l
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume fl: FrL u l
-  assume li: List3 v w t l
+  assume ll:   FrLLeast FrLInv
+  assume fl:   FrL u l
+  assume li:   List3 v w t l
   lemma wit:
     variable s
     assume h: List2 w t s and Pair v s l
-    l2: List2 w t s      by and_e h
-    pl: Pair v s l       by and_e h
-    o: Eq u v or FrL u s by imp_e frl_cons fs0 free ll fl pl
+    l2: List2 w t s       by and_e h
+    pl: Pair v s l        by and_e h
+    o:  Eq u v or FrL u s by imp_e frl_cons fs0 free ll fl pl
     lemma here:
       assume e: Eq u v
       r: Eq u v or Eq u w or Eq u t by or_i e
       therefore Eq u v -> Eq u v or Eq u w or Eq u t
     lemma there:
       assume fs: FrL u s
-      o2: Eq u w or Eq u t          by imp_e frl_list2 fs0 free ll fs l2
-      r: Eq u v or Eq u w or Eq u t by or_i o2
+      o2: Eq u w or Eq u t           by imp_e frl_list2 fs0 free ll fs l2
+      r:  Eq u v or Eq u w or Eq u t by or_i o2
       therefore FrL u s -> Eq u v or Eq u w or Eq u t
     r: Eq u v or Eq u w or Eq u t by or_e o here there
     therefore forall s. (List2 w t s and Pair v s l) -> Eq u v or Eq u w or Eq u t
@@ -33,19 +33,19 @@ theorem frl_list3:
 
 theorem fr_succat:
   variable u a b x
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume fr: Fr u x
-  assume sa: SuccAt a b x
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume fr:   Fr u x
+  assume sa:   SuccAt a b x
   lemma wit:
     variable p l
     assume h: T1 p and List2 a b l and Node2 T1 p l x
-    nd: Node2 T1 p l x  by and_e h
-    li: List2 a b l     by and_e h
-    fl: FrL u l         by imp_e fr_at fs0 free lf fr nd
-    r: Eq u a or Eq u b by imp_e frl_list2 fs0 free ll fl li
+    nd: Node2 T1 p l x   by and_e h
+    li: List2 a b l      by and_e h
+    fl: FrL u l          by imp_e fr_at fs0 free lf fr nd
+    r:  Eq u a or Eq u b by imp_e frl_list2 fs0 free ll fl li
     therefore forall p l. (T1 p and List2 a b l and Node2 T1 p l x) -> Eq u a or Eq u b
   r: Eq u a or Eq u b by exists_e sa wit
   therefore forall u a b x. FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv -> Fr u x -> SuccAt a b x
@@ -53,19 +53,19 @@ theorem fr_succat:
 
 theorem fr_plusat:
   variable u a b c x
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume fr: Fr u x
-  assume pa: PlusAt a b c x
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume fr:   Fr u x
+  assume pa:   PlusAt a b c x
   lemma wit:
     variable p l
     assume h: T2 p and List3 a b c l and Node2 T1 p l x
-    nd: Node2 T1 p l x            by and_e h
-    li: List3 a b c l             by and_e h
-    fl: FrL u l                   by imp_e fr_at fs0 free lf fr nd
-    r: Eq u a or Eq u b or Eq u c by imp_e frl_list3 fs0 free ll fl li
+    nd: Node2 T1 p l x             by and_e h
+    li: List3 a b c l              by and_e h
+    fl: FrL u l                    by imp_e fr_at fs0 free lf fr nd
+    r:  Eq u a or Eq u b or Eq u c by imp_e frl_list3 fs0 free ll fl li
     therefore forall p l. (T2 p and List3 a b c l and Node2 T1 p l x) -> Eq u a or Eq u b or Eq u c
   r: Eq u a or Eq u b or Eq u c by exists_e pa wit
   therefore forall u a b c x. FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv -> Fr u x -> PlusAt a b c x
@@ -75,7 +75,7 @@ theorem fr_plusat:
 theorem succat_fr:
   variable a b x
   assume free: FREE
-  assume sa: SuccAt a b x
+  assume sa:   SuccAt a b x
   frl1: Frl1 by and_e free
   frat: Frat by and_e free
   lemma wit:
@@ -88,7 +88,7 @@ theorem succat_fr:
       assume ht: List1 b t and Pair a t l
       pl: Pair a t l by and_e ht
       fl: FrL a l    by imp_e frl1 pl
-      r: Fr a x      by imp_e frat nd fl
+      r:  Fr a x     by imp_e frat nd fl
       therefore forall t. (List1 b t and Pair a t l) -> Fr a x
     r: Fr a x by exists_e li w2
     therefore forall p l. (T1 p and List2 a b l and Node2 T1 p l x) -> Fr a x
@@ -98,17 +98,17 @@ theorem succat_fr:
 -- Sums are unique (Pu), predecessors are unique (Si), and a successor is not a named zero (Sz).
 theorem qp_fun:
   variable h a b c c1
-  assume q: QCtx
-  assume na: Nat a
-  assume nb: Nat b
-  assume nc: Nat c
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume nc:  Nat c
   assume nc1: Nat c1
-  assume p1: QPlus h a b c
-  assume p2: QPlus h a b c1
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
+  assume p1:  QPlus h a b c
+  assume p2:  QPlus h a b c1
+  fs0:  FS0                 by and_e q
+  form: FORM                by and_e q
+  prf:  PRF QAx             by and_e q
+  pfl:  PrfLeast QAx PFormP by and_e q
   lemma w1:
     variable x1
     assume h1: PlusAt a b c x1 and PrH h x1
@@ -123,10 +123,10 @@ theorem qp_fun:
       lemma w3:
         variable d
         assume ed: EqAt c c1 d
-        fd: Form d                 by imp_e eqat_form form nc nc1 ed
-        pd: PrH h d                by imp_e q_pu fs0 form prf pfl na nb nc nc1 ed s2 s1 r1 r2 fd
-        k: EqAt c c1 d and PrH h d by and_i ed pd
-        r: QEq h c c1              by exists_i k
+        fd: Form d                  by imp_e eqat_form form nc nc1 ed
+        pd: PrH h d                 by imp_e q_pu fs0 form prf pfl na nb nc nc1 ed s2 s1 r1 r2 fd
+        k:  EqAt c c1 d and PrH h d by and_i ed pd
+        r:  QEq h c c1              by exists_i k
         therefore forall d. EqAt c c1 d -> QEq h c c1
       r: QEq h c c1 by exists_e ee w3
       therefore forall x2. (PlusAt a b c1 x2 and PrH h x2) -> QEq h c c1
@@ -138,17 +138,17 @@ theorem qp_fun:
 
 theorem qs_inj:
   variable h a b c
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume s1: QSucc h a c
   assume s2: QSucc h b c
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
-  ecc: QEq h c c           by imp_e qe_refl q nc
+  fs0:  FS0                 by and_e q
+  form: FORM                by and_e q
+  prf:  PRF QAx             by and_e q
+  pfl:  PrfLeast QAx PFormP by and_e q
+  ecc:  QEq h c c           by imp_e qe_refl q nc
   lemma w1:
     variable x1
     assume h1: SuccAt a c x1 and PrH h x1
@@ -168,10 +168,10 @@ theorem qs_inj:
         lemma w4:
           variable d
           assume ed: EqAt a b d
-          fd: Form d                by imp_e eqat_form form na nb ed
-          pd: PrH h d               by imp_e q_si fs0 form prf pfl na nb nc nc ed y3 y2 y1 r1 r2 r3 fd
-          k: EqAt a b d and PrH h d by and_i ed pd
-          r: QEq h a b              by exists_i k
+          fd: Form d                 by imp_e eqat_form form na nb ed
+          pd: PrH h d                by imp_e q_si fs0 form prf pfl na nb nc nc ed y3 y2 y1 r1 r2 r3 fd
+          k:  EqAt a b d and PrH h d by and_i ed pd
+          r:  QEq h a b              by exists_i k
           therefore forall d. EqAt a b d -> QEq h a b
         r: QEq h a b by exists_e ee w4
         therefore forall x3. (EqAt c c x3 and PrH h x3) -> QEq h a b
@@ -184,16 +184,16 @@ theorem qs_inj:
 
 theorem qs_zero_bot:
   variable h p c z
-  assume q: QCtx
+  assume q:  QCtx
   assume np: Nat p
   assume nc: Nat c
   assume qs: QSucc h p c
   assume qz: QZero h c
   assume bz: BotCode z
-  fs0: FS0       by and_e q
-  form: FORM     by and_e q
-  prf: PRF QAx   by and_e q
-  nz: QNZero h c by imp_e neg_zero q np nc qs
+  fs0:  FS0        by and_e q
+  form: FORM       by and_e q
+  prf:  PRF QAx    by and_e q
+  nz:   QNZero h c by imp_e neg_zero q np nc qs
   lemma w1:
     variable c1
     assume h1: ZeroAt c c1 and QNot h c1
@@ -202,10 +202,10 @@ theorem qs_zero_bot:
     lemma w2:
       variable c2
       assume h2: ZeroAt c c2 and PrH h c2
-      x2: ZeroAt c c2 by and_e h2
-      p2: PrH h c2    by and_e h2
-      e21: Eq c2 c1   by imp_e zeroat_fun fs0 x2 x1
-      p1: PrH h c1    by imp_e prh_eq QAx fs0 prf p2 e21
+      x2:  ZeroAt c c2 by and_e h2
+      p2:  PrH h c2    by and_e h2
+      e21: Eq c2 c1    by imp_e zeroat_fun fs0 x2 x1
+      p1:  PrH h c1    by imp_e prh_eq QAx fs0 prf p2 e21
       lemma w3:
         variable z1
         assume h3: BotCode z1 and QI h c1 z1
@@ -215,11 +215,11 @@ theorem qs_zero_bot:
         lemma w4:
           variable i
           assume h4: ImpCode c1 z1 i and PrH h i
-          ii: ImpCode c1 z1 i by and_e h4
-          pi: PrH h i         by and_e h4
-          pz1: PrH h z1       by imp_e prh_mp QAx fs0 prf f1 ii pi p1
-          ez: Eq z1 z         by imp_e bot_fun fs0 b1 bz
-          r: PrH h z          by imp_e prh_eq QAx fs0 prf pz1 ez
+          ii:  ImpCode c1 z1 i by and_e h4
+          pi:  PrH h i         by and_e h4
+          pz1: PrH h z1        by imp_e prh_mp QAx fs0 prf f1 ii pi p1
+          ez:  Eq z1 z         by imp_e bot_fun fs0 b1 bz
+          r:   PrH h z         by imp_e prh_eq QAx fs0 prf pz1 ez
           therefore forall i. (ImpCode c1 z1 i and PrH h i) -> PrH h z
         r: PrH h z by exists_e qi w4
         therefore forall z1. (BotCode z1 and QI h c1 z1) -> PrH h z
@@ -234,13 +234,13 @@ theorem qs_zero_bot:
 define BorFv h c m v d = forall u. Fr u d -> Eq u v or exists b. Mem b h and Fr u b
 
 theorem bor_fv:
-  assume fs0: FS0
-  assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
+  assume fs0:   FS0
+  assume free:  FREE
+  assume ll:    FrLLeast FrLInv
+  assume lf:    FrLeast FrInv
   assume least: BelowOrLeast BorFv
   refl: Refl by and_e fs0
-  qfr: Qfr   by and_e free
+  qfr:  Qfr  by and_e free
   lemma base:
     variable h c m v zc z
     assume nc: Nat c
@@ -256,8 +256,8 @@ theorem bor_fv:
         assume hn: Nil n and Node1 T0 n z
         nn: Nil n        by and_e hn
         nd: Node1 T0 n z by and_e hn
-        f: absurd        by imp_e fr_bot fs0 free lf fr nn nd
-        r: Eq u v or exists b. Mem b h and Fr u b
+        f:  absurd       by imp_e fr_bot fs0 free lf fr nn nd
+        r:  Eq u v or exists b. Mem b h and Fr u b
                          by absurd_e f
         therefore forall n. (Nil n and Node1 T0 n z) -> Eq u v or exists b. Mem b h and Fr u b
       r: Eq u v or exists b. Mem b h and Fr u b
@@ -266,15 +266,15 @@ theorem bor_fv:
     therefore forall h c m v zc z. Nat c -> Nil m -> ZeroAt c zc -> Mem zc h -> BotCode z -> BorFv h c m v z
   lemma step:
     variable h c0 m0 c m v d0 s e d
-    assume nv: Nat v
+    assume nv:  Nat v
     assume nc0: Nat c0
-    assume nc: Nat c
-    assume ih: BorFv h c0 m0 v d0
-    assume sa: SuccAt c0 c s
-    assume ms: Mem s h
-    assume sm: Suc m0 m
-    assume ea: EqAt v c0 e
-    assume od: OrCode d0 e d
+    assume nc:  Nat c
+    assume ih:  BorFv h c0 m0 v d0
+    assume sa:  SuccAt c0 c s
+    assume ms:  Mem s h
+    assume sm:  Suc m0 m
+    assume ea:  EqAt v c0 e
+    assume od:  OrCode d0 e d
     bn: BinNode d0 e d by or_i od
     lemma each:
       variable u
@@ -301,15 +301,15 @@ theorem bor_fv:
             therefore Eq u v -> Eq u v or exists b. Mem b h and Fr u b
           lemma isc:
             assume e1: Eq u c0
-            fc0: Fr c0 s          by imp_e succat_fr free sa
-            e3: Eq c0 u           by imp_e eq_sym fs0 e1
-            rs: Eq s s            by forall_e refl s
-            fus: Fr u s           by imp_e qfr e3 rs fc0
-            k: Mem s h and Fr u s by and_i ms fus
-            x: exists b. Mem b h and Fr u b
-                                  by exists_i k
-            r: Eq u v or exists b. Mem b h and Fr u b
-                                  by or_i x
+            fc0: Fr c0 s            by imp_e succat_fr free sa
+            e3:  Eq c0 u            by imp_e eq_sym fs0 e1
+            rs:  Eq s s             by forall_e refl s
+            fus: Fr u s             by imp_e qfr e3 rs fc0
+            k:   Mem s h and Fr u s by and_i ms fus
+            x:   exists b. Mem b h and Fr u b
+                                    by exists_i k
+            r:   Eq u v or exists b. Mem b h and Fr u b
+                                    by or_i x
             therefore Eq u c0 -> Eq u v or exists b. Mem b h and Fr u b
           r: Eq u v or exists b. Mem b h and Fr u b
               by or_e o2 isv isc
@@ -334,55 +334,55 @@ define MPlus l a b c = exists s. PlusAt a b c s and Mem s l
 
 theorem msucc_q:
   variable l a b
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume ms: MSucc l a b
-  fs0: FS0     by and_e q
-  form: FORM   by and_e q
-  prf: PRF QAx by and_e q
+  fs0:  FS0     by and_e q
+  form: FORM    by and_e q
+  prf:  PRF QAx by and_e q
   leaf: (forall h a1. Form a1 -> LogAx a1 -> PrH h a1) and (forall h a2. Form a2 -> QAx a2 -> PrH h a2)
       and (forall h a3. Form a3 -> Mem a3 h -> PrH h a3)
-               by imp_e prh_leaf QAx fs0 prf
-  hyp: forall h a1. Form a1 -> Mem a1 h -> PrH h a1
-               by and_e leaf
+                by imp_e prh_leaf QAx fs0 prf
+  hyp:  forall h a1. Form a1 -> Mem a1 h -> PrH h a1
+                by and_e leaf
   lemma wit:
     variable s
     assume h: SuccAt a b s and Mem s l
-    xs: SuccAt a b s            by and_e h
-    mm: Mem s l                 by and_e h
-    fs: Form s                  by imp_e succat_form form na nb xs
-    ps: PrH l s                 by imp_e hyp fs mm
-    k: SuccAt a b s and PrH l s by and_i xs ps
-    r: QSucc l a b              by exists_i k
+    xs: SuccAt a b s             by and_e h
+    mm: Mem s l                  by and_e h
+    fs: Form s                   by imp_e succat_form form na nb xs
+    ps: PrH l s                  by imp_e hyp fs mm
+    k:  SuccAt a b s and PrH l s by and_i xs ps
+    r:  QSucc l a b              by exists_i k
     therefore forall s. (SuccAt a b s and Mem s l) -> QSucc l a b
   r: QSucc l a b by exists_e ms wit
   therefore forall l a b. QCtx -> Nat a -> Nat b -> MSucc l a b -> QSucc l a b
 
 theorem mplus_q:
   variable l a b c
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume mp: MPlus l a b c
-  fs0: FS0     by and_e q
-  form: FORM   by and_e q
-  prf: PRF QAx by and_e q
+  fs0:  FS0     by and_e q
+  form: FORM    by and_e q
+  prf:  PRF QAx by and_e q
   leaf: (forall h a1. Form a1 -> LogAx a1 -> PrH h a1) and (forall h a2. Form a2 -> QAx a2 -> PrH h a2)
       and (forall h a3. Form a3 -> Mem a3 h -> PrH h a3)
-               by imp_e prh_leaf QAx fs0 prf
-  hyp: forall h a1. Form a1 -> Mem a1 h -> PrH h a1
-               by and_e leaf
+                by imp_e prh_leaf QAx fs0 prf
+  hyp:  forall h a1. Form a1 -> Mem a1 h -> PrH h a1
+                by and_e leaf
   lemma wit:
     variable s
     assume h: PlusAt a b c s and Mem s l
-    xs: PlusAt a b c s            by and_e h
-    mm: Mem s l                   by and_e h
-    fs: Form s                    by imp_e plusat_form form na nb nc xs
-    ps: PrH l s                   by imp_e hyp fs mm
-    k: PlusAt a b c s and PrH l s by and_i xs ps
-    r: QPlus l a b c              by exists_i k
+    xs: PlusAt a b c s             by and_e h
+    mm: Mem s l                    by and_e h
+    fs: Form s                     by imp_e plusat_form form na nb nc xs
+    ps: PrH l s                    by imp_e hyp fs mm
+    k:  PlusAt a b c s and PrH l s by and_i xs ps
+    r:  QPlus l a b c              by exists_i k
     therefore forall s. (PlusAt a b c s and Mem s l) -> QPlus l a b c
   r: QPlus l a b c by exists_e mp wit
   therefore forall l a b c. QCtx -> Nat a -> Nat b -> Nat c -> MPlus l a b c -> QPlus l a b c
@@ -390,26 +390,26 @@ theorem mplus_q:
 -- The step every branch takes: from Succ k k1, Plus v k1 c, Plus v k p and Succ p q, Succ p c.
 theorem core:
   variable l v k k1 c p q1
-  assume q: QCtx
-  assume nv: Nat v
-  assume nk: Nat k
+  assume q:   QCtx
+  assume nv:  Nat v
+  assume nk:  Nat k
   assume nk1: Nat k1
-  assume nc: Nat c
-  assume np: Nat p
-  assume nq: Nat q1
-  assume m1: MSucc l k k1
-  assume m2: MPlus l v k1 c
-  assume m3: MPlus l v k p
-  assume m4: MSucc l p q1
-  s1: QSucc l k k1    by imp_e msucc_q q nk nk1 m1
-  p2: QPlus l v k1 c  by imp_e mplus_q q nv nk1 nc m2
-  p3: QPlus l v k p   by imp_e mplus_q q nv nk np m3
-  s4: QSucc l p q1    by imp_e msucc_q q np nq m4
-  p5: QPlus l v k1 q1 by imp_e qp_succ q nv nk nk1 np nq s1 p3 s4
-  ecq: QEq l c q1     by imp_e qp_fun q nv nk1 nc nq p2 p5
-  eqc: QEq l q1 c     by imp_e qe_sym q nc nq ecq
-  epp: QEq l p p      by imp_e qe_refl q np
-  r: QSucc l p c      by imp_e qs_tr q np nq np nc epp eqc s4
+  assume nc:  Nat c
+  assume np:  Nat p
+  assume nq:  Nat q1
+  assume m1:  MSucc l k k1
+  assume m2:  MPlus l v k1 c
+  assume m3:  MPlus l v k p
+  assume m4:  MSucc l p q1
+  s1:  QSucc l k k1    by imp_e msucc_q q nk nk1 m1
+  p2:  QPlus l v k1 c  by imp_e mplus_q q nv nk1 nc m2
+  p3:  QPlus l v k p   by imp_e mplus_q q nv nk np m3
+  s4:  QSucc l p q1    by imp_e msucc_q q np nq m4
+  p5:  QPlus l v k1 q1 by imp_e qp_succ q nv nk nk1 np nq s1 p3 s4
+  ecq: QEq l c q1      by imp_e qp_fun q nv nk1 nc nq p2 p5
+  eqc: QEq l q1 c      by imp_e qe_sym q nc nq ecq
+  epp: QEq l p p       by imp_e qe_refl q np
+  r:   QSucc l p c     by imp_e qs_tr q np nq np nc epp eqc s4
   therefore forall l v k k1 c p q1. QCtx -> Nat v -> Nat k -> Nat k1 -> Nat c -> Nat p -> Nat q1
       -> MSucc l k k1 -> MPlus l v k1 c -> MPlus l v k p -> MSucc l p q1 -> QSucc l p c
 
@@ -419,24 +419,24 @@ define VarOK f u = Even u or exists j. Pool j u and Lt j f
 theorem varok_eq:
   variable f u w
   assume fs0: FS0
-  assume ok: VarOK f u
-  assume e: Eq u w
+  assume ok:  VarOK f u
+  assume e:   Eq u w
   lemma ev:
     assume eu: Even u
-    ew: Even w   by imp_e even_eq fs0 eu e
-    r: VarOK f w by or_i ew
+    ew: Even w    by imp_e even_eq fs0 eu e
+    r:  VarOK f w by or_i ew
     therefore Even u -> VarOK f w
   lemma po:
     assume ex: exists j. Pool j u and Lt j f
     lemma wit:
       variable j
       assume hj: Pool j u and Lt j f
-      pu: Pool j u                        by and_e hj
-      lj: Lt j f                          by and_e hj
-      pw: Pool j w                        by imp_e pool_eq fs0 pu e
-      k: Pool j w and Lt j f              by and_i pw lj
-      x: exists j1. Pool j1 w and Lt j1 f by exists_i k
-      r: VarOK f w                        by or_i x
+      pu: Pool j u                         by and_e hj
+      lj: Lt j f                           by and_e hj
+      pw: Pool j w                         by imp_e pool_eq fs0 pu e
+      k:  Pool j w and Lt j f              by and_i pw lj
+      x:  exists j1. Pool j1 w and Lt j1 f by exists_i k
+      r:  VarOK f w                        by or_i x
       therefore forall j. (Pool j u and Lt j f) -> VarOK f w
     r: VarOK f w by exists_e ex wit
     therefore (exists j. Pool j u and Lt j f) -> VarOK f w
@@ -458,12 +458,12 @@ theorem varok_up:
     lemma wit:
       variable j
       assume hj: Pool j u and Lt j f
-      pu: Pool j u                         by and_e hj
-      lj: Lt j f                           by and_e hj
-      l1: Lt j f1                          by imp_e lt1 lj sf
-      k: Pool j u and Lt j f1              by and_i pu l1
-      x: exists j1. Pool j1 u and Lt j1 f1 by exists_i k
-      r: VarOK f1 u                        by or_i x
+      pu: Pool j u                          by and_e hj
+      lj: Lt j f                            by and_e hj
+      l1: Lt j f1                           by imp_e lt1 lj sf
+      k:  Pool j u and Lt j f1              by and_i pu l1
+      x:  exists j1. Pool j1 u and Lt j1 f1 by exists_i k
+      r:  VarOK f1 u                        by or_i x
       therefore forall j. (Pool j u and Lt j f) -> VarOK f1 u
     r: VarOK f1 u by exists_e ex wit
     therefore (exists j. Pool j u and Lt j f) -> VarOK f1 u
@@ -474,26 +474,26 @@ theorem varok_up:
 theorem varok_ne:
   variable f u z
   assume nat: NAT
-  assume pc: PoolCtx
-  assume ok: VarOK f u
-  assume pz: Pool f z
-  fs0: FS0                            by and_e nat
-  refl: Refl                          by and_e fs0
-  dbl: DBL                            by and_e pc
-  lt: LT                              by and_e pc
-  dinv: DblLeast DblInv               by and_e pc
-  dinj: DblLeast DblInj               by and_e pc
-  dodd: DblLeast DblOdd               by and_e pc
-  dnat: DblLeast DblNat               by and_e pc
-  linv: LtLeast LtInv                 by and_e pc
-  leq: LtLeast LtEq                   by and_e pc
-  ltr: LtLeast LtTrans                by and_e pc
-  lirr: NatLeast LtIrr                by and_e pc
-  eqs: forall n m. Lt n m -> LtEq n m by imp_e lt_eq fs0 lt leq
-  irr: forall n. Nat n -> LtIrr n     by imp_e lt_irrefl fs0 lt linv leq ltr lirr
-  nf: Nat f                           by imp_e pool_index_nat nat dnat pz
-  imf: LtIrr f                        by imp_e irr nf
-  rf: Eq f f                          by forall_e refl f
+  assume pc:  PoolCtx
+  assume ok:  VarOK f u
+  assume pz:  Pool f z
+  fs0:  FS0                            by and_e nat
+  refl: Refl                           by and_e fs0
+  dbl:  DBL                            by and_e pc
+  lt:   LT                             by and_e pc
+  dinv: DblLeast DblInv                by and_e pc
+  dinj: DblLeast DblInj                by and_e pc
+  dodd: DblLeast DblOdd                by and_e pc
+  dnat: DblLeast DblNat                by and_e pc
+  linv: LtLeast LtInv                  by and_e pc
+  leq:  LtLeast LtEq                   by and_e pc
+  ltr:  LtLeast LtTrans                by and_e pc
+  lirr: NatLeast LtIrr                 by and_e pc
+  eqs:  forall n m. Lt n m -> LtEq n m by imp_e lt_eq fs0 lt leq
+  irr:  forall n. Nat n -> LtIrr n     by imp_e lt_irrefl fs0 lt linv leq ltr lirr
+  nf:   Nat f                          by imp_e pool_index_nat nat dnat pz
+  imf:  LtIrr f                        by imp_e irr nf
+  rf:   Eq f f                         by forall_e refl f
   lemma no:
     assume e: Eq u z
     ezu: Eq z u by imp_e eq_sym fs0 e
@@ -506,12 +506,12 @@ theorem varok_ne:
       lemma wit:
         variable j
         assume hj: Pool j u and Lt j f
-        pu: Pool j u by and_e hj
-        lj: Lt j f   by and_e hj
-        ejf: Eq j f  by imp_e pool_inj fs0 dbl dinv dinj pu pz e
-        qq: LtEq j f by imp_e eqs lj
-        lff: Lt f f  by imp_e qq ejf rf
-        bad: absurd  by imp_e imf lff
+        pu:  Pool j u by and_e hj
+        lj:  Lt j f   by and_e hj
+        ejf: Eq j f   by imp_e pool_inj fs0 dbl dinv dinj pu pz e
+        qq:  LtEq j f by imp_e eqs lj
+        lff: Lt f f   by imp_e qq ejf rf
+        bad: absurd   by imp_e imf lff
         therefore forall j. (Pool j u and Lt j f) -> absurd
       bad: absurd by exists_e ex wit
       therefore (exists j. Pool j u and Lt j f) -> absurd
@@ -522,26 +522,26 @@ theorem varok_ne:
 -- An atom whose variables are below f has only such variables free.
 theorem atom_ok_succ:
   variable f a b s
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume oa: VarOK f a
-  assume ob: VarOK f b
-  assume sa: SuccAt a b s
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume oa:   VarOK f a
+  assume ob:   VarOK f b
+  assume sa:   SuccAt a b s
   lemma each:
     variable u
     assume fr: Fr u s
     o: Eq u a or Eq u b by imp_e fr_succat fs0 free ll lf fr sa
     lemma isa:
       assume e: Eq u a
-      e1: Eq a u   by imp_e eq_sym fs0 e
-      r: VarOK f u by imp_e varok_eq fs0 oa e1
+      e1: Eq a u    by imp_e eq_sym fs0 e
+      r:  VarOK f u by imp_e varok_eq fs0 oa e1
       therefore Eq u a -> VarOK f u
     lemma isb:
       assume e: Eq u b
-      e1: Eq b u   by imp_e eq_sym fs0 e
-      r: VarOK f u by imp_e varok_eq fs0 ob e1
+      e1: Eq b u    by imp_e eq_sym fs0 e
+      r:  VarOK f u by imp_e varok_eq fs0 ob e1
       therefore Eq u b -> VarOK f u
     r: VarOK f u by or_e o isa isb
     therefore forall u. Fr u s -> VarOK f u
@@ -550,32 +550,32 @@ theorem atom_ok_succ:
 
 theorem atom_ok_plus:
   variable f a b c s
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume oa: VarOK f a
-  assume ob: VarOK f b
-  assume oc: VarOK f c
-  assume pa: PlusAt a b c s
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume oa:   VarOK f a
+  assume ob:   VarOK f b
+  assume oc:   VarOK f c
+  assume pa:   PlusAt a b c s
   lemma each:
     variable u
     assume fr: Fr u s
     o: Eq u a or Eq u b or Eq u c by imp_e fr_plusat fs0 free ll lf fr pa
     lemma isa:
       assume e: Eq u a
-      e1: Eq a u   by imp_e eq_sym fs0 e
-      r: VarOK f u by imp_e varok_eq fs0 oa e1
+      e1: Eq a u    by imp_e eq_sym fs0 e
+      r:  VarOK f u by imp_e varok_eq fs0 oa e1
       therefore Eq u a -> VarOK f u
     lemma isb:
       assume e: Eq u b
-      e1: Eq b u   by imp_e eq_sym fs0 e
-      r: VarOK f u by imp_e varok_eq fs0 ob e1
+      e1: Eq b u    by imp_e eq_sym fs0 e
+      r:  VarOK f u by imp_e varok_eq fs0 ob e1
       therefore Eq u b -> VarOK f u
     lemma isc:
       assume e: Eq u c
-      e1: Eq c u   by imp_e eq_sym fs0 e
-      r: VarOK f u by imp_e varok_eq fs0 oc e1
+      e1: Eq c u    by imp_e eq_sym fs0 e
+      r:  VarOK f u by imp_e varok_eq fs0 oc e1
       therefore Eq u c -> VarOK f u
     r: VarOK f u by or_e o isa isb isc
     therefore forall u. Fr u s -> VarOK f u
@@ -586,80 +586,80 @@ theorem atom_ok_plus:
 -- Plus v k p and Succ p q1 added, and the freshness bound moved to f + 2.
 theorem blem_open:
   variable l v k f p f1 q1 f2 g
-  assume ec: ElimCtx
-  assume pc: PoolCtx
+  assume ec:   ElimCtx
+  assume pc:   PoolCtx
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume nv: Nat v
-  assume nk: Nat k
-  assume ev: Even v
-  assume okk: VarOK f k
-  assume d1: not (Eq v k)
-  assume fb: FreshB f l
-  assume pp: Pool f p
-  assume sf: Suc f f1
-  assume pq: Pool f1 q1
-  assume sf2: Suc f1 f2
-  assume fg: Form g
-  assume gok: forall u. Fr u g -> VarOK f u
-  assume kk: forall l2. Incl l l2 -> MPlus l2 v k p -> MSucc l2 p q1 -> FreshB f2 l2 -> PrH l2 g
-  q: QCtx               by and_e ec
-  list: LIST            by and_e ec
-  mc: MemLeast MemCons  by and_e ec
-  fs0: FS0              by and_e q
-  form: FORM            by and_e q
-  nat: NAT              by and_e form
-  refl: Refl            by and_e fs0
-  lt: LT                by and_e pc
-  dnat: DblLeast DblNat by and_e pc
-  lt0: Lt0              by and_e lt
-  lt1: Lt1              by and_e lt
-  mh: Mh                by and_e list
-  mt: Mt                by and_e list
-  np: Nat p             by imp_e pool_nat nat dnat pp
-  nq: Nat q1            by imp_e pool_nat nat dnat pq
-  okv: VarOK f v        by or_i ev
-  rp: Eq p p            by forall_e refl p
-  rq: Eq q1 q1          by forall_e refl q1
-  d2: not (Eq v p)      by imp_e varok_ne nat pc okv pp
-  d3: not (Eq k p)      by imp_e varok_ne nat pc okk pp
-  nfpl: NoFree p l      by imp_e fresh_at nat pc fb pp
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume nv:   Nat v
+  assume nk:   Nat k
+  assume ev:   Even v
+  assume okk:  VarOK f k
+  assume d1:   not (Eq v k)
+  assume fb:   FreshB f l
+  assume pp:   Pool f p
+  assume sf:   Suc f f1
+  assume pq:   Pool f1 q1
+  assume sf2:  Suc f1 f2
+  assume fg:   Form g
+  assume gok:  forall u. Fr u g -> VarOK f u
+  assume kk:   forall l2. Incl l l2 -> MPlus l2 v k p -> MSucc l2 p q1 -> FreshB f2 l2 -> PrH l2 g
+  q:    QCtx             by and_e ec
+  list: LIST             by and_e ec
+  mc:   MemLeast MemCons by and_e ec
+  fs0:  FS0              by and_e q
+  form: FORM             by and_e q
+  nat:  NAT              by and_e form
+  refl: Refl             by and_e fs0
+  lt:   LT               by and_e pc
+  dnat: DblLeast DblNat  by and_e pc
+  lt0:  Lt0              by and_e lt
+  lt1:  Lt1              by and_e lt
+  mh:   Mh               by and_e list
+  mt:   Mt               by and_e list
+  np:   Nat p            by imp_e pool_nat nat dnat pp
+  nq:   Nat q1           by imp_e pool_nat nat dnat pq
+  okv:  VarOK f v        by or_i ev
+  rp:   Eq p p           by forall_e refl p
+  rq:   Eq q1 q1         by forall_e refl q1
+  d2:   not (Eq v p)     by imp_e varok_ne nat pc okv pp
+  d3:   not (Eq k p)     by imp_e varok_ne nat pc okk pp
+  nfpl: NoFree p l       by imp_e fresh_at nat pc fb pp
   lemma nfpg:
     assume fr: Fr p g
     okp: VarOK f p    by imp_e gok fr
     np1: not (Eq p p) by imp_e varok_ne nat pc okp pp
     bad: absurd       by imp_e np1 rp
     therefore not (Fr p g)
-  lff1: Lt f f1                         by imp_e lt0 sf
-  lf1f2: Lt f1 f2                       by imp_e lt0 sf2
-  lff2: Lt f f2                         by imp_e lt1 lff1 sf2
-  kpf1: Pool f p and Lt f f1            by and_i pp lff1
-  xpf1: exists j. Pool j p and Lt j f1  by exists_i kpf1
-  okp1: VarOK f1 p                      by or_i xpf1
-  kpf2: Pool f p and Lt f f2            by and_i pp lff2
-  xpf2: exists j. Pool j p and Lt j f2  by exists_i kpf2
-  okp2: VarOK f2 p                      by or_i xpf2
-  kqf2: Pool f1 q1 and Lt f1 f2         by and_i pq lf1f2
-  xqf2: exists j. Pool j q1 and Lt j f2 by exists_i kqf2
-  okq2: VarOK f2 q1                     by or_i xqf2
-  okv1: VarOK f1 v                      by or_i ev
-  okk1: VarOK f1 k                      by imp_e varok_up lt okk sf
-  dpq: not (Eq p q1)                    by imp_e varok_ne nat pc okp1 pq
+  lff1:  Lt f f1                         by imp_e lt0 sf
+  lf1f2: Lt f1 f2                        by imp_e lt0 sf2
+  lff2:  Lt f f2                         by imp_e lt1 lff1 sf2
+  kpf1:  Pool f p and Lt f f1            by and_i pp lff1
+  xpf1:  exists j. Pool j p and Lt j f1  by exists_i kpf1
+  okp1:  VarOK f1 p                      by or_i xpf1
+  kpf2:  Pool f p and Lt f f2            by and_i pp lff2
+  xpf2:  exists j. Pool j p and Lt j f2  by exists_i kpf2
+  okp2:  VarOK f2 p                      by or_i xpf2
+  kqf2:  Pool f1 q1 and Lt f1 f2         by and_i pq lf1f2
+  xqf2:  exists j. Pool j q1 and Lt j f2 by exists_i kqf2
+  okq2:  VarOK f2 q1                     by or_i xqf2
+  okv1:  VarOK f1 v                      by or_i ev
+  okk1:  VarOK f1 k                      by imp_e varok_up lt okk sf
+  dpq:   not (Eq p q1)                   by imp_e varok_ne nat pc okp1 pq
   lemma k1:
     variable s1 l1
     assume xs1: PlusAt v k p s1
     assume ph1: Pair s1 l l1
-    ok1: forall u. Fr u s1 -> VarOK f1 u
+    ok1:  forall u. Fr u s1 -> VarOK f1 u
                        by imp_e atom_ok_plus fs0 free ll lf okv1 okk1 okp1 xs1
-    fb1: FreshB f1 l1  by imp_e fresh_cons free list lt mc fb sf ok1 ph1
+    fb1:  FreshB f1 l1 by imp_e fresh_cons free list lt mc fb sf ok1 ph1
     nfql: NoFree q1 l1 by imp_e fresh_at nat pc fb1 pq
     lemma nfqg:
       assume fr: Fr q1 g
-      okq: VarOK f q1     by imp_e gok fr
-      okq1: VarOK f1 q1   by imp_e varok_up lt okq sf
-      nq1: not (Eq q1 q1) by imp_e varok_ne nat pc okq1 pq
-      bad: absurd         by imp_e nq1 rq
+      okq:  VarOK f q1     by imp_e gok fr
+      okq1: VarOK f1 q1    by imp_e varok_up lt okq sf
+      nq1:  not (Eq q1 q1) by imp_e varok_ne nat pc okq1 pq
+      bad:  absurd         by imp_e nq1 rq
       therefore not (Fr q1 g)
     lemma k2:
       variable s2 l2
@@ -672,17 +672,17 @@ theorem blem_open:
         variable b
         assume mb: Mem b l
         m1: Mem b l1 by imp_e mt ph1 mb
-        r: Mem b l2  by imp_e mt ph2 m1
+        r:  Mem b l2 by imp_e mt ph2 m1
         therefore forall b. Mem b l -> Mem b l2
-      ms11: Mem s1 l1                  by imp_e mh ph1
-      ms1: Mem s1 l2                   by imp_e mt ph2 ms11
-      ms2: Mem s2 l2                   by imp_e mh ph2
-      c1: PlusAt v k p s1 and Mem s1 l2
-                                       by and_i xs1 ms1
-      mp: MPlus l2 v k p               by exists_i c1
-      c2: SuccAt p q1 s2 and Mem s2 l2 by and_i xs2 ms2
-      msu: MSucc l2 p q1               by exists_i c2
-      r: PrH l2 g                      by imp_e kk inc mp msu fb2
+      ms11: Mem s1 l1                    by imp_e mh ph1
+      ms1:  Mem s1 l2                    by imp_e mt ph2 ms11
+      ms2:  Mem s2 l2                    by imp_e mh ph2
+      c1:   PlusAt v k p s1 and Mem s1 l2
+                                         by and_i xs1 ms1
+      mp:   MPlus l2 v k p               by exists_i c1
+      c2:   SuccAt p q1 s2 and Mem s2 l2 by and_i xs2 ms2
+      msu:  MSucc l2 p q1                by exists_i c2
+      r:    PrH l2 g                     by imp_e kk inc mp msu fb2
       therefore forall s2 l2. SuccAt p q1 s2 -> Pair s2 l1 l2 -> PrH l2 g
     r: PrH l1 g by imp_e se_elim ec np nq dpq nfql nfqg fg k2
     therefore forall s1 l1. PlusAt v k p s1 -> Pair s1 l l1 -> PrH l1 g
@@ -695,32 +695,32 @@ theorem blem_open:
 -- Members stay members in a larger list.
 theorem msucc_incl:
   variable l l1 a b
-  assume ms: MSucc l a b
+  assume ms:  MSucc l a b
   assume inc: Incl l l1
   lemma wit:
     variable s
     assume h: SuccAt a b s and Mem s l
-    xs: SuccAt a b s             by and_e h
-    mm: Mem s l                  by and_e h
-    m1: Mem s l1                 by imp_e inc mm
-    k: SuccAt a b s and Mem s l1 by and_i xs m1
-    r: MSucc l1 a b              by exists_i k
+    xs: SuccAt a b s              by and_e h
+    mm: Mem s l                   by and_e h
+    m1: Mem s l1                  by imp_e inc mm
+    k:  SuccAt a b s and Mem s l1 by and_i xs m1
+    r:  MSucc l1 a b              by exists_i k
     therefore forall s. (SuccAt a b s and Mem s l) -> MSucc l1 a b
   r: MSucc l1 a b by exists_e ms wit
   therefore forall l l1 a b. MSucc l a b -> Incl l l1 -> MSucc l1 a b
 
 theorem mplus_incl:
   variable l l1 a b c
-  assume mp: MPlus l a b c
+  assume mp:  MPlus l a b c
   assume inc: Incl l l1
   lemma wit:
     variable s
     assume h: PlusAt a b c s and Mem s l
-    xs: PlusAt a b c s             by and_e h
-    mm: Mem s l                    by and_e h
-    m1: Mem s l1                   by imp_e inc mm
-    k: PlusAt a b c s and Mem s l1 by and_i xs m1
-    r: MPlus l1 a b c              by exists_i k
+    xs: PlusAt a b c s              by and_e h
+    mm: Mem s l                     by and_e h
+    m1: Mem s l1                    by imp_e inc mm
+    k:  PlusAt a b c s and Mem s l1 by and_i xs m1
+    r:  MPlus l1 a b c              by exists_i k
     therefore forall s. (PlusAt a b c s and Mem s l) -> MPlus l1 a b c
   r: MPlus l1 a b c by exists_e mp wit
   therefore forall l l1 a b c. MPlus l a b c -> Incl l l1 -> MPlus l1 a b c
@@ -733,14 +733,14 @@ theorem incl_trans:
     variable b
     assume mb: Mem b l
     m1: Mem b l1 by imp_e i1 mb
-    r: Mem b l2  by imp_e i2 m1
+    r:  Mem b l2 by imp_e i2 m1
     therefore forall b. Mem b l -> Mem b l2
   therefore forall l l1 l2. Incl l l1 -> Incl l1 l2 -> Incl l l2
 
 -- z = a and z = b give a = b, for provability.
 theorem qe_trans3:
   variable h z a b
-  assume q: QCtx
+  assume q:  QCtx
   assume nz: Nat z
   assume na: Nat a
   assume nb: Nat b
@@ -761,9 +761,9 @@ theorem qe_trans3:
       lemma w3:
         variable d
         assume xd: EqAt a b d
-        pd: PrH h d               by imp_e q_eq_trans q nz na nb x1 p1 x2 p2 xd
-        k: EqAt a b d and PrH h d by and_i xd pd
-        r: QEq h a b              by exists_i k
+        pd: PrH h d                by imp_e q_eq_trans q nz na nb x1 p1 x2 p2 xd
+        k:  EqAt a b d and PrH h d by and_i xd pd
+        r:  QEq h a b              by exists_i k
         therefore forall d. EqAt a b d -> QEq h a b
       r: QEq h a b by exists_e ed w3
       therefore forall c2. (EqAt z b c2 and PrH h c2) -> QEq h a b
@@ -775,31 +775,31 @@ theorem qe_trans3:
 -- In a step: with c the successor of c0 in the chain, the witness p is c0.
 theorem core2:
   variable l v k k1 c0 c p q1
-  assume q: QCtx
-  assume nv: Nat v
-  assume nk: Nat k
+  assume q:   QCtx
+  assume nv:  Nat v
+  assume nk:  Nat k
   assume nk1: Nat k1
   assume nc0: Nat c0
-  assume nc: Nat c
-  assume np: Nat p
-  assume nq: Nat q1
-  assume m1: MSucc l k k1
-  assume m2: MPlus l v k1 c
-  assume m3: MPlus l v k p
-  assume m4: MSucc l p q1
-  assume m5: MSucc l c0 c
+  assume nc:  Nat c
+  assume np:  Nat p
+  assume nq:  Nat q1
+  assume m1:  MSucc l k k1
+  assume m2:  MPlus l v k1 c
+  assume m3:  MPlus l v k p
+  assume m4:  MSucc l p q1
+  assume m5:  MSucc l c0 c
   spc: QSucc l p c  by imp_e core q nv nk nk1 nc np nq m1 m2 m3 m4
   scc: QSucc l c0 c by imp_e msucc_q q nc0 nc m5
-  r: QEq l p c0     by imp_e qs_inj q np nc0 nc spc scc
+  r:   QEq l p c0   by imp_e qs_inj q np nc0 nc spc scc
   therefore forall l v k k1 c0 c p q1. QCtx -> Nat v -> Nat k -> Nat k1 -> Nat c0 -> Nat c -> Nat p -> Nat q1
       -> MSucc l k k1 -> MPlus l v k1 c -> MPlus l v k p -> MSucc l p q1 -> MSucc l c0 c -> QEq l p c0
 
 -- A variable other than an atom's variables is not free in it.
 theorem plusat_nofree:
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
   lemma all:
     variable u a b c x
     assume pa: PlusAt a b c x
@@ -808,8 +808,8 @@ theorem plusat_nofree:
     assume nc: not (Eq u c)
     lemma nf:
       assume fr: Fr u x
-      o: Eq u a or Eq u b or Eq u c by imp_e fr_plusat fs0 free ll lf fr pa
-      bad: absurd                   by or_e o na nb nc
+      o:   Eq u a or Eq u b or Eq u c by imp_e fr_plusat fs0 free ll lf fr pa
+      bad: absurd                     by or_e o na nb nc
       therefore not (Fr u x)
     therefore forall u a b c x. PlusAt a b c x -> not (Eq u a) -> not (Eq u b) -> not (Eq u c) -> not (Fr u x)
   therefore FS0 -> FREE -> FrLLeast FrLInv -> FrLeast FrInv

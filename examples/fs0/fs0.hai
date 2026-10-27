@@ -32,7 +32,7 @@ define Induction (P x) = (forall n. Nil n -> P n)
 theorem eq_sym:
   assume fs0: FS0
   refl: Refl by and_e fs0
-  ee: Ee     by and_e fs0
+  ee:   Ee   by and_e fs0
   lemma all:
     variable x y
     assume h: Eq x y
@@ -45,7 +45,7 @@ theorem eq_sym:
 theorem eq_trans:
   assume fs0: FS0
   refl: Refl by and_e fs0
-  ee: Ee     by and_e fs0
+  ee:   Ee   by and_e fs0
   lemma all:
     variable x y z
     assume h: Eq x y
@@ -60,7 +60,7 @@ theorem eq_trans:
 theorem pair_parts:
   assume fs0: FS0
   refl: Refl by and_e fs0
-  pj: Pj     by and_e fs0
+  pj:   Pj   by and_e fs0
   lemma all:
     variable x y a b p
     assume p1: Pair x y p

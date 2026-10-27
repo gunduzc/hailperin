@@ -14,24 +14,24 @@ define ValShape e v n = (exists en r. Pair v n en and Pair en r e)
 define ValInv e v n   = Val e v n and ValShape e v n
 
 theorem val_inv:
-  assume fs0: FS0
+  assume fs0:   FS0
   assume truth: TRUTH
   assume least: ValLeast ValInv
-  vh: Vh     by and_e truth
-  vt: Vt     by and_e truth
+  vh:   Vh   by and_e truth
+  vt:   Vt   by and_e truth
   qval: Qval by and_e truth
-  ep: Ep     by and_e fs0
+  ep:   Ep   by and_e fs0
   refl: Refl by and_e fs0
   lemma c_h:
     variable e v n en r
     assume p1: Pair v n en
     assume p2: Pair en r e
-    vl: Val e v n                  by imp_e vh p1 p2
-    c: Pair v n en and Pair en r e by and_i p1 p2
-    x: exists en1 r1. Pair v n en1 and Pair en1 r1 e
-                                   by exists_i c
-    sh: ValShape e v n             by or_i x
-    k: ValInv e v n                by and_i vl sh
+    vl: Val e v n                   by imp_e vh p1 p2
+    c:  Pair v n en and Pair en r e by and_i p1 p2
+    x:  exists en1 r1. Pair v n en1 and Pair en1 r1 e
+                                    by exists_i c
+    sh: ValShape e v n              by or_i x
+    k:  ValInv e v n                by and_i vl sh
     therefore forall e v n en r. Pair v n en -> Pair en r e -> ValInv e v n
   lemma c_t:
     variable e v n u m en r
@@ -41,39 +41,39 @@ theorem val_inv:
     assume vr: Val r v n
     assume ih: ValInv r v n
     vl: Val e v n      by imp_e vt p1 ne p2 vr
-    c: Pair u m en and not (Eq u v) and Pair en r e and Val r v n
+    c:  Pair u m en and not (Eq u v) and Pair en r e and Val r v n
                        by and_i p1 ne p2 vr
-    x: exists u1 m1 en1 r1. Pair u1 m1 en1 and not (Eq u1 v) and Pair en1 r1 e and Val r1 v n
+    x:  exists u1 m1 en1 r1. Pair u1 m1 en1 and not (Eq u1 v) and Pair en1 r1 e and Val r1 v n
                        by exists_i c
     sh: ValShape e v n by or_i x
-    k: ValInv e v n    by and_i vl sh
+    k:  ValInv e v n   by and_i vl sh
     therefore forall e v n u m en r. Pair u m en -> not (Eq u v) -> Pair en r e -> Val r v n -> ValInv r v n
         -> ValInv e v n
   lemma c_q:
     variable e v n e1 v1 n1
-    assume ee: Eq e e1
-    assume ev: Eq v v1
+    assume ee:  Eq e e1
+    assume ev:  Eq v v1
     assume eqn: Eq n n1
-    assume ih: ValInv e v n
-    vl: Val e v n      by and_e ih
-    vl1: Val e1 v1 n1  by imp_e qval ee ev eqn vl
-    sh: ValShape e v n by and_e ih
+    assume ih:  ValInv e v n
+    vl:  Val e v n      by and_e ih
+    vl1: Val e1 v1 n1   by imp_e qval ee ev eqn vl
+    sh:  ValShape e v n by and_e ih
     lemma first:
       assume x: exists en r. Pair v n en and Pair en r e
       lemma wit:
         variable en r
         assume hw: Pair v n en and Pair en r e
-        p1: Pair v n en       by and_e hw
-        p2: Pair en r e       by and_e hw
-        ren: Eq en en         by forall_e refl en
-        rr: Eq r r            by forall_e refl r
-        q1: Pair v1 n1 en     by imp_e ep ev eqn ren p1
-        q2: Pair en r e1      by imp_e ep ren rr ee p2
-        c: Pair v1 n1 en and Pair en r e1
-                              by and_i q1 q2
-        y: exists en1 r1. Pair v1 n1 en1 and Pair en1 r1 e1
-                              by exists_i c
-        s1: ValShape e1 v1 n1 by or_i y
+        p1:  Pair v n en       by and_e hw
+        p2:  Pair en r e       by and_e hw
+        ren: Eq en en          by forall_e refl en
+        rr:  Eq r r            by forall_e refl r
+        q1:  Pair v1 n1 en     by imp_e ep ev eqn ren p1
+        q2:  Pair en r e1      by imp_e ep ren rr ee p2
+        c:   Pair v1 n1 en and Pair en r e1
+                               by and_i q1 q2
+        y:   exists en1 r1. Pair v1 n1 en1 and Pair en1 r1 e1
+                               by exists_i c
+        s1:  ValShape e1 v1 n1 by or_i y
         therefore forall en r. (Pair v n en and Pair en r e) -> ValShape e1 v1 n1
       s1: ValShape e1 v1 n1 by exists_e x wit
       therefore (exists en r. Pair v n en and Pair en r e) -> ValShape e1 v1 n1
@@ -82,30 +82,30 @@ theorem val_inv:
       lemma wit:
         variable u m en r
         assume hw: Pair u m en and not (Eq u v) and Pair en r e and Val r v n
-        p1: Pair u m en  by and_e hw
-        ne: not (Eq u v) by and_e hw
-        p2: Pair en r e  by and_e hw
-        vr: Val r v n    by and_e hw
-        ren: Eq en en    by forall_e refl en
-        rr: Eq r r       by forall_e refl r
-        q2: Pair en r e1 by imp_e ep ren rr ee p2
-        vr1: Val r v1 n1 by imp_e qval rr ev eqn vr
-        ev1: Eq v1 v     by imp_e eq_sym fs0 ev
+        p1:  Pair u m en  by and_e hw
+        ne:  not (Eq u v) by and_e hw
+        p2:  Pair en r e  by and_e hw
+        vr:  Val r v n    by and_e hw
+        ren: Eq en en     by forall_e refl en
+        rr:  Eq r r       by forall_e refl r
+        q2:  Pair en r e1 by imp_e ep ren rr ee p2
+        vr1: Val r v1 n1  by imp_e qval rr ev eqn vr
+        ev1: Eq v1 v      by imp_e eq_sym fs0 ev
         lemma ne1:
           assume e2: Eq u v1
           e3: Eq u v by imp_e eq_trans fs0 e2 ev1
-          g: absurd  by imp_e ne e3
+          g:  absurd by imp_e ne e3
           therefore not (Eq u v1)
-        c: Pair u m en and not (Eq u v1) and Pair en r e1 and Val r v1 n1
+        c:  Pair u m en and not (Eq u v1) and Pair en r e1 and Val r v1 n1
                               by and_i p1 ne1 q2 vr1
-        y: exists u1 m1 en1 r1. Pair u1 m1 en1 and not (Eq u1 v1) and Pair en1 r1 e1 and Val r1 v1 n1
+        y:  exists u1 m1 en1 r1. Pair u1 m1 en1 and not (Eq u1 v1) and Pair en1 r1 e1 and Val r1 v1 n1
                               by exists_i c
         s1: ValShape e1 v1 n1 by or_i y
         therefore forall u m en r. (Pair u m en and not (Eq u v) and Pair en r e and Val r v n) -> ValShape e1 v1 n1
       s1: ValShape e1 v1 n1 by exists_e x wit
       therefore (exists u m en r. Pair u m en and not (Eq u v) and Pair en r e and Val r v n) -> ValShape e1 v1 n1
     s1: ValShape e1 v1 n1 by or_e sh first later
-    k: ValInv e1 v1 n1    by and_i vl1 s1
+    k:  ValInv e1 v1 n1   by and_i vl1 s1
     therefore forall e v n e1 v1 n1. Eq e e1 -> Eq v v1 -> Eq n n1 -> ValInv e v n -> ValInv e1 v1 n1
   r: forall e v n. Val e v n -> ValInv e v n
       by imp_e least c_h c_t c_q
@@ -114,18 +114,18 @@ theorem val_inv:
 -- In e extended by v := n, the value of v is n, and another variable keeps its value in e.
 theorem val_ext_inv:
   variable e v n e2 u m
-  assume fs0: FS0
+  assume fs0:   FS0
   assume truth: TRUTH
   assume least: ValLeast ValInv
-  assume ext: Ext e v n e2
-  assume vu: Val e2 u m
-  ep: Ep              by and_e fs0
-  refl: Refl          by and_e fs0
-  qval: Qval          by and_e truth
-  inv: forall e1 v1 n1. Val e1 v1 n1 -> ValInv e1 v1 n1
-                      by imp_e val_inv fs0 truth least
-  i: ValInv e2 u m    by imp_e inv vu
-  sh: ValShape e2 u m by and_e i
+  assume ext:   Ext e v n e2
+  assume vu:    Val e2 u m
+  ep:   Ep              by and_e fs0
+  refl: Refl            by and_e fs0
+  qval: Qval            by and_e truth
+  inv:  forall e1 v1 n1. Val e1 v1 n1 -> ValInv e1 v1 n1
+                        by imp_e val_inv fs0 truth least
+  i:    ValInv e2 u m   by imp_e inv vu
+  sh:   ValShape e2 u m by and_e i
   lemma w0:
     variable en0
     assume h0: Pair v n en0 and Pair en0 e e2
@@ -136,16 +136,16 @@ theorem val_ext_inv:
       lemma wit:
         variable en r
         assume hw: Pair u m en and Pair en r e2
-        p1: Pair u m en          by and_e hw
-        p2: Pair en r e2         by and_e hw
-        pp: Eq en en0 and Eq r e by imp_e pair_parts fs0 p2 q0
-        een: Eq en en0           by and_e pp
-        ru: Eq u u               by forall_e refl u
-        rm: Eq m m               by forall_e refl m
-        p3: Pair u m en0         by imp_e ep ru rm een p1
-        uv: Eq u v and Eq m n    by imp_e pair_parts fs0 p3 p0
+        p1:  Pair u m en          by and_e hw
+        p2:  Pair en r e2         by and_e hw
+        pp:  Eq en en0 and Eq r e by imp_e pair_parts fs0 p2 q0
+        een: Eq en en0            by and_e pp
+        ru:  Eq u u               by forall_e refl u
+        rm:  Eq m m               by forall_e refl m
+        p3:  Pair u m en0         by imp_e ep ru rm een p1
+        uv:  Eq u v and Eq m n    by imp_e pair_parts fs0 p3 p0
         res: (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
-                                 by or_i uv
+                                  by or_i uv
         therefore forall en r. (Pair u m en and Pair en r e2) -> (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
       r: (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
           by exists_e x wit
@@ -155,30 +155,30 @@ theorem val_ext_inv:
       lemma wit:
         variable u0 m0 en r
         assume hw: Pair u0 m0 en and not (Eq u0 u) and Pair en r e2 and Val r u m
-        p1: Pair u0 m0 en        by and_e hw
-        ne: not (Eq u0 u)        by and_e hw
-        p2: Pair en r e2         by and_e hw
-        vr: Val r u m            by and_e hw
-        pp: Eq en en0 and Eq r e by imp_e pair_parts fs0 p2 q0
-        een: Eq en en0           by and_e pp
-        ere: Eq r e              by and_e pp
-        ru0: Eq u0 u0            by forall_e refl u0
-        rm0: Eq m0 m0            by forall_e refl m0
-        p3: Pair u0 m0 en0       by imp_e ep ru0 rm0 een p1
-        uv: Eq u0 v and Eq m0 n  by imp_e pair_parts fs0 p3 p0
-        e0: Eq u0 v              by and_e uv
+        p1:  Pair u0 m0 en        by and_e hw
+        ne:  not (Eq u0 u)        by and_e hw
+        p2:  Pair en r e2         by and_e hw
+        vr:  Val r u m            by and_e hw
+        pp:  Eq en en0 and Eq r e by imp_e pair_parts fs0 p2 q0
+        een: Eq en en0            by and_e pp
+        ere: Eq r e               by and_e pp
+        ru0: Eq u0 u0             by forall_e refl u0
+        rm0: Eq m0 m0             by forall_e refl m0
+        p3:  Pair u0 m0 en0       by imp_e ep ru0 rm0 een p1
+        uv:  Eq u0 v and Eq m0 n  by imp_e pair_parts fs0 p3 p0
+        e0:  Eq u0 v              by and_e uv
         lemma nuv:
           assume e1: Eq u v
           e4: Eq v u  by imp_e eq_sym fs0 e1
           e3: Eq u0 u by imp_e eq_trans fs0 e0 e4
-          g: absurd   by imp_e ne e3
+          g:  absurd  by imp_e ne e3
           therefore not (Eq u v)
-        ru: Eq u u                    by forall_e refl u
-        rm: Eq m m                    by forall_e refl m
-        ve: Val e u m                 by imp_e qval ere ru rm vr
-        c: not (Eq u v) and Val e u m by and_i nuv ve
+        ru:  Eq u u                     by forall_e refl u
+        rm:  Eq m m                     by forall_e refl m
+        ve:  Val e u m                  by imp_e qval ere ru rm vr
+        c:   not (Eq u v) and Val e u m by and_i nuv ve
         res: (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
-                                      by or_i c
+                                        by or_i c
         therefore forall u0 m0 en r. (Pair u0 m0 en and not (Eq u0 u) and Pair en r e2 and Val r u m)
             -> (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
       r: (Eq u v and Eq m n) or (not (Eq u v) and Val e u m)
@@ -197,12 +197,12 @@ theorem val_ext_inv:
 define NamesMNum h z j = forall j1. Eq j j1 -> NamesM h z j1
 
 theorem namesm_num:
-  assume fs0: FS0
-  assume nm: NAMESM
+  assume fs0:   FS0
+  assume nm:    NAMESM
   assume least: NamesMLeast NamesMNum
-  mm0: Mm0   by and_e nm
-  mm1: Mm1   by and_e nm
-  en: En     by and_e fs0
+  mm0:  Mm0  by and_e nm
+  mm1:  Mm1  by and_e nm
+  en:   En   by and_e fs0
   refl: Refl by and_e fs0
   lemma c0:
     variable h z j c
@@ -213,24 +213,24 @@ theorem namesm_num:
     lemma each:
       variable j1
       assume ej: Eq j j1
-      n1: Nil j1       by imp_e en ej nj
-      r: NamesM h z j1 by imp_e mm0 nz n1 za mc
+      n1: Nil j1        by imp_e en ej nj
+      r:  NamesM h z j1 by imp_e mm0 nz n1 za mc
       therefore forall j1. Eq j j1 -> NamesM h z j1
     therefore forall h z j c. Nat z -> Nil j -> ZeroAt z c -> Mem c h -> NamesMNum h z j
   lemma c1:
     variable h z j z1 j1 c
-    assume ih: NamesMNum h z j
+    assume ih:  NamesMNum h z j
     assume nz1: Nat z1
-    assume sj: Suc j j1
-    assume sa: SuccAt z z1 c
-    assume mc: Mem c h
-    rj: Eq j j      by forall_e refl j
-    n: NamesM h z j by imp_e ih rj
+    assume sj:  Suc j j1
+    assume sa:  SuccAt z z1 c
+    assume mc:  Mem c h
+    rj: Eq j j       by forall_e refl j
+    n:  NamesM h z j by imp_e ih rj
     lemma each:
       variable j2
       assume ej: Eq j1 j2
-      s2: Suc j j2      by imp_e suc_eq fs0 rj ej sj
-      r: NamesM h z1 j2 by imp_e mm1 n nz1 s2 sa mc
+      s2: Suc j j2       by imp_e suc_eq fs0 rj ej sj
+      r:  NamesM h z1 j2 by imp_e mm1 n nz1 s2 sa mc
       therefore forall j2. Eq j1 j2 -> NamesM h z1 j2
     therefore forall h z j z1 j1 c. NamesMNum h z j -> Nat z1 -> Suc j j1 -> SuccAt z z1 c -> Mem c h -> NamesMNum h z1 j1
   r: forall h z j. NamesM h z j -> NamesMNum h z j
@@ -241,20 +241,20 @@ theorem namesm_num:
 theorem list1_tr:
   variable w w1 t
   assume fs0: FS0
-  assume l1: List1 w t
-  assume ew: Eq w w1
-  ep: Ep     by and_e fs0
-  refl: Refl by and_e fs0
-  rt: Eq t t by forall_e refl t
+  assume l1:  List1 w t
+  assume ew:  Eq w w1
+  ep:   Ep     by and_e fs0
+  refl: Refl   by and_e fs0
+  rt:   Eq t t by forall_e refl t
   lemma wit:
     variable n
     assume h: Nil n and Pair w n t
-    nn: Nil n                by and_e h
-    pt: Pair w n t           by and_e h
-    rn: Eq n n               by forall_e refl n
-    p1: Pair w1 n t          by imp_e ep ew rn rt pt
-    c: Nil n and Pair w1 n t by and_i nn p1
-    r: List1 w1 t            by exists_i c
+    nn: Nil n                 by and_e h
+    pt: Pair w n t            by and_e h
+    rn: Eq n n                by forall_e refl n
+    p1: Pair w1 n t           by imp_e ep ew rn rt pt
+    c:  Nil n and Pair w1 n t by and_i nn p1
+    r:  List1 w1 t            by exists_i c
     therefore forall n. (Nil n and Pair w n t) -> List1 w1 t
   r: List1 w1 t by exists_e l1 wit
   therefore forall w w1 t. FS0 -> List1 w t -> Eq w w1 -> List1 w1 t
@@ -262,16 +262,16 @@ theorem list1_tr:
 theorem list2_tr:
   variable v w w1 l
   assume fs0: FS0
-  assume l2: List2 v w l
-  assume ew: Eq w w1
+  assume l2:  List2 v w l
+  assume ew:  Eq w w1
   lemma wit:
     variable t
     assume h: List1 w t and Pair v t l
-    lt: List1 w t                by and_e h
-    pl: Pair v t l               by and_e h
-    l1: List1 w1 t               by imp_e list1_tr fs0 lt ew
-    c: List1 w1 t and Pair v t l by and_i l1 pl
-    r: List2 v w1 l              by exists_i c
+    lt: List1 w t                 by and_e h
+    pl: Pair v t l                by and_e h
+    l1: List1 w1 t                by imp_e list1_tr fs0 lt ew
+    c:  List1 w1 t and Pair v t l by and_i l1 pl
+    r:  List2 v w1 l              by exists_i c
     therefore forall t. (List1 w t and Pair v t l) -> List2 v w1 l
   r: List2 v w1 l by exists_e l2 wit
   therefore forall v w w1 l. FS0 -> List2 v w l -> Eq w w1 -> List2 v w1 l
@@ -279,8 +279,8 @@ theorem list2_tr:
 theorem eqat_tr:
   variable z v v1 c
   assume fs0: FS0
-  assume ea: EqAt z v c
-  assume ev: Eq v v1
+  assume ea:  EqAt z v c
+  assume ev:  Eq v v1
   lemma wit:
     variable p l
     assume h: T4 p and List2 z v l and Node2 T1 p l c
@@ -288,9 +288,9 @@ theorem eqat_tr:
     l2: List2 z v l    by and_e h
     nd: Node2 T1 p l c by and_e h
     l3: List2 z v1 l   by imp_e list2_tr fs0 l2 ev
-    k: T4 p and List2 z v1 l and Node2 T1 p l c
+    k:  T4 p and List2 z v1 l and Node2 T1 p l c
                        by and_i tp l3 nd
-    r: EqAt z v1 c     by exists_i k
+    r:  EqAt z v1 c    by exists_i k
     therefore forall p l. (T4 p and List2 z v l and Node2 T1 p l c) -> EqAt z v1 c
   r: EqAt z v1 c by exists_e ea wit
   therefore forall z v v1 c. FS0 -> EqAt z v c -> Eq v v1 -> EqAt z v1 c
@@ -298,26 +298,26 @@ theorem eqat_tr:
 -- Coverage for the extended assignment: v by the new equation, the rest as before.
 theorem covers_ext:
   variable e v n e2 h1 h2 u c
-  assume q: QCtx
-  assume nc: NamesCtx
-  assume tr: TRUTH
-  assume lv: ValLeast ValInv
+  assume q:   QCtx
+  assume nc:  NamesCtx
+  assume tr:  TRUTH
+  assume lv:  ValLeast ValInv
   assume lmn: NamesMLeast NamesMNum
-  assume cv: Covers e h1
+  assume cv:  Covers e h1
   assume ext: Ext e v n e2
   assume inc: Incl h1 h2
-  assume nv: Nat v
-  assume un: NamesM h2 u n
-  assume ea: EqAt u v c
-  assume mc: Mem c h2
-  fs0: FS0         by and_e q
-  form: FORM       by and_e q
-  nat: NAT         by and_e form
-  qn: Qn           by and_e nat
-  nm: NAMESM       by and_e nc
+  assume nv:  Nat v
+  assume un:  NamesM h2 u n
+  assume ea:  EqAt u v c
+  assume mc:  Mem c h2
+  fs0:  FS0         by and_e q
+  form: FORM        by and_e q
+  nat:  NAT         by and_e form
+  qn:   Qn          by and_e nat
+  nm:   NAMESM      by and_e nc
   nnum: forall h z j. NamesM h z j -> NamesMNum h z j
-                   by imp_e namesm_num fs0 nm lmn
-  cv2: Covers e h2 by imp_e covers_mono nc cv inc
+                    by imp_e namesm_num fs0 nm lmn
+  cv2:  Covers e h2 by imp_e covers_mono nc cv inc
   lemma each:
     variable w m
     assume vw: Val e2 w m
@@ -325,23 +325,23 @@ theorem covers_ext:
         by imp_e val_ext_inv fs0 tr lv ext vw
     lemma new:
       assume b: Eq w v and Eq m n
-      ewv: Eq w v          by and_e b
-      emn: Eq m n          by and_e b
-      evw: Eq v w          by imp_e eq_sym fs0 ewv
-      enm: Eq n m          by imp_e eq_sym fs0 emn
-      nw: Nat w            by imp_e qn evw nv
-      nn: NamesMNum h2 u n by imp_e nnum un
-      um: NamesM h2 u m    by imp_e nn enm
-      eaw: EqAt u w c      by imp_e eqat_tr fs0 ea evw
-      k: Nat w and NamesM h2 u m and EqAt u w c and Mem c h2
-                           by and_i nw um eaw mc
-      r: exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
-                           by exists_i k
+      ewv: Eq w v           by and_e b
+      emn: Eq m n           by and_e b
+      evw: Eq v w           by imp_e eq_sym fs0 ewv
+      enm: Eq n m           by imp_e eq_sym fs0 emn
+      nw:  Nat w            by imp_e qn evw nv
+      nn:  NamesMNum h2 u n by imp_e nnum un
+      um:  NamesM h2 u m    by imp_e nn enm
+      eaw: EqAt u w c       by imp_e eqat_tr fs0 ea evw
+      k:   Nat w and NamesM h2 u m and EqAt u w c and Mem c h2
+                            by and_i nw um eaw mc
+      r:   exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
+                            by exists_i k
       therefore (Eq w v and Eq m n) -> exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
     lemma old:
       assume b: not (Eq w v) and Val e w m
       ve: Val e w m by and_e b
-      r: exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
+      r:  exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
                     by imp_e cv2 ve
       therefore (not (Eq w v) and Val e w m) -> exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
     r: exists z c1. Nat w and NamesM h2 z m and EqAt z w c1 and Mem c1 h2
@@ -354,16 +354,16 @@ theorem covers_ext:
 theorem even_eq:
   variable v w
   assume fs0: FS0
-  assume ev: Even v
-  assume e: Eq v w
+  assume ev:  Even v
+  assume e:   Eq v w
   lemma wit:
     variable i k
     assume h: Dbl i k and Eq k v
-    dk: Dbl i k           by and_e h
-    ekv: Eq k v           by and_e h
-    ekw: Eq k w           by imp_e eq_trans fs0 ekv e
-    c: Dbl i k and Eq k w by and_i dk ekw
-    r: Even w             by exists_i c
+    dk:  Dbl i k            by and_e h
+    ekv: Eq k v             by and_e h
+    ekw: Eq k w             by imp_e eq_trans fs0 ekv e
+    c:   Dbl i k and Eq k w by and_i dk ekw
+    r:   Even w             by exists_i c
     therefore forall i k. (Dbl i k and Eq k v) -> Even w
   r: Even w by exists_e ev wit
   therefore forall v w. FS0 -> Even v -> Eq v w -> Even w
@@ -372,43 +372,43 @@ theorem even_eq:
 -- even v.
 theorem ctx_eq:
   variable n z h1 m j u v c h2
-  assume fs0: FS0
+  assume fs0:  FS0
   assume free: FREE
   assume list: LIST
-  assume lt: LT
-  assume ll: FrLLeast FrLInv
-  assume lf: FrLeast FrInv
-  assume mcl: MemLeast MemCons
-  assume leq: LtLeast LtEq
-  assume ctx: Ctx n z h1
-  assume sm: Suc n m
-  assume pu: Pool j u
-  assume lj: Lt j m
-  assume ev: Even v
-  assume ea: EqAt u v c
-  assume ph: Pair c h1 h2
-  refl: Refl                                by and_e fs0
-  qfr: Qfr                                  by and_e free
-  mt: Mt                                    by and_e list
-  eqs: forall n1 m1. Lt n1 m1 -> LtEq n1 m1 by imp_e lt_eq fs0 lt leq
-  pz: Pool n z                              by and_e ctx
-  fv: FvOK n h1                             by and_e ctx
-  ech: exists c1. Chain n z c1 and (forall b. Mem b c1 -> Mem b h1)
-                                            by and_e ctx
-  rn: Eq n n                                by forall_e refl n
-  rj: Eq j j                                by forall_e refl j
+  assume lt:   LT
+  assume ll:   FrLLeast FrLInv
+  assume lf:   FrLeast FrInv
+  assume mcl:  MemLeast MemCons
+  assume leq:  LtLeast LtEq
+  assume ctx:  Ctx n z h1
+  assume sm:   Suc n m
+  assume pu:   Pool j u
+  assume lj:   Lt j m
+  assume ev:   Even v
+  assume ea:   EqAt u v c
+  assume ph:   Pair c h1 h2
+  refl: Refl                                 by and_e fs0
+  qfr:  Qfr                                  by and_e free
+  mt:   Mt                                   by and_e list
+  eqs:  forall n1 m1. Lt n1 m1 -> LtEq n1 m1 by imp_e lt_eq fs0 lt leq
+  pz:   Pool n z                             by and_e ctx
+  fv:   FvOK n h1                            by and_e ctx
+  ech:  exists c1. Chain n z c1 and (forall b. Mem b c1 -> Mem b h1)
+                                             by and_e ctx
+  rn:   Eq n n                               by forall_e refl n
+  rj:   Eq j j                               by forall_e refl j
   lemma fv2:
     variable m2
     assume sm2: Suc n m2
-    emm: Eq m m2 by imp_e suc_fun fs0 rn sm sm2
-    qq: LtEq j m by imp_e eqs lj
-    lj2: Lt j m2 by imp_e qq rj emm
+    emm: Eq m m2  by imp_e suc_fun fs0 rn sm sm2
+    qq:  LtEq j m by imp_e eqs lj
+    lj2: Lt j m2  by imp_e qq rj emm
     lemma each:
       variable w b
       assume mb: Mem b h2
       assume fb: Fr w b
-      mcb: MemCons b h2     by imp_e mem_cons list mcl mb
-      o: Eq b c or Mem b h1 by imp_e mcb ph
+      mcb: MemCons b h2       by imp_e mem_cons list mcl mb
+      o:   Eq b c or Mem b h1 by imp_e mcb ph
       lemma head:
         assume ebc: Eq b c
         rw: Eq w w by forall_e refl w
@@ -422,19 +422,19 @@ theorem ctx_eq:
           o2: Eq w u or Eq w v by imp_e frl_list2 fs0 free ll fl li
           lemma pool:
             assume e1: Eq w u
-            e2: Eq u w              by imp_e eq_sym fs0 e1
-            pw: Pool j w            by imp_e pool_eq fs0 pu e2
-            k: Pool j w and Lt j m2 by and_i pw lj2
-            x: exists j1. Pool j1 w and Lt j1 m2
-                                    by exists_i k
-            r: Even w or exists j1. Pool j1 w and Lt j1 m2
-                                    by or_i x
+            e2: Eq u w               by imp_e eq_sym fs0 e1
+            pw: Pool j w             by imp_e pool_eq fs0 pu e2
+            k:  Pool j w and Lt j m2 by and_i pw lj2
+            x:  exists j1. Pool j1 w and Lt j1 m2
+                                     by exists_i k
+            r:  Even w or exists j1. Pool j1 w and Lt j1 m2
+                                     by or_i x
             therefore Eq w u -> Even w or exists j1. Pool j1 w and Lt j1 m2
           lemma even:
             assume e1: Eq w v
             e2: Eq v w by imp_e eq_sym fs0 e1
             ew: Even w by imp_e even_eq fs0 ev e2
-            r: Even w or exists j1. Pool j1 w and Lt j1 m2
+            r:  Even w or exists j1. Pool j1 w and Lt j1 m2
                        by or_i ew
             therefore Eq w v -> Even w or exists j1. Pool j1 w and Lt j1 m2
           r: Even w or exists j1. Pool j1 w and Lt j1 m2
@@ -455,13 +455,13 @@ theorem ctx_eq:
   lemma ch2:
     variable c1
     assume hc: Chain n z c1 and (forall b. Mem b c1 -> Mem b h1)
-    cc: Chain n z c1                    by and_e hc
+    cc:  Chain n z c1                   by and_e hc
     sub: forall b. Mem b c1 -> Mem b h1 by and_e hc
     lemma sub2:
       variable b
       assume mb: Mem b c1
       m1: Mem b h1 by imp_e sub mb
-      r: Mem b h2  by imp_e mt ph m1
+      r:  Mem b h2 by imp_e mt ph m1
       therefore forall b. Mem b c1 -> Mem b h2
     k: Chain n z c1 and (forall b. Mem b c1 -> Mem b h2)
         by and_i cc sub2
@@ -469,8 +469,8 @@ theorem ctx_eq:
         by exists_i k
     therefore forall c1. (Chain n z c1 and (forall b. Mem b c1 -> Mem b h1)) -> exists c2. Chain n z c2 and (forall b. Mem b c2 -> Mem b h2)
   ech2: exists c1. Chain n z c1 and (forall b. Mem b c1 -> Mem b h2)
-                by exists_e ech ch2
-  r: Ctx n z h2 by and_i pz fv2 ech2
+                   by exists_e ech ch2
+  r:    Ctx n z h2 by and_i pz fv2 ech2
   therefore forall n z h1 m j u v c h2. FS0 -> FREE -> LIST -> LT -> FrLLeast FrLInv -> FrLeast FrInv -> MemLeast MemCons
       -> LtLeast LtEq -> Ctx n z h1 -> Suc n m -> Pool j u -> Lt j m -> Even v -> EqAt u v c -> Pair c h1 h2
       -> Ctx n z h2
@@ -479,30 +479,30 @@ theorem ctx_eq:
 -- Eq u v with u for v.
 theorem ex_eq:
   variable h u v e x
-  assume q: QCtx
+  assume q:   QCtx
   assume sub: SUB
-  assume nu: Nat u
-  assume nv: Nat v
-  assume ne: not (Eq u v)
-  assume ea: EqAt u v e
-  assume ex: ExCode v e x
-  fs0: FS0                     by and_e q
-  form: FORM                   by and_e q
-  logax: LOGAX                 by and_e q
-  prf: PRF QAx                 by and_e q
-  nat: NAT                     by and_e form
-  pe: Pe                       by and_e fs0
-  sl0: Sl0                     by and_e sub
-  sl1: Sl1                     by and_e sub
-  sl2: Sl2                     by and_e sub
-  sat: Sat                     by and_e sub
-  tags: Tags                   by imp_e tag_exists fs0
-  tg1: exists t. T1 t          by and_e tags
-  tn: (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
+  assume nu:  Nat u
+  assume nv:  Nat v
+  assume ne:  not (Eq u v)
+  assume ea:  EqAt u v e
+  assume ex:  ExCode v e x
+  fs0:   FS0                     by and_e q
+  form:  FORM                    by and_e q
+  logax: LOGAX                   by and_e q
+  prf:   PRF QAx                 by and_e q
+  nat:   NAT                     by and_e form
+  pe:    Pe                      by and_e fs0
+  sl0:   Sl0                     by and_e sub
+  sl1:   Sl1                     by and_e sub
+  sl2:   Sl2                     by and_e sub
+  sat:   Sat                     by and_e sub
+  tags:  Tags                    by imp_e tag_exists fs0
+  tg1:   exists t. T1 t          by and_e tags
+  tn:    (forall t. T0 t -> Nat t) and (forall t. T1 t -> Nat t) and (forall t. T2 t -> Nat t)
       and (forall t. T3 t -> Nat t) and (forall t. T4 t -> Nat t)
-                               by imp_e tags_nat nat
-  t4n: forall t. T4 t -> Nat t by and_e tn
-  fe: Form e                   by imp_e eqat_form form nu nv ea
+                                 by imp_e tags_nat nat
+  t4n:   forall t. T4 t -> Nat t by and_e tn
+  fe:    Form e                  by imp_e eqat_form form nu nv ea
   lemma w1:
     variable p l
     assume h1: T4 p and List2 u v l and Node2 T1 p l e
@@ -518,9 +518,9 @@ theorem ex_eq:
       lemma w3:
         variable n
         assume h3: Nil n and Pair v n t
-        nn: Nil n                   by and_e h3
-        pt: Pair v n t              by and_e h3
-        s0: SubL v u n n            by imp_e sl0 nn
+        nn:  Nil n                  by and_e h3
+        pt:  Pair v n t             by and_e h3
+        s0:  SubL v u n n           by imp_e sl0 nn
         et1: exists q1. Pair u n q1 by forall_e pe u n
         lemma w4:
           variable t1
@@ -535,18 +535,18 @@ theorem ex_eq:
             lemma w6:
               variable r
               assume nr: Node2 T1 p m r
-              sb: Sub v u e r           by imp_e sat np nd s2 nr
-              c1: Nil n and Pair u n t1 by and_i nn pt1
-              lu: List1 u t1            by exists_i c1
-              c2: List1 u t1 and Pair u t1 m
-                                        by and_i lu pm
-              lu2: List2 u u m          by exists_i c2
-              c3: T4 p and List2 u u m and Node2 T1 p m r
-                                        by and_i tp lu2 nr
-              ear: EqAt u u r           by exists_i c3
-              fr: Form r                by imp_e eqat_form form nu nu ear
-              pr: PrH h r               by imp_e q_refl fs0 prf nu ear fr
-              px: PrH h x               by imp_e prh_exi QAx fs0 form logax prf nv nu fe fr sb ex pr
+              sb:  Sub v u e r           by imp_e sat np nd s2 nr
+              c1:  Nil n and Pair u n t1 by and_i nn pt1
+              lu:  List1 u t1            by exists_i c1
+              c2:  List1 u t1 and Pair u t1 m
+                                         by and_i lu pm
+              lu2: List2 u u m           by exists_i c2
+              c3:  T4 p and List2 u u m and Node2 T1 p m r
+                                         by and_i tp lu2 nr
+              ear: EqAt u u r            by exists_i c3
+              fr:  Form r                by imp_e eqat_form form nu nu ear
+              pr:  PrH h r               by imp_e q_refl fs0 prf nu ear fr
+              px:  PrH h x               by imp_e prh_exi QAx fs0 form logax prf nv nu fe fr sb ex pr
               therefore forall r. Node2 T1 p m r -> PrH h x
             px: PrH h x by exists_e er w6
             therefore forall m. Pair u t1 m -> PrH h x

@@ -12,17 +12,17 @@ define QNTimes h a b c = exists x. TimesAt a b c x and QNot h x
 -- A successor is not zero: Sz.
 theorem neg_zero:
   variable h a0 a
-  assume q: QCtx
+  assume q:   QCtx
   assume na0: Nat a0
-  assume na: Nat a
-  assume qs: QSucc h a0 a
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
-  fim: Fim                 by and_e form
-  tags: Tags               by imp_e tag_exists fs0
-  t2: exists t. T2 t       by and_e tags
+  assume na:  Nat a
+  assume qs:  QSucc h a0 a
+  fs0:  FS0                 by and_e q
+  form: FORM                by and_e q
+  prf:  PRF QAx             by and_e q
+  pfl:  PrfLeast QAx PFormP by and_e q
+  fim:  Fim                 by and_e form
+  tags: Tags                by imp_e tag_exists fs0
+  t2:   exists t. T2 t      by and_e tags
   lemma w1:
     variable s
     assume h1: SuccAt a0 a s and PrH h s
@@ -53,7 +53,7 @@ theorem neg_zero:
           kb: BotCode z and QI h za z   by and_i bz qi
           qn: QNot h za                 by exists_i kb
           cc: ZeroAt a za and QNot h za by and_i xz qn
-          r: QNZero h a                 by exists_i cc
+          r:  QNZero h a                by exists_i cc
           therefore forall nz. ImpCode za z nz -> QNZero h a
         r: QNZero h a by exists_e en w4
         therefore forall z. BotCode z -> QNZero h a
@@ -67,19 +67,19 @@ theorem neg_zero:
 -- A false successor: Su gives Succ a b -> Eq s b, for the true successor s.
 theorem neg_succ:
   variable h a b s
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume ns: Nat s
   assume qt: QSucc h a s
   assume qe: QNeq h s b
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  logax: LOGAX             by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
-  tags: Tags               by imp_e tag_exists fs0
-  t2: exists t. T2 t       by and_e tags
+  fs0:   FS0                 by and_e q
+  form:  FORM                by and_e q
+  logax: LOGAX               by and_e q
+  prf:   PRF QAx             by and_e q
+  pfl:   PrfLeast QAx PFormP by and_e q
+  tags:  Tags                by imp_e tag_exists fs0
+  t2:    exists t. T2 t      by and_e tags
   lemma w1:
     variable t
     assume h1: SuccAt a s t and PrH h t
@@ -105,7 +105,7 @@ theorem neg_succ:
           qi: QI h f e                  by exists_i ki
           nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
           cc: SuccAt a b f and QNot h f by and_i xf nf
-          r: QNSucc h a b               by exists_i cc
+          r:  QNSucc h a b              by exists_i cc
           therefore forall i. ImpCode f e i -> QNSucc h a b
         r: QNSucc h a b by exists_e ei w4
         therefore forall f. SuccAt a b f -> QNSucc h a b
@@ -119,20 +119,20 @@ theorem neg_succ:
 -- A false sum: Pu gives Plus a b c -> Eq d c, for the true sum d.
 theorem neg_plus:
   variable h a b c d
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume nd: Nat d
   assume qt: QPlus h a b d
   assume qe: QNeq h d c
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  logax: LOGAX             by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
-  tags: Tags               by imp_e tag_exists fs0
-  t2: exists t. T2 t       by and_e tags
+  fs0:   FS0                 by and_e q
+  form:  FORM                by and_e q
+  logax: LOGAX               by and_e q
+  prf:   PRF QAx             by and_e q
+  pfl:   PrfLeast QAx PFormP by and_e q
+  tags:  Tags                by imp_e tag_exists fs0
+  t2:    exists t. T2 t      by and_e tags
   lemma w1:
     variable t
     assume h1: PlusAt a b d t and PrH h t
@@ -159,7 +159,7 @@ theorem neg_plus:
           nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
           cc: PlusAt a b c f and QNot h f
                                         by and_i xf nf
-          r: QNPlus h a b c             by exists_i cc
+          r:  QNPlus h a b c            by exists_i cc
           therefore forall i. ImpCode f e i -> QNPlus h a b c
         r: QNPlus h a b c by exists_e ei w4
         therefore forall f. PlusAt a b c f -> QNPlus h a b c
@@ -173,20 +173,20 @@ theorem neg_plus:
 -- A false product: Tu gives Times a b c -> Eq d c, for the true product d.
 theorem neg_times:
   variable h a b c d
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume nc: Nat c
   assume nd: Nat d
   assume qt: QTimes h a b d
   assume qe: QNeq h d c
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  logax: LOGAX             by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
-  tags: Tags               by imp_e tag_exists fs0
-  t2: exists t. T2 t       by and_e tags
+  fs0:   FS0                 by and_e q
+  form:  FORM                by and_e q
+  logax: LOGAX               by and_e q
+  prf:   PRF QAx             by and_e q
+  pfl:   PrfLeast QAx PFormP by and_e q
+  tags:  Tags                by imp_e tag_exists fs0
+  t2:    exists t. T2 t      by and_e tags
   lemma w1:
     variable t
     assume h1: TimesAt a b d t and PrH h t
@@ -213,7 +213,7 @@ theorem neg_times:
           nf: QNot h f                  by imp_e neg_hs fs0 form logax prf ff fe qi ne
           cc: TimesAt a b c f and QNot h f
                                         by and_i xf nf
-          r: QNTimes h a b c            by exists_i cc
+          r:  QNTimes h a b c           by exists_i cc
           therefore forall i. ImpCode f e i -> QNTimes h a b c
         r: QNTimes h a b c by exists_e ei w4
         therefore forall f. TimesAt a b c f -> QNTimes h a b c

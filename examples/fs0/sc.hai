@@ -9,21 +9,21 @@ define SC1Ctx = SBCtx and BCtx and BelowOrLeast BLemP and BelowOrLeast BorElim a
     and ArithCtx
 
 theorem sigma1_complete:
-  assume c: SC1Ctx
+  assume c:     SC1Ctx
   assume least: HoldsLeast SC
-  sb: SBCtx                  by and_e c
-  bc: BCtx                   by and_e c
+  sb:  SBCtx                 by and_e c
+  bc:  BCtx                  by and_e c
   lbp: BelowOrLeast BLemP    by and_e c
   lbe: BelowOrLeast BorElim  by and_e c
   lbx: NamesMLeast BorEx     by and_e c
   sub: SUB                   by and_e c
-  ac: ArithCtx               by and_e c
-  sc: SCCtx                  by and_e sb
+  ac:  ArithCtx              by and_e c
+  sc:  SCCtx                 by and_e sb
   syn: SynCtx                by and_e sb
-  tr: TRUTH                  by and_e sb
-  lv: ValLeast ValInv        by and_e sb
+  tr:  TRUTH                 by and_e sb
+  lv:  ValLeast ValInv       by and_e sb
   lmn: NamesMLeast NamesMNum by and_e sb
-  q: QCtx                    by and_e sc
+  q:   QCtx                  by and_e sc
   lemma c_zero:
     variable e v n x
     assume h0: Val e v n

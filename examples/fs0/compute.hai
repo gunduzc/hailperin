@@ -18,9 +18,9 @@ theorem list3_exists:
     lemma w2:
       variable l
       assume pl: Pair v t l
-      c: List2 w u t and Pair v t l by and_i lt pl
-      l3: List3 v w u l             by exists_i c
-      e: exists l1. List3 v w u l1  by exists_i l3
+      c:  List2 w u t and Pair v t l by and_i lt pl
+      l3: List3 v w u l              by exists_i c
+      e:  exists l1. List3 v w u l1  by exists_i l3
       therefore forall l. Pair v t l -> exists l1. List3 v w u l1
     r: exists l. List3 v w u l by exists_e el w2
     therefore forall t. List2 w u t -> exists l. List3 v w u l
@@ -30,10 +30,10 @@ theorem list3_exists:
 theorem plusat_exists:
   variable v w u
   assume fs0: FS0
-  tags: Tags                  by imp_e tag_exists fs0
-  t1: exists t. T1 t          by and_e tags
-  t2: exists t. T2 t          by and_e tags
-  el: exists l. List3 v w u l by imp_e list3_exists fs0
+  tags: Tags                    by imp_e tag_exists fs0
+  t1:   exists t. T1 t          by and_e tags
+  t2:   exists t. T2 t          by and_e tags
+  el:   exists l. List3 v w u l by imp_e list3_exists fs0
   lemma w1:
     variable p
     assume tp: T2 p
@@ -59,14 +59,14 @@ theorem plusat_exists:
 -- Pz, Ps, and transport of the sum, with the codes found here.
 theorem qp_zero:
   variable h a b
-  assume q: QCtx
+  assume q:  QCtx
   assume na: Nat a
   assume nb: Nat b
   assume qb: QZero h b
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
+  fs0:  FS0                 by and_e q
+  form: FORM                by and_e q
+  prf:  PRF QAx             by and_e q
+  pfl:  PrfLeast QAx PFormP by and_e q
   lemma w1:
     variable c
     assume hc: ZeroAt b c and PrH h c
@@ -77,9 +77,9 @@ theorem qp_zero:
       variable d
       assume pd: PlusAt a b a d
       fd: Form d                     by imp_e plusat_form form na nb na pd
-      k: PrH h d                     by imp_e q_pz fs0 form prf pfl na nb pd zb pc fd
+      k:  PrH h d                    by imp_e q_pz fs0 form prf pfl na nb pd zb pc fd
       c1: PlusAt a b a d and PrH h d by and_i pd k
-      r: QPlus h a b a               by exists_i c1
+      r:  QPlus h a b a              by exists_i c1
       therefore forall d. PlusAt a b a d -> QPlus h a b a
     r: QPlus h a b a by exists_e ex w2
     therefore forall c. (ZeroAt b c and PrH h c) -> QPlus h a b a
@@ -88,19 +88,19 @@ theorem qp_zero:
 
 theorem qp_succ:
   variable h x y s p u
-  assume q: QCtx
-  assume nx: Nat x
-  assume ny: Nat y
-  assume ns: Nat s
-  assume np: Nat p
-  assume nu: Nat u
+  assume q:   QCtx
+  assume nx:  Nat x
+  assume ny:  Nat y
+  assume ns:  Nat s
+  assume np:  Nat p
+  assume nu:  Nat u
   assume qys: QSucc h y s
-  assume qp: QPlus h x y p
+  assume qp:  QPlus h x y p
   assume qpu: QSucc h p u
-  fs0: FS0                 by and_e q
-  form: FORM               by and_e q
-  prf: PRF QAx             by and_e q
-  pfl: PrfLeast QAx PFormP by and_e q
+  fs0:  FS0                 by and_e q
+  form: FORM                by and_e q
+  prf:  PRF QAx             by and_e q
+  pfl:  PrfLeast QAx PFormP by and_e q
   lemma w1:
     variable c1
     assume h1: SuccAt y s c1 and PrH h c1
@@ -120,10 +120,10 @@ theorem qp_succ:
         lemma w4:
           variable d
           assume pd: PlusAt x s u d
-          fd: Form d                    by imp_e plusat_form form nx ns nu pd
-          k: PrH h d                    by imp_e q_ps fs0 form prf pfl nx ny ns np nu pd s3 s2 s1 p1 p2 p3 fd
-          c: PlusAt x s u d and PrH h d by and_i pd k
-          r: QPlus h x s u              by exists_i c
+          fd: Form d                     by imp_e plusat_form form nx ns nu pd
+          k:  PrH h d                    by imp_e q_ps fs0 form prf pfl nx ny ns np nu pd s3 s2 s1 p1 p2 p3 fd
+          c:  PlusAt x s u d and PrH h d by and_i pd k
+          r:  QPlus h x s u              by exists_i c
           therefore forall d. PlusAt x s u d -> QPlus h x s u
         r: QPlus h x s u by exists_e ex w4
         therefore forall c3. (SuccAt p u c3 and PrH h c3) -> QPlus h x s u
@@ -137,16 +137,16 @@ theorem qp_succ:
 
 theorem qp_tr:
   variable h a b c c1
-  assume q: QCtx
-  assume na: Nat a
-  assume nb: Nat b
-  assume nc: Nat c
+  assume q:   QCtx
+  assume na:  Nat a
+  assume nb:  Nat b
+  assume nc:  Nat c
   assume nc1: Nat c1
-  assume qp: QPlus h a b c
-  assume qe: QEq h c c1
-  fs0: FS0      by and_e q
-  ea: QEq h a a by imp_e qe_refl q na
-  eb: QEq h b b by imp_e qe_refl q nb
+  assume qp:  QPlus h a b c
+  assume qe:  QEq h c c1
+  fs0: FS0       by and_e q
+  ea:  QEq h a a by imp_e qe_refl q na
+  eb:  QEq h b b by imp_e qe_refl q nb
   lemma w1:
     variable e1
     assume h1: EqAt a a e1 and PrH h e1
@@ -171,10 +171,10 @@ theorem qp_tr:
           lemma w5:
             variable d
             assume pd: PlusAt a b c1 d
-            k: PrH h d        by imp_e q_plus_tr q na nb nc na nb nc1 x1 p1 x2 p2 x3 p3 x4 p4 pd
+            k:  PrH h d        by imp_e q_plus_tr q na nb nc na nb nc1 x1 p1 x2 p2 x3 p3 x4 p4 pd
             c2: PlusAt a b c1 d and PrH h d
-                              by and_i pd k
-            r: QPlus h a b c1 by exists_i c2
+                               by and_i pd k
+            r:  QPlus h a b c1 by exists_i c2
             therefore forall d. PlusAt a b c1 d -> QPlus h a b c1
           r: QPlus h a b c1 by exists_e ex w5
           therefore forall e4. (PlusAt a b c e4 and PrH h e4) -> QPlus h a b c1
@@ -192,21 +192,21 @@ theorem qp_tr:
 define NamesPlus h b m = Nat b and forall a n c k. Names h a n -> Names h c k -> Add n m k -> QPlus h a b c
 
 theorem names_plus:
-  assume q: QCtx
-  assume plus: PLUS
+  assume q:     QCtx
+  assume plus:  PLUS
   assume names: NAMES
-  assume linv: NamesLeast NamesInv
-  assume leq: NamesLeast NamesEq
-  assume ainv: AddLeast AddShape
+  assume linv:  NamesLeast NamesInv
+  assume leq:   NamesLeast NamesEq
+  assume ainv:  AddLeast AddShape
   assume least: NamesLeast NamesPlus
-  fs0: FS0   by and_e q
+  fs0:  FS0  by and_e q
   refl: Refl by and_e fs0
-  qa: Qa     by and_e plus
-  inv: forall h z j. Names h z j -> NamesInv h z j
+  qa:   Qa   by and_e plus
+  inv:  forall h z j. Names h z j -> NamesInv h z j
              by imp_e names_inv names linv
-  eqs: forall h z j. Names h z j -> NamesEq h z j
+  eqs:  forall h z j. Names h z j -> NamesEq h z j
              by imp_e names_eq q names linv leq
-  ads: forall x y z. Add x y z -> AddShape x y z
+  ads:  forall x y z. Add x y z -> AddShape x y z
              by imp_e add_inv fs0 ainv
   lemma c0:
     variable h b m
@@ -218,29 +218,29 @@ theorem names_plus:
       assume na: Names h a n
       assume nc: Names h c k
       assume ad: Add n m k
-      sh: AddShape n m k by imp_e ads ad
-      ea: NamesEq h a n  by imp_e eqs na
-      nav: Nat a         by and_e ea
+      sh:  AddShape n m k by imp_e ads ad
+      ea:  NamesEq h a n  by imp_e eqs na
+      nav: Nat a          by and_e ea
       eae: forall c1 m1. Names h c1 m1 -> Eq n m1 -> QEq h a c1
-                         by and_e ea
-      ec: NamesEq h c k  by imp_e eqs nc
-      ncv: Nat c         by and_e ec
+                          by and_e ea
+      ec:  NamesEq h c k  by imp_e eqs nc
+      ncv: Nat c          by and_e ec
       lemma zero:
         assume z: Nil m and Eq k n
-        ekn: Eq k n       by and_e z
-        enk: Eq n k       by imp_e eq_sym fs0 ekn
-        qac: QEq h a c    by imp_e eae nc enk
-        pz: QPlus h a b a by imp_e qp_zero q nav nb qb
-        r: QPlus h a b c  by imp_e qp_tr q nav nb nav ncv pz qac
+        ekn: Eq k n        by and_e z
+        enk: Eq n k        by imp_e eq_sym fs0 ekn
+        qac: QEq h a c     by imp_e eae nc enk
+        pz:  QPlus h a b a by imp_e qp_zero q nav nb qb
+        r:   QPlus h a b c by imp_e qp_tr q nav nb nav ncv pz qac
         therefore (Nil m and Eq k n) -> QPlus h a b c
       lemma succ:
         assume ex: exists y0 z0. Add n y0 z0 and Suc y0 m and Suc z0 k
         lemma wit:
           variable y0 z0
           assume hw: Add n y0 z0 and Suc y0 m and Suc z0 k
-          sy: Suc y0 m     by and_e hw
-          f: absurd        by imp_e suc_nil fs0 sy nm
-          r: QPlus h a b c by absurd_e f
+          sy: Suc y0 m      by and_e hw
+          f:  absurd        by imp_e suc_nil fs0 sy nm
+          r:  QPlus h a b c by absurd_e f
           therefore forall y0 z0. (Add n y0 z0 and Suc y0 m and Suc z0 k) -> QPlus h a b c
         r: QPlus h a b c by exists_e ex wit
         therefore (exists y0 z0. Add n y0 z0 and Suc y0 m and Suc z0 k) -> QPlus h a b c
@@ -250,11 +250,11 @@ theorem names_plus:
     therefore forall h b m. Nat b -> Nil m -> QZero h b -> NamesPlus h b m
   lemma c1:
     variable h b m b1 m1
-    assume ih: NamesPlus h b m
+    assume ih:  NamesPlus h b m
     assume nb1: Nat b1
-    assume sm: Suc m m1
-    assume qs: QSucc h b b1
-    nb: Nat b     by and_e ih
+    assume sm:  Suc m m1
+    assume qs:  QSucc h b b1
+    nb:  Nat b    by and_e ih
     ihe: forall a n c k. Names h a n -> Names h c k -> Add n m k -> QPlus h a b c
                   by and_e ih
     rm1: Eq m1 m1 by forall_e refl m1
@@ -263,53 +263,53 @@ theorem names_plus:
       assume na: Names h a n
       assume nc: Names h c k
       assume ad: Add n m1 k
-      sh: AddShape n m1 k   by imp_e ads ad
-      ea: NamesEq h a n     by imp_e eqs na
+      sh:  AddShape n m1 k  by imp_e ads ad
+      ea:  NamesEq h a n    by imp_e eqs na
       nav: Nat a            by and_e ea
-      ic: NamesInv h c k    by imp_e inv nc
+      ic:  NamesInv h c k   by imp_e inv nc
       shc: NamesShape h c k by and_e ic
       ncv: Nat c            by and_e shc
-      oc: (Nil k and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c)
+      oc:  (Nil k and QZero h c) or (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c)
                             by and_e shc
       lemma zero:
         assume z: Nil m1 and Eq k n
-        nm1: Nil m1       by and_e z
-        f: absurd         by imp_e suc_nil fs0 sm nm1
-        r: QPlus h a b1 c by absurd_e f
+        nm1: Nil m1         by and_e z
+        f:   absurd         by imp_e suc_nil fs0 sm nm1
+        r:   QPlus h a b1 c by absurd_e f
         therefore (Nil m1 and Eq k n) -> QPlus h a b1 c
       lemma succ:
         assume ex: exists y0 z0. Add n y0 z0 and Suc y0 m1 and Suc z0 k
         lemma wit:
           variable y0 k0
           assume hw: Add n y0 k0 and Suc y0 m1 and Suc k0 k
-          a0: Add n y0 k0 by and_e hw
-          sy: Suc y0 m1   by and_e hw
-          sk: Suc k0 k    by and_e hw
-          ey: Eq y0 m     by imp_e suc_inj fs0 sy sm rm1
-          rn: Eq n n      by forall_e refl n
-          rk0: Eq k0 k0   by forall_e refl k0
-          ad0: Add n m k0 by imp_e qa rn ey rk0 a0
+          a0:  Add n y0 k0 by and_e hw
+          sy:  Suc y0 m1   by and_e hw
+          sk:  Suc k0 k    by and_e hw
+          ey:  Eq y0 m     by imp_e suc_inj fs0 sy sm rm1
+          rn:  Eq n n      by forall_e refl n
+          rk0: Eq k0 k0    by forall_e refl k0
+          ad0: Add n m k0  by imp_e qa rn ey rk0 a0
           lemma cz:
             assume bz: Nil k and QZero h c
-            nk: Nil k         by and_e bz
-            f: absurd         by imp_e suc_nil fs0 sk nk
-            r: QPlus h a b1 c by absurd_e f
+            nk: Nil k          by and_e bz
+            f:  absurd         by imp_e suc_nil fs0 sk nk
+            r:  QPlus h a b1 c by absurd_e f
             therefore (Nil k and QZero h c) -> QPlus h a b1 c
           lemma cs:
             assume exc: exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c
             lemma wc:
               variable u0 j0
               assume hc: Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c
-              n0: Names h u0 j0  by and_e hc
-              nc0: Nat u0        by and_e hc
-              sj: Suc j0 k       by and_e hc
-              qc: QSucc h u0 c   by and_e hc
-              rk: Eq k k         by forall_e refl k
-              ej: Eq k0 j0       by imp_e suc_inj fs0 sk sj rk
-              rm: Eq m m         by forall_e refl m
-              ad1: Add n m j0    by imp_e qa rn rm ej ad0
-              p0: QPlus h a b u0 by imp_e ihe na n0 ad1
-              r: QPlus h a b1 c  by imp_e qp_succ q nav nb nb1 nc0 ncv qs p0 qc
+              n0:  Names h u0 j0  by and_e hc
+              nc0: Nat u0         by and_e hc
+              sj:  Suc j0 k       by and_e hc
+              qc:  QSucc h u0 c   by and_e hc
+              rk:  Eq k k         by forall_e refl k
+              ej:  Eq k0 j0       by imp_e suc_inj fs0 sk sj rk
+              rm:  Eq m m         by forall_e refl m
+              ad1: Add n m j0     by imp_e qa rn rm ej ad0
+              p0:  QPlus h a b u0 by imp_e ihe na n0 ad1
+              r:   QPlus h a b1 c by imp_e qp_succ q nav nb nb1 nc0 ncv qs p0 qc
               therefore forall u0 j0. (Names h u0 j0 and Nat u0 and Suc j0 k and QSucc h u0 c) -> QPlus h a b1 c
             r: QPlus h a b1 c by exists_e exc wc
             therefore (exists z0 j0. Names h z0 j0 and Nat z0 and Suc j0 k and QSucc h z0 c) -> QPlus h a b1 c

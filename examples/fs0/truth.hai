@@ -93,14 +93,14 @@ define HoldsLeast (P e f) = (forall e v n x. Val e v n -> Nil n -> ZeroAt v x ->
 theorem val_ext:
   variable e v n e2
   assume truth: TRUTH
-  assume ext: Ext e v n e2
+  assume ext:   Ext e v n e2
   vh: Vh by and_e truth
   lemma w:
     variable en
     assume h: Pair v n en and Pair en e e2
     p1: Pair v n en  by and_e h
     p2: Pair en e e2 by and_e h
-    k: Val e2 v n    by imp_e vh p1 p2
+    k:  Val e2 v n   by imp_e vh p1 p2
     therefore forall en. (Pair v n en and Pair en e e2) -> Val e2 v n
   r: Val e2 v n by exists_e ext w
   therefore forall e v n e2. TRUTH -> Ext e v n e2 -> Val e2 v n
@@ -109,30 +109,30 @@ theorem val_ext:
 theorem holds_some_zero:
   variable e v n e2 z x
   assume truth: TRUTH
-  assume nn: Nil n
-  assume ext: Ext e v n e2
-  assume za: ZeroAt v z
-  assume ex: ExCode v z x
-  assume nat: Nat n
-  hzero: Hzero   by and_e truth
-  hex: Hex       by and_e truth
-  vn: Val e2 v n by imp_e val_ext truth ext
-  s2: Holds e2 z by imp_e hzero vn nn za
-  s: Holds e x   by imp_e hex nat ext s2 ex
+  assume nn:    Nil n
+  assume ext:   Ext e v n e2
+  assume za:    ZeroAt v z
+  assume ex:    ExCode v z x
+  assume nat:   Nat n
+  hzero: Hzero      by and_e truth
+  hex:   Hex        by and_e truth
+  vn:    Val e2 v n by imp_e val_ext truth ext
+  s2:    Holds e2 z by imp_e hzero vn nn za
+  s:     Holds e x  by imp_e hex nat ext s2 ex
   therefore forall e v n e2 z x. TRUTH -> Nil n -> Ext e v n e2 -> ZeroAt v z -> ExCode v z x -> Nat n -> Holds e x
 
 -- Zero is false of a successor, so its negation holds.
 theorem holds_not_zero:
   variable e v k n a x
   assume truth: TRUTH
-  assume fs0: FS0
-  assume val: Val e v n
-  assume sk: Suc k n
-  assume za: ZeroAt v a
-  assume na: NotCode a x
+  assume fs0:   FS0
+  assume val:   Val e v n
+  assume sk:    Suc k n
+  assume za:    ZeroAt v a
+  assume na:    NotCode a x
   hnzero: Hnzero by and_e truth
-  pn: Pn         by and_e fs0
-  refl: Refl     by and_e fs0
+  pn:     Pn     by and_e fs0
+  refl:   Refl   by and_e fs0
   lemma notnil:
     assume nn: Nil n
     rn: Eq n n by forall_e refl n
@@ -140,7 +140,7 @@ theorem holds_not_zero:
       variable z
       assume h: Nil z and Pair z k n
       pz: Pair z k n by and_e h
-      f: absurd      by imp_e pn pz nn rn
+      f:  absurd     by imp_e pn pz nn rn
       therefore forall z. (Nil z and Pair z k n) -> absurd
     f: absurd by exists_e sk w
     therefore not (Nil n)

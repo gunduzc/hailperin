@@ -28,32 +28,32 @@ define CleanShape x = (exists p l. Node2 T1 p l x) or (exists n. Nil n and Node1
 define CleanInv x   = Clean x and CleanShape x
 
 theorem clean_inv:
-  assume fs0: FS0
+  assume fs0:   FS0
   assume clean: CLEAN
   assume least: CleanLeast CleanInv
-  cat: Cat   by and_e clean
+  cat:  Cat  by and_e clean
   cbot: Cbot by and_e clean
   cbin: Cbin by and_e clean
-  cq: Cq     by and_e clean
-  qcl: Qcl   by and_e clean
+  cq:   Cq   by and_e clean
+  qcl:  Qcl  by and_e clean
   refl: Refl by and_e fs0
   lemma c_at:
     variable p l x
     assume nd: Node2 T1 p l x
-    c: Clean x                        by imp_e cat nd
-    e: exists p1 l1. Node2 T1 p1 l1 x by exists_i nd
-    sh: CleanShape x                  by or_i e
-    r: CleanInv x                     by and_i c sh
+    c:  Clean x                        by imp_e cat nd
+    e:  exists p1 l1. Node2 T1 p1 l1 x by exists_i nd
+    sh: CleanShape x                   by or_i e
+    r:  CleanInv x                     by and_i c sh
     therefore forall p l x. Node2 T1 p l x -> CleanInv x
   lemma c_bot:
     variable n x
     assume nn: Nil n
     assume nd: Node1 T0 n x
-    c: Clean x                             by imp_e cbot nn nd
-    k: Nil n and Node1 T0 n x              by and_i nn nd
-    e: exists n1. Nil n1 and Node1 T0 n1 x by exists_i k
-    sh: CleanShape x                       by or_i e
-    r: CleanInv x                          by and_i c sh
+    c:  Clean x                             by imp_e cbot nn nd
+    k:  Nil n and Node1 T0 n x              by and_i nn nd
+    e:  exists n1. Nil n1 and Node1 T0 n1 x by exists_i k
+    sh: CleanShape x                        by or_i e
+    r:  CleanInv x                          by and_i c sh
     therefore forall n x. Nil n -> Node1 T0 n x -> CleanInv x
   lemma c_bin:
     variable a b x
@@ -62,13 +62,13 @@ theorem clean_inv:
     assume ca: Clean a
     assume cb: Clean b
     assume bn: BinNode a b x
-    c: Clean x       by imp_e cbin ca cb bn
-    k: Clean a and Clean b and BinNode a b x
+    c:  Clean x      by imp_e cbin ca cb bn
+    k:  Clean a and Clean b and BinNode a b x
                      by and_i ca cb bn
-    e: exists a1 b1. Clean a1 and Clean b1 and BinNode a1 b1 x
+    e:  exists a1 b1. Clean a1 and Clean b1 and BinNode a1 b1 x
                      by exists_i k
     sh: CleanShape x by or_i e
-    r: CleanInv x    by and_i c sh
+    r:  CleanInv x   by and_i c sh
     therefore forall a b x. CleanInv a -> CleanInv b -> Clean a -> Clean b -> BinNode a b x -> CleanInv x
   lemma c_q:
     variable v a x
@@ -76,13 +76,13 @@ theorem clean_inv:
     assume ca: Clean a
     assume nb: not (Bound v a)
     assume qn: QNode v a x
-    c: Clean x       by imp_e cq ca nb qn
-    k: Clean a and not (Bound v a) and QNode v a x
+    c:  Clean x      by imp_e cq ca nb qn
+    k:  Clean a and not (Bound v a) and QNode v a x
                      by and_i ca nb qn
-    e: exists v1 a1. Clean a1 and not (Bound v1 a1) and QNode v1 a1 x
+    e:  exists v1 a1. Clean a1 and not (Bound v1 a1) and QNode v1 a1 x
                      by exists_i k
     sh: CleanShape x by or_i e
-    r: CleanInv x    by and_i c sh
+    r:  CleanInv x   by and_i c sh
     therefore forall v a x. CleanInv a -> Clean a -> not (Bound v a) -> QNode v a x -> CleanInv x
   lemma c_eq:
     variable x x1
@@ -96,9 +96,9 @@ theorem clean_inv:
       lemma wit:
         variable p l
         assume nd: Node2 T1 p l x
-        n1: Node2 T1 p l x1                by imp_e node2_eq_right T1 fs0 nd ex
-        e: exists p1 l1. Node2 T1 p1 l1 x1 by exists_i n1
-        r: CleanShape x1                   by or_i e
+        n1: Node2 T1 p l x1                 by imp_e node2_eq_right T1 fs0 nd ex
+        e:  exists p1 l1. Node2 T1 p1 l1 x1 by exists_i n1
+        r:  CleanShape x1                   by or_i e
         therefore forall p l. Node2 T1 p l x -> CleanShape x1
       r: CleanShape x1 by exists_e h wit
       therefore (exists p l. Node2 T1 p l x) -> CleanShape x1
@@ -112,18 +112,18 @@ theorem clean_inv:
         lemma w2:
           variable t
           assume ht: T0 t and Pair t n x
-          tt: T0 t                   by and_e ht
-          pt: Pair t n x             by and_e ht
-          ep: Ep                     by and_e fs0
-          rt: Eq t t                 by forall_e refl t
-          rn: Eq n n                 by forall_e refl n
-          p1: Pair t n x1            by imp_e ep rt rn ex pt
-          k1: T0 t and Pair t n x1   by and_i tt p1
-          d1: Node1 T0 n x1          by exists_i k1
-          k: Nil n and Node1 T0 n x1 by and_i nn d1
-          e: exists n1. Nil n1 and Node1 T0 n1 x1
-                                     by exists_i k
-          r: CleanShape x1           by or_i e
+          tt: T0 t                    by and_e ht
+          pt: Pair t n x              by and_e ht
+          ep: Ep                      by and_e fs0
+          rt: Eq t t                  by forall_e refl t
+          rn: Eq n n                  by forall_e refl n
+          p1: Pair t n x1             by imp_e ep rt rn ex pt
+          k1: T0 t and Pair t n x1    by and_i tt p1
+          d1: Node1 T0 n x1           by exists_i k1
+          k:  Nil n and Node1 T0 n x1 by and_i nn d1
+          e:  exists n1. Nil n1 and Node1 T0 n1 x1
+                                      by exists_i k
+          r:  CleanShape x1           by or_i e
           therefore forall t. (T0 t and Pair t n x) -> CleanShape x1
         r: CleanShape x1 by exists_e nd w2
         therefore forall n. (Nil n and Node1 T0 n x) -> CleanShape x1
@@ -138,11 +138,11 @@ theorem clean_inv:
         cb: Clean b        by and_e hb
         bn: BinNode a b x  by and_e hb
         b1: BinNode a b x1 by imp_e binnode_eq_right fs0 bn ex
-        k: Clean a and Clean b and BinNode a b x1
+        k:  Clean a and Clean b and BinNode a b x1
                            by and_i ca cb b1
-        e: exists a1 b2. Clean a1 and Clean b2 and BinNode a1 b2 x1
+        e:  exists a1 b2. Clean a1 and Clean b2 and BinNode a1 b2 x1
                            by exists_i k
-        r: CleanShape x1   by or_i e
+        r:  CleanShape x1  by or_i e
         therefore forall a b. (Clean a and Clean b and BinNode a b x) -> CleanShape x1
       r: CleanShape x1 by exists_e h wit
       therefore (exists a b. Clean a and Clean b and BinNode a b x) -> CleanShape x1
@@ -155,16 +155,16 @@ theorem clean_inv:
         nb: not (Bound v a) by and_e hq
         qn: QNode v a x     by and_e hq
         q1: QNode v a x1    by imp_e qnode_eq_right fs0 qn ex
-        k: Clean a and not (Bound v a) and QNode v a x1
+        k:  Clean a and not (Bound v a) and QNode v a x1
                             by and_i ca nb q1
-        e: exists v1 a1. Clean a1 and not (Bound v1 a1) and QNode v1 a1 x1
+        e:  exists v1 a1. Clean a1 and not (Bound v1 a1) and QNode v1 a1 x1
                             by exists_i k
-        r: CleanShape x1    by or_i e
+        r:  CleanShape x1   by or_i e
         therefore forall v a. (Clean a and not (Bound v a) and QNode v a x) -> CleanShape x1
       r: CleanShape x1 by exists_e h wit
       therefore (exists v a. Clean a and not (Bound v a) and QNode v a x) -> CleanShape x1
     s1: CleanShape x1 by or_e sh s_at s_bot s_bin s_q
-    r: CleanInv x1    by and_i c1 s1
+    r:  CleanInv x1   by and_i c1 s1
     therefore forall x x1. Eq x x1 -> CleanInv x -> CleanInv x1
   r: forall x. Clean x -> CleanInv x by imp_e least c_at c_bot c_bin c_q c_eq
   therefore FS0 -> CLEAN -> CleanLeast CleanInv -> forall x. Clean x -> CleanInv x
@@ -173,17 +173,17 @@ theorem clean_inv:
 -- connective's parts are clean.
 theorem clean_q:
   variable v a x
-  assume fs0: FS0
+  assume fs0:   FS0
   assume clean: CLEAN
   assume bound: BOUND
   assume least: CleanLeast CleanInv
-  assume cx: Clean x
-  assume qn: QNode v a x
+  assume cx:    Clean x
+  assume qn:    QNode v a x
   qcl: Qcl                                by and_e clean
-  qb: Qb                                  by and_e bound
+  qb:  Qb                                 by and_e bound
   inv: forall x1. Clean x1 -> CleanInv x1 by imp_e clean_inv fs0 clean least
-  ix: CleanInv x                          by imp_e inv cx
-  sh: CleanShape x                        by and_e ix
+  ix:  CleanInv x                         by imp_e inv cx
+  sh:  CleanShape x                       by and_e ix
   lemma s_at:
     assume h: exists p l. Node2 T1 p l x
     lemma wit:
@@ -219,9 +219,9 @@ theorem clean_q:
     lemma wit:
       variable a1 b1
       assume hb: Clean a1 and Clean b1 and BinNode a1 b1 x
-      bn: BinNode a1 b1 x            by and_e hb
-      f: absurd                      by imp_e bin_q_apart fs0 bn qn
-      r: Clean a and not (Bound v a) by absurd_e f
+      bn: BinNode a1 b1 x             by and_e hb
+      f:  absurd                      by imp_e bin_q_apart fs0 bn qn
+      r:  Clean a and not (Bound v a) by absurd_e f
       therefore forall a1 b1. (Clean a1 and Clean b1 and BinNode a1 b1 x) -> Clean a and not (Bound v a)
     r: Clean a and not (Bound v a) by exists_e h wit
     therefore (exists a1 b1. Clean a1 and Clean b1 and BinNode a1 b1 x) -> Clean a and not (Bound v a)
@@ -230,19 +230,19 @@ theorem clean_q:
     lemma wit:
       variable v1 a1
       assume hq: Clean a1 and not (Bound v1 a1) and QNode v1 a1 x
-      ca1: Clean a1          by and_e hq
-      nb1: not (Bound v1 a1) by and_e hq
-      q1: QNode v1 a1 x      by and_e hq
-      e: Eq v1 v and Eq a1 a by imp_e qnode_parts fs0 q1 qn
-      ev: Eq v1 v            by and_e e
-      ea: Eq a1 a            by and_e e
-      ca: Clean a            by imp_e qcl ea ca1
-      ve: Eq v v1            by imp_e eq_sym fs0 ev
-      ae: Eq a a1            by imp_e eq_sym fs0 ea
+      ca1: Clean a1            by and_e hq
+      nb1: not (Bound v1 a1)   by and_e hq
+      q1:  QNode v1 a1 x       by and_e hq
+      e:   Eq v1 v and Eq a1 a by imp_e qnode_parts fs0 q1 qn
+      ev:  Eq v1 v             by and_e e
+      ea:  Eq a1 a             by and_e e
+      ca:  Clean a             by imp_e qcl ea ca1
+      ve:  Eq v v1             by imp_e eq_sym fs0 ev
+      ae:  Eq a a1             by imp_e eq_sym fs0 ea
       lemma nb:
         assume b: Bound v a
         b1: Bound v1 a1 by imp_e qb ve ae b
-        f: absurd       by imp_e nb1 b1
+        f:  absurd      by imp_e nb1 b1
         therefore not (Bound v a)
       r: Clean a and not (Bound v a) by and_i ca nb
       therefore forall v1 a1. (Clean a1 and not (Bound v1 a1) and QNode v1 a1 x) -> Clean a and not (Bound v a)
@@ -253,15 +253,15 @@ theorem clean_q:
 
 theorem clean_bin:
   variable a b x
-  assume fs0: FS0
+  assume fs0:   FS0
   assume clean: CLEAN
   assume least: CleanLeast CleanInv
-  assume cx: Clean x
-  assume bn: BinNode a b x
+  assume cx:    Clean x
+  assume bn:    BinNode a b x
   qcl: Qcl                                by and_e clean
   inv: forall x1. Clean x1 -> CleanInv x1 by imp_e clean_inv fs0 clean least
-  ix: CleanInv x                          by imp_e inv cx
-  sh: CleanShape x                        by and_e ix
+  ix:  CleanInv x                         by imp_e inv cx
+  sh:  CleanShape x                       by and_e ix
   lemma s_at:
     assume h: exists p l. Node2 T1 p l x
     lemma wit:
@@ -301,15 +301,15 @@ theorem clean_bin:
     lemma wit:
       variable a1 b1
       assume hb: Clean a1 and Clean b1 and BinNode a1 b1 x
-      ca1: Clean a1          by and_e hb
-      cb1: Clean b1          by and_e hb
-      bn1: BinNode a1 b1 x   by and_e hb
-      e: Eq a1 a and Eq b1 b by imp_e binnode_parts fs0 bn1 bn
-      ea: Eq a1 a            by and_e e
-      eb: Eq b1 b            by and_e e
-      ca: Clean a            by imp_e qcl ea ca1
-      cb: Clean b            by imp_e qcl eb cb1
-      r: Clean a and Clean b by and_i ca cb
+      ca1: Clean a1            by and_e hb
+      cb1: Clean b1            by and_e hb
+      bn1: BinNode a1 b1 x     by and_e hb
+      e:   Eq a1 a and Eq b1 b by imp_e binnode_parts fs0 bn1 bn
+      ea:  Eq a1 a             by and_e e
+      eb:  Eq b1 b             by and_e e
+      ca:  Clean a             by imp_e qcl ea ca1
+      cb:  Clean b             by imp_e qcl eb cb1
+      r:   Clean a and Clean b by and_i ca cb
       therefore forall a1 b1. (Clean a1 and Clean b1 and BinNode a1 b1 x) -> Clean a and Clean b
     r: Clean a and Clean b by exists_e h wit
     therefore (exists a1 b1. Clean a1 and Clean b1 and BinNode a1 b1 x) -> Clean a and Clean b
@@ -318,9 +318,9 @@ theorem clean_bin:
     lemma wit:
       variable v1 a1
       assume hq: Clean a1 and not (Bound v1 a1) and QNode v1 a1 x
-      q1: QNode v1 a1 x      by and_e hq
-      f: absurd              by imp_e bin_q_apart fs0 bn q1
-      r: Clean a and Clean b by absurd_e f
+      q1: QNode v1 a1 x       by and_e hq
+      f:  absurd              by imp_e bin_q_apart fs0 bn q1
+      r:  Clean a and Clean b by absurd_e f
       therefore forall v1 a1. (Clean a1 and not (Bound v1 a1) and QNode v1 a1 x) -> Clean a and Clean b
     r: Clean a and Clean b by exists_e h wit
     therefore (exists v1 a1. Clean a1 and not (Bound v1 a1) and QNode v1 a1 x) -> Clean a and Clean b

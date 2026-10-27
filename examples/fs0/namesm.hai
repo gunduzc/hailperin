@@ -20,7 +20,7 @@ define NamesMLeast (P h z j) = (forall h z j c. Nat z -> Nil j -> ZeroAt z c -> 
 define NamesMMono h z j = forall h1. Incl h h1 -> NamesM h1 z j
 
 theorem namesm_mono:
-  assume nm: NAMESM
+  assume nm:    NAMESM
   assume least: NamesMLeast NamesMMono
   mm0: Mm0 by and_e nm
   mm1: Mm1 by and_e nm
@@ -33,23 +33,23 @@ theorem namesm_mono:
     lemma each:
       variable h1
       assume inc: Incl h h1
-      m1: Mem c h1     by imp_e inc mc
-      r: NamesM h1 z j by imp_e mm0 nz nj za m1
+      m1: Mem c h1      by imp_e inc mc
+      r:  NamesM h1 z j by imp_e mm0 nz nj za m1
       therefore forall h1. Incl h h1 -> NamesM h1 z j
     therefore forall h z j c. Nat z -> Nil j -> ZeroAt z c -> Mem c h -> NamesMMono h z j
   lemma c1:
     variable h z j z1 j1 c
-    assume ih: NamesMMono h z j
+    assume ih:  NamesMMono h z j
     assume nz1: Nat z1
-    assume sj: Suc j j1
-    assume sa: SuccAt z z1 c
-    assume mc: Mem c h
+    assume sj:  Suc j j1
+    assume sa:  SuccAt z z1 c
+    assume mc:  Mem c h
     lemma each:
       variable h1
       assume inc: Incl h h1
-      n1: NamesM h1 z j  by imp_e ih inc
-      m1: Mem c h1       by imp_e inc mc
-      r: NamesM h1 z1 j1 by imp_e mm1 n1 nz1 sj sa m1
+      n1: NamesM h1 z j   by imp_e ih inc
+      m1: Mem c h1        by imp_e inc mc
+      r:  NamesM h1 z1 j1 by imp_e mm1 n1 nz1 sj sa m1
       therefore forall h1. Incl h h1 -> NamesM h1 z1 j1
     therefore forall h z j z1 j1 c. NamesMMono h z j -> Nat z1 -> Suc j j1 -> SuccAt z z1 c -> Mem c h -> NamesMMono h z1 j1
   r: forall h z j. NamesM h z j -> NamesMMono h z j
@@ -60,47 +60,47 @@ theorem namesm_mono:
 define NamesMN h z j = Nat z and Names h z j
 
 theorem namesm_names:
-  assume q: QCtx
+  assume q:     QCtx
   assume names: NAMES
   assume least: NamesMLeast NamesMN
-  fs0: FS0     by and_e q
-  form: FORM   by and_e q
-  prf: PRF QAx by and_e q
-  nm0: Nm0     by and_e names
-  nm1: Nm1     by and_e names
+  fs0:  FS0     by and_e q
+  form: FORM    by and_e q
+  prf:  PRF QAx by and_e q
+  nm0:  Nm0     by and_e names
+  nm1:  Nm1     by and_e names
   leaf: (forall h a. Form a -> LogAx a -> PrH h a) and (forall h a. Form a -> QAx a -> PrH h a)
       and (forall h a. Form a -> Mem a h -> PrH h a)
-               by imp_e prh_leaf QAx fs0 prf
-  hyp: forall h a. Form a -> Mem a h -> PrH h a
-               by and_e leaf
+                by imp_e prh_leaf QAx fs0 prf
+  hyp:  forall h a. Form a -> Mem a h -> PrH h a
+                by and_e leaf
   lemma c0:
     variable h z j c
     assume nz: Nat z
     assume nj: Nil j
     assume za: ZeroAt z c
     assume mc: Mem c h
-    fc: Form c                by imp_e zeroat_form form nz za
-    pc: PrH h c               by imp_e hyp fc mc
-    k: ZeroAt z c and PrH h c by and_i za pc
-    qz: QZero h z             by exists_i k
-    n: Names h z j            by imp_e nm0 nz nj qz
-    r: Nat z and Names h z j  by and_i nz n
+    fc: Form c                 by imp_e zeroat_form form nz za
+    pc: PrH h c                by imp_e hyp fc mc
+    k:  ZeroAt z c and PrH h c by and_i za pc
+    qz: QZero h z              by exists_i k
+    n:  Names h z j            by imp_e nm0 nz nj qz
+    r:  Nat z and Names h z j  by and_i nz n
     therefore forall h z j c. Nat z -> Nil j -> ZeroAt z c -> Mem c h -> NamesMN h z j
   lemma c1:
     variable h z j z1 j1 c
-    assume ih: NamesMN h z j
+    assume ih:  NamesMN h z j
     assume nz1: Nat z1
-    assume sj: Suc j j1
-    assume sa: SuccAt z z1 c
-    assume mc: Mem c h
-    nz: Nat z                    by and_e ih
-    n: Names h z j               by and_e ih
-    fc: Form c                   by imp_e succat_form form nz nz1 sa
-    pc: PrH h c                  by imp_e hyp fc mc
-    k: SuccAt z z1 c and PrH h c by and_i sa pc
-    qs: QSucc h z z1             by exists_i k
-    n1: Names h z1 j1            by imp_e nm1 n nz1 sj qs
-    r: Nat z1 and Names h z1 j1  by and_i nz1 n1
+    assume sj:  Suc j j1
+    assume sa:  SuccAt z z1 c
+    assume mc:  Mem c h
+    nz: Nat z                     by and_e ih
+    n:  Names h z j               by and_e ih
+    fc: Form c                    by imp_e succat_form form nz nz1 sa
+    pc: PrH h c                   by imp_e hyp fc mc
+    k:  SuccAt z z1 c and PrH h c by and_i sa pc
+    qs: QSucc h z z1              by exists_i k
+    n1: Names h z1 j1             by imp_e nm1 n nz1 sj qs
+    r:  Nat z1 and Names h z1 j1  by and_i nz1 n1
     therefore forall h z j z1 j1 c. NamesMN h z j -> Nat z1 -> Suc j j1 -> SuccAt z z1 c -> Mem c h -> NamesMN h z1 j1
   r: forall h z j. NamesM h z j -> NamesMN h z j
       by imp_e least c0 c1
@@ -109,14 +109,14 @@ theorem namesm_names:
 -- Nothing is below zero.
 theorem lt_nil:
   variable j n
-  assume fs0: FS0
-  assume lt: LT
+  assume fs0:  FS0
+  assume lt:   LT
   assume linv: LtLeast LtInv
-  assume l: Lt j n
-  assume nn: Nil n
+  assume l:    Lt j n
+  assume nn:   Nil n
   inv: forall n1 m. Lt n1 m -> LtInv n1 m by imp_e lt_inv lt linv
-  i: LtInv j n                            by imp_e inv l
-  sh: LtShape j n                         by and_e i
+  i:   LtInv j n                          by imp_e inv l
+  sh:  LtShape j n                        by and_e i
   lemma one:
     assume s: Suc j n
     f: absurd by imp_e suc_nil fs0 s nn
@@ -140,25 +140,25 @@ define ChainNM n z c = forall h. Incl c h -> NamesM h z n
     and (forall m j. Suc n m -> Lt j m -> exists u i. Pool i u and Lt i m and NamesM h u j)
 
 theorem chain_namesm:
-  assume nat: NAT
-  assume list: LIST
-  assume lt: LT
-  assume nm: NAMESM
-  assume dnat: DblLeast DblNat
-  assume linv: LtLeast LtInv
-  assume leq: LtLeast LtEq
+  assume nat:   NAT
+  assume list:  LIST
+  assume lt:    LT
+  assume nm:    NAMESM
+  assume dnat:  DblLeast DblNat
+  assume linv:  LtLeast LtInv
+  assume leq:   LtLeast LtEq
   assume least: ChainLeast ChainNM
-  fs0: FS0                             by and_e nat
-  en: En                               by and_e fs0
-  refl: Refl                           by and_e fs0
-  mh: Mh                               by and_e list
-  mt: Mt                               by and_e list
-  lt0: Lt0                             by and_e lt
-  lt1: Lt1                             by and_e lt
-  mm0: Mm0                             by and_e nm
-  mm1: Mm1                             by and_e nm
-  inv: forall n m. Lt n m -> LtInv n m by imp_e lt_inv lt linv
-  eqs: forall n m. Lt n m -> LtEq n m  by imp_e lt_eq fs0 lt leq
+  fs0:  FS0                             by and_e nat
+  en:   En                              by and_e fs0
+  refl: Refl                            by and_e fs0
+  mh:   Mh                              by and_e list
+  mt:   Mt                              by and_e list
+  lt0:  Lt0                             by and_e lt
+  lt1:  Lt1                             by and_e lt
+  mm0:  Mm0                             by and_e nm
+  mm1:  Mm1                             by and_e nm
+  inv:  forall n m. Lt n m -> LtInv n m by imp_e lt_inv lt linv
+  eqs:  forall n m. Lt n m -> LtEq n m  by imp_e lt_eq fs0 lt leq
   lemma c0:
     variable n z a h0 c
     assume nn: Nil n
@@ -176,36 +176,36 @@ theorem chain_namesm:
       lemma below:
         variable m j
         assume sm: Suc n m
-        assume l: Lt j m
-        rm: Eq m m      by forall_e refl m
-        lnm: Lt n m     by imp_e lt0 sm
-        iv: LtInv j m   by imp_e inv l
-        sh: LtShape j m by and_e iv
+        assume l:  Lt j m
+        rm:  Eq m m      by forall_e refl m
+        lnm: Lt n m      by imp_e lt0 sm
+        iv:  LtInv j m   by imp_e inv l
+        sh:  LtShape j m by and_e iv
         lemma one:
           assume s: Suc j m
-          ejn: Eq j n     by imp_e suc_inj fs0 s sm rm
-          enj: Eq n j     by imp_e eq_sym fs0 ejn
-          nj: Nil j       by imp_e en enj nn
-          u: NamesM h z j by imp_e mm0 nz nj za mah
-          k: Pool n z and Lt n m and NamesM h z j
-                          by and_i pz lnm u
-          r: exists u1 i. Pool i u1 and Lt i m and NamesM h u1 j
-                          by exists_i k
+          ejn: Eq j n       by imp_e suc_inj fs0 s sm rm
+          enj: Eq n j       by imp_e eq_sym fs0 ejn
+          nj:  Nil j        by imp_e en enj nn
+          u:   NamesM h z j by imp_e mm0 nz nj za mah
+          k:   Pool n z and Lt n m and NamesM h z j
+                            by and_i pz lnm u
+          r:   exists u1 i. Pool i u1 and Lt i m and NamesM h u1 j
+                            by exists_i k
           therefore Suc j m -> exists u1 i. Pool i u1 and Lt i m and NamesM h u1 j
         lemma more:
           assume ex: exists k. Lt j k and Suc k m
           lemma wit:
             variable k
             assume hk: Lt j k and Suc k m
-            ljk: Lt j k  by and_e hk
-            sk: Suc k m  by and_e hk
-            ekn: Eq k n  by imp_e suc_inj fs0 sk sm rm
-            rj: Eq j j   by forall_e refl j
-            qq: LtEq j k by imp_e eqs ljk
-            ljn: Lt j n  by imp_e qq rj ekn
-            f: absurd    by imp_e lt_nil fs0 lt linv ljn nn
-            r: exists u i. Pool i u and Lt i m and NamesM h u j
-                         by absurd_e f
+            ljk: Lt j k   by and_e hk
+            sk:  Suc k m  by and_e hk
+            ekn: Eq k n   by imp_e suc_inj fs0 sk sm rm
+            rj:  Eq j j   by forall_e refl j
+            qq:  LtEq j k by imp_e eqs ljk
+            ljn: Lt j n   by imp_e qq rj ekn
+            f:   absurd   by imp_e lt_nil fs0 lt linv ljn nn
+            r:   exists u i. Pool i u and Lt i m and NamesM h u j
+                          by absurd_e f
             therefore forall k. (Lt j k and Suc k m) -> exists u i. Pool i u and Lt i m and NamesM h u j
           r: exists u i. Pool i u and Lt i m and NamesM h u j
               by exists_e ex wit
@@ -220,13 +220,13 @@ theorem chain_namesm:
     therefore forall n z a h0 c. Nil n -> Pool n z -> ZeroAt z a -> Nil h0 -> Pair a h0 c -> ChainNM n z c
   lemma c1:
     variable n z c m z1 s c1
-    assume ih: ChainNM n z c
-    assume sm: Suc n m
+    assume ih:  ChainNM n z c
+    assume sm:  Suc n m
     assume pz1: Pool m z1
-    assume sa: SuccAt z z1 s
-    assume pc: Pair s c c1
-    nz1: Nat z1  by imp_e pool_nat nat dnat pz1
-    ms: Mem s c1 by imp_e mh pc
+    assume sa:  SuccAt z z1 s
+    assume pc:  Pair s c c1
+    nz1: Nat z1   by imp_e pool_nat nat dnat pz1
+    ms:  Mem s c1 by imp_e mh pc
     lemma each:
       variable h
       assume inc: Incl c1 h
@@ -234,59 +234,59 @@ theorem chain_namesm:
         variable b
         assume mb: Mem b c
         m1: Mem b c1 by imp_e mt pc mb
-        r: Mem b h   by imp_e inc m1
+        r:  Mem b h  by imp_e inc m1
         therefore forall b. Mem b c -> Mem b h
       msh: Mem s h       by imp_e inc ms
       ihh: NamesM h z n and (forall m1 j. Suc n m1 -> Lt j m1 -> exists u i. Pool i u and Lt i m1 and NamesM h u j)
                          by imp_e ih inc0
-      t0: NamesM h z n   by and_e ihh
-      b0: forall m1 j. Suc n m1 -> Lt j m1 -> exists u i. Pool i u and Lt i m1 and NamesM h u j
+      t0:  NamesM h z n  by and_e ihh
+      b0:  forall m1 j. Suc n m1 -> Lt j m1 -> exists u i. Pool i u and Lt i m1 and NamesM h u j
                          by and_e ihh
       top: NamesM h z1 m by imp_e mm1 t0 nz1 sm sa msh
       lemma below:
         variable m2 j
         assume s2: Suc m m2
-        assume l: Lt j m2
-        r2: Eq m2 m2     by forall_e refl m2
-        lmm: Lt m m2     by imp_e lt0 s2
-        iv: LtInv j m2   by imp_e inv l
-        sh: LtShape j m2 by and_e iv
+        assume l:  Lt j m2
+        r2:  Eq m2 m2     by forall_e refl m2
+        lmm: Lt m m2      by imp_e lt0 s2
+        iv:  LtInv j m2   by imp_e inv l
+        sh:  LtShape j m2 by and_e iv
         lemma one:
           assume sj: Suc j m2
-          ejm: Eq j m      by imp_e suc_inj fs0 sj s2 r2
-          emj: Eq m j      by imp_e eq_sym fs0 ejm
-          rn: Eq n n       by forall_e refl n
-          snj: Suc n j     by imp_e suc_eq fs0 rn emj sm
-          u: NamesM h z1 j by imp_e mm1 t0 nz1 snj sa msh
-          k: Pool m z1 and Lt m m2 and NamesM h z1 j
-                           by and_i pz1 lmm u
-          r: exists u1 i. Pool i u1 and Lt i m2 and NamesM h u1 j
-                           by exists_i k
+          ejm: Eq j m        by imp_e suc_inj fs0 sj s2 r2
+          emj: Eq m j        by imp_e eq_sym fs0 ejm
+          rn:  Eq n n        by forall_e refl n
+          snj: Suc n j       by imp_e suc_eq fs0 rn emj sm
+          u:   NamesM h z1 j by imp_e mm1 t0 nz1 snj sa msh
+          k:   Pool m z1 and Lt m m2 and NamesM h z1 j
+                             by and_i pz1 lmm u
+          r:   exists u1 i. Pool i u1 and Lt i m2 and NamesM h u1 j
+                             by exists_i k
           therefore Suc j m2 -> exists u1 i. Pool i u1 and Lt i m2 and NamesM h u1 j
         lemma more:
           assume ex: exists k. Lt j k and Suc k m2
           lemma wit:
             variable k
             assume hk: Lt j k and Suc k m2
-            ljk: Lt j k  by and_e hk
-            sk: Suc k m2 by and_e hk
-            ekm: Eq k m  by imp_e suc_inj fs0 sk s2 r2
-            rj: Eq j j   by forall_e refl j
-            qq: LtEq j k by imp_e eqs ljk
-            ljm: Lt j m  by imp_e qq rj ekm
-            eu: exists u i. Pool i u and Lt i m and NamesM h u j
-                         by imp_e b0 sm ljm
+            ljk: Lt j k   by and_e hk
+            sk:  Suc k m2 by and_e hk
+            ekm: Eq k m   by imp_e suc_inj fs0 sk s2 r2
+            rj:  Eq j j   by forall_e refl j
+            qq:  LtEq j k by imp_e eqs ljk
+            ljm: Lt j m   by imp_e qq rj ekm
+            eu:  exists u i. Pool i u and Lt i m and NamesM h u j
+                          by imp_e b0 sm ljm
             lemma wu:
               variable u i
               assume hu: Pool i u and Lt i m and NamesM h u j
-              pu: Pool i u     by and_e hu
-              lim: Lt i m      by and_e hu
-              un: NamesM h u j by and_e hu
-              li2: Lt i m2     by imp_e lt1 lim s2
-              k2: Pool i u and Lt i m2 and NamesM h u j
-                               by and_i pu li2 un
-              r: exists u1 i1. Pool i1 u1 and Lt i1 m2 and NamesM h u1 j
-                               by exists_i k2
+              pu:  Pool i u     by and_e hu
+              lim: Lt i m       by and_e hu
+              un:  NamesM h u j by and_e hu
+              li2: Lt i m2      by imp_e lt1 lim s2
+              k2:  Pool i u and Lt i m2 and NamesM h u j
+                                by and_i pu li2 un
+              r:   exists u1 i1. Pool i1 u1 and Lt i1 m2 and NamesM h u1 j
+                                by exists_i k2
               therefore forall u i. (Pool i u and Lt i m and NamesM h u j)
                   -> exists u1 i1. Pool i1 u1 and Lt i1 m2 and NamesM h u1 j
             r: exists u i. Pool i u and Lt i m2 and NamesM h u j

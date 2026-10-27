@@ -10,8 +10,8 @@ theorem and_comm:
   predicate A
   predicate B
   assume ab: A and B
-  a: A        by and_e ab
-  b: B        by and_e ab
+  a:  A       by and_e ab
+  b:  B       by and_e ab
   ba: B and A by and_i b a
   therefore A and B -> B and A
 
@@ -21,7 +21,7 @@ theorem trans:
   predicate C
   assume ab: A -> B
   assume bc: B -> C
-  assume a: A
+  assume a:  A
   b: B by imp_e ab a
   c: C by imp_e bc b
   therefore (A -> B) -> (B -> C) -> A -> C
@@ -73,7 +73,7 @@ theorem id:
 -- Double negation introduction is intuitionistic.
 theorem dni:
   predicate A
-  assume a: A
+  assume a:  A
   assume na: not A
   f: absurd by imp_e na a
   therefore A -> not (not A)
@@ -114,7 +114,7 @@ theorem dist_vacuous:
     variable x
     nx: not (P x) by forall_e h x
     px: P x       by forall_e p x
-    f: absurd     by imp_e nx px
+    f:  absurd    by imp_e nx px
     therefore forall x. absurd
   therefore (forall x. not (P x)) -> (forall x. P x) -> forall x. absurd
 
@@ -137,7 +137,7 @@ theorem nonempty_from_something:
 -- The converse only up to double negation: QE6 gives nothing to `exists_e`.
 theorem not_not_something:
   assume ne: NonEmpty
-  assume n: not Something
+  assume n:  not Something
   lemma all:
     variable y
     lemma t:
@@ -169,8 +169,8 @@ theorem qe5:
   lemma all:
     variable x
     assume a: A
-    k: forall x1. P x1 by imp_e h a
-    px: P x            by forall_e k x
+    k:  forall x1. P x1 by imp_e h a
+    px: P x             by forall_e k x
     therefore forall x. A -> P x
   therefore (A -> forall x. P x) -> forall x. A -> P x
 
@@ -181,8 +181,8 @@ theorem hailperin_lemma4:
   assume e: forall x. absurd
   lemma all:
     variable x
-    f: absurd by forall_e e x
-    px: P x   by absurd_e f
+    f:  absurd by forall_e e x
+    px: P x    by absurd_e f
     therefore forall x. P x
   therefore (forall x. absurd) -> forall x. P x
 
@@ -207,7 +207,7 @@ theorem hailperin_lemma2:
   predicate A
   assume em: ExcludedMiddle A
   assume ne: NonEmpty
-  assume h: forall x. A
+  assume h:  forall x. A
   lemma yes:
     assume a: A
     therefore A -> A
@@ -215,11 +215,11 @@ theorem hailperin_lemma2:
     assume na: not A
     lemma all:
       variable x
-      ax: A     by forall_e h x
-      f: absurd by imp_e na ax
+      ax: A      by forall_e h x
+      f:  absurd by imp_e na ax
       therefore forall x. absurd
     f2: absurd by imp_e ne all
-    a: A       by absurd_e f2
+    a:  A      by absurd_e f2
     therefore not A -> A
   a: A by or_e em yes no
   therefore ExcludedMiddle A -> NonEmpty -> (forall x. A) -> A
@@ -246,7 +246,7 @@ theorem quine_extensionality:
     lemma all:
       variable x
       both: A and (P x -> P x) by forall_e h x
-      a: A                     by and_e both
+      a:    A                  by and_e both
       therefore forall x. A
     therefore (forall x. A and (P x -> P x)) -> forall x. A
   k: Iff (forall x. A) (forall x. A and (P x -> P x))

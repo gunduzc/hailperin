@@ -7,7 +7,7 @@ theorem peirce:
   predicate A
   predicate B
   assume em: ExcludedMiddle A
-  assume f: (A -> B) -> A
+  assume f:  (A -> B) -> A
   lemma yes:
     assume a: A
     therefore A -> A
@@ -26,7 +26,7 @@ theorem peirce:
 -- Double negation elimination.
 theorem dne:
   predicate A
-  assume em: ExcludedMiddle A
+  assume em:  ExcludedMiddle A
   assume nna: not (not A)
   lemma yes:
     assume a: A
@@ -44,16 +44,16 @@ theorem contrapositive:
   predicate A
   predicate B
   assume em: ExcludedMiddle B
-  assume h: not B -> not A
-  assume a: A
+  assume h:  not B -> not A
+  assume a:  A
   lemma yes:
     assume b: B
     therefore B -> B
   lemma no:
     assume nb: not B
-    na: not A by imp_e h nb
-    f: absurd by imp_e na a
-    b: B      by absurd_e f
+    na: not A  by imp_e h nb
+    f:  absurd by imp_e na a
+    b:  B      by absurd_e f
     therefore not B -> B
   b: B by or_e em yes no
   therefore ExcludedMiddle B -> (not B -> not A) -> A -> B
