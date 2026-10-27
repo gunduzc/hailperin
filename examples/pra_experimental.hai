@@ -1,0 +1,2382 @@
+-- PRA, full arity, with functions as individuals. Every function takes one argument: a tuple
+-- of arguments is one number, through a pairing of numbers (Pr a b p: p is the pair of a and
+-- b). Fn f says f is a function and Ap f x y says f(x) = y. With arguments coded as nested
+-- pairs, unary functions closed under pairing, tupling, composition and primitive recursion
+-- represent the primitive recursive functions of every arity. Each ingredient is one
+-- sentence. No schema.
+
+predicate Num x
+predicate Zero x
+predicate Succ x y
+predicate Eq x y
+predicate Pr a b p
+predicate Fn f
+predicate Ap f x y
+
+define Iff (A) (B) = (A -> B) and (B -> A)
+
+-- numbers
+define ZEx   = exists z. Zero z
+define NZ    = forall z. Zero z -> Num z
+define NS    = forall n m. Num n -> Succ n m -> Num m
+define SEx   = forall n. Num n -> exists m. Succ n m
+define SFun  = forall a b c. Succ a b -> Succ a c -> Eq b c
+define Zu    = forall a b. Zero a -> Zero b -> Eq a b
+define ZnS   = forall z n m. Zero z -> Succ n m -> not (Eq z m)
+define SInj  = forall n m n1 m1. Succ n m -> Succ n1 m1 -> Eq m m1 -> Eq n n1
+define ZoS   = forall n. Num n -> Zero n or exists p. Num p and Succ p n
+
+-- equality, decidable on numbers as PRA's atoms are
+define Refl  = forall x. Eq x x
+define Sym   = forall x y. Eq x y -> Eq y x
+define Trans = forall x y z. Eq x y -> Eq y z -> Eq x z
+define DecEq = forall x y. Num x -> Num y -> Eq x y or not (Eq x y)
+define Ez    = forall a b. Eq a b -> Zero a -> Zero b
+define Enum  = forall a b. Eq a b -> Num a -> Num b
+define Es    = forall a b a1 b1. Eq a a1 -> Eq b b1 -> Succ a b -> Succ a1 b1
+define EPr   = forall a b p a1 b1 p1. Eq a a1 -> Eq b b1 -> Eq p p1 -> Pr a b p -> Pr a1 b1 p1
+define EAp   = forall f x y x1 y1. Eq x x1 -> Eq y y1 -> Ap f x y -> Ap f x1 y1
+
+-- pairing: every two numbers have one pair, and every number is the pair of one two
+define PTot  = forall a b. Num a -> Num b -> exists p. Pr a b p
+define PNum  = forall a b p. Pr a b p -> Num a and Num b and Num p
+define PFun  = forall a b p q. Pr a b p -> Pr a b q -> Eq p q
+define PInj  = forall a b p c d q. Pr a b p -> Pr c d q -> Eq p q -> Eq a c and Eq b d
+define PSurj = forall p. Num p -> exists a b. Pr a b p
+
+-- functions are total on numbers, with numbers for values, and single-valued
+define Total = forall f x. Fn f -> Num x -> exists y. Num y and Ap f x y
+define Func  = forall f x y w. Fn f -> Ap f x y -> Ap f x w -> Eq y w
+
+-- starting functions: identity, zero, successor, and the two halves of a pair
+define FId   = exists f. Fn f and forall x y. Iff (Ap f x y) (Num x and Eq x y)
+define FZero = exists f. Fn f and forall x y. Iff (Ap f x y) (Num x and Zero y)
+define FSucc = exists f. Fn f and forall x y. Iff (Ap f x y) (Num x and Succ x y)
+define FFst  = exists f. Fn f and forall p y. Iff (Ap f p y) (exists b. Pr y b p)
+define FSnd  = exists f. Fn f and forall p y. Iff (Ap f p y) (exists a. Pr a y p)
+
+-- composition (f after g), and tupling (x to the pair of f(x) and g(x))
+define FComp  = forall f g. Fn f -> Fn g -> exists h. Fn h and
+                  forall x w. Iff (Ap h x w) (exists a. Ap g x a and Ap f a w)
+define FTuple = forall f g. Fn f -> Fn g -> exists h. Fn h and
+                  forall x w. Iff (Ap h x w) (exists a b. Ap f x a and Ap g x b and Pr a b w)
+
+-- primitive recursion, the parameter x being any tuple: h(x, 0) = g(x), and
+-- h(x, n + 1) = k((x, n), h(x, n))
+define FRec = forall g k. Fn g -> Fn k -> exists h. Fn h
+                and (forall x z p y. Zero z -> Pr x z p -> Ap g x y -> Ap h p y)
+                and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t -> Ap k t w
+                       -> Ap h q w)
+
+-- a recursive definition defines one function: two solutions of the same recursion agree
+-- everywhere. This is PRA's induction rule, in the form of Goodstein's uniqueness rule.
+define RecOf h g k = (forall x z p y. Zero z -> Pr x z p -> Ap g x y -> Ap h p y)
+                     and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
+                            -> Ap k t w -> Ap h q w)
+define FRecUniq = forall g k h1 h2. Fn g -> Fn k -> Fn h1 -> Fn h2 -> RecOf h1 g k -> RecOf h2 g k
+                    -> forall x n p v w. Num x -> Num n -> Pr x n p -> Ap h1 p v -> Ap h2 p w -> Eq v w
+
+-- h is addition on pairs: h(x, 0) = x and h(x, n + 1) = h(x, n) + 1
+define AddRec h = (forall x z p. Num x -> Zero z -> Pr x z p -> Ap h p x)
+                  and (forall x n m p q v w. Num x -> Num n -> Num v -> Pr x n p -> Ap h p v -> Succ n m -> Pr x m q
+                         -> Succ v w -> Ap h q w)
+
+-- 0 + n = n
+define ZeroLeft h = forall z n p v. Zero z -> Num n -> Pr z n p -> Ap h p v -> Eq v n
+
+-- Addition exists: recursion from the identity, with k(t) = successor of the second half of t,
+-- so h(x, n + 1) = h(x, n) + 1.
+theorem add_exists:
+  assume fid:   FId
+  assume fsucc: FSucc
+  assume fsnd:  FSnd
+  assume fcomp: FComp
+  assume frec:  FRec
+  assume refl:  Refl
+  assume ptot:  PTot
+  assume pnum:  PNum
+  lemma wi:
+    variable i
+    assume hi: Fn i and forall x y. Iff (Ap i x y) (Num x and Eq x y)
+    fi: Fn i                              by and_e hi
+    mi: forall x y. Iff (Ap i x y) (Num x and Eq x y)
+                                          by and_e hi
+    lemma ws:
+      variable s
+      assume hs: Fn s and forall x y. Iff (Ap s x y) (Num x and Succ x y)
+      fs: Fn s                            by and_e hs
+      ms: forall x y. Iff (Ap s x y) (Num x and Succ x y)
+                                          by and_e hs
+      lemma wn:
+        variable sn
+        assume hn: Fn sn and forall p y. Iff (Ap sn p y) (exists a. Pr a y p)
+        fsn: Fn sn                        by and_e hn
+        msn: forall p y. Iff (Ap sn p y) (exists a. Pr a y p)
+                                          by and_e hn
+        ek: exists k. Fn k and forall x w. Iff (Ap k x w) (exists a. Ap sn x a and Ap s a w)
+                                          by imp_e fcomp fs fsn
+        lemma wk:
+          variable k
+          assume hk: Fn k and forall x w. Iff (Ap k x w) (exists a. Ap sn x a and Ap s a w)
+          fk: Fn k                        by and_e hk
+          mk: forall x w. Iff (Ap k x w) (exists a. Ap sn x a and Ap s a w)
+                                          by and_e hk
+          eh: exists h. Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap i x y -> Ap h p y)
+                and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t -> Ap k t w
+                       -> Ap h q w)
+                                          by imp_e frec fi fk
+          lemma wh:
+            variable h
+            assume hh: Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap i x y -> Ap h p y)
+                         and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
+                                -> Ap k t w -> Ap h q w)
+            fh: Fn h                      by and_e hh
+            rb: forall x z p y. Zero z -> Pr x z p -> Ap i x y -> Ap h p y
+                                          by and_e hh
+            rs: forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t -> Ap k t w
+                  -> Ap h q w
+                                          by and_e hh
+            lemma base:
+              variable x z p
+              assume nx: Num x
+              assume zz: Zero z
+              assume pp: Pr x z p
+              rx:  Eq x x                 by forall_e refl x
+              k1:  Num x and Eq x x       by and_i nx rx
+              j1:  Iff (Ap i x x) (Num x and Eq x x)
+                                          by forall_e mi x x
+              j2:  (Num x and Eq x x) -> Ap i x x
+                                          by and_e j1
+              ix:  Ap i x x               by imp_e j2 k1
+              res: Ap h p x               by imp_e rb zz pp ix
+              therefore forall x z p. Num x -> Zero z -> Pr x z p -> Ap h p x
+            lemma step:
+              variable x n m p q v w
+              assume nx: Num x
+              assume nn: Num n
+              assume nv: Num v
+              assume pp: Pr x n p
+              assume hv: Ap h p v
+              assume sm: Succ n m
+              assume pq: Pr x m q
+              assume sw: Succ v w
+              np3: Num x and Num n and Num p
+                                          by imp_e pnum pp
+              np:  Num p                  by and_e np3
+              et:  exists t. Pr p v t     by imp_e ptot np nv
+              lemma wt:
+                variable t
+                assume pt: Pr p v t
+                k1:  exists a. Pr a v t   by exists_i pt
+                j1:  Iff (Ap sn t v) (exists a. Pr a v t)
+                                          by forall_e msn t v
+                j2:  (exists a. Pr a v t) -> Ap sn t v
+                                          by and_e j1
+                snv: Ap sn t v            by imp_e j2 k1
+                k2:  Num v and Succ v w   by and_i nv sw
+                j3:  Iff (Ap s v w) (Num v and Succ v w)
+                                          by forall_e ms v w
+                j4:  (Num v and Succ v w) -> Ap s v w
+                                          by and_e j3
+                sv:  Ap s v w             by imp_e j4 k2
+                k3:  Ap sn t v and Ap s v w
+                                          by and_i snv sv
+                k4:  exists a. Ap sn t a and Ap s a w
+                                          by exists_i k3
+                j5:  Iff (Ap k t w) (exists a. Ap sn t a and Ap s a w)
+                                          by forall_e mk t w
+                j6:  (exists a. Ap sn t a and Ap s a w) -> Ap k t w
+                                          by and_e j5
+                kt:  Ap k t w             by imp_e j6 k4
+                res: Ap h q w             by imp_e rs pp hv sm pq pt kt
+                therefore forall t. Pr p v t -> Ap h q w
+              res: Ap h q w               by exists_e et wt
+              therefore forall x n m p q v w. Num x -> Num n -> Num v -> Pr x n p -> Ap h p v -> Succ n m
+                          -> Pr x m q -> Succ v w -> Ap h q w
+            ar:  AddRec h                 by and_i base step
+            k5:  Fn h and AddRec h        by and_i fh ar
+            res: exists h. Fn h and AddRec h
+                                          by exists_i k5
+            therefore forall h. (Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap i x y -> Ap h p y)
+                        and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
+                               -> Ap k t w -> Ap h q w))
+                        -> exists h. Fn h and AddRec h
+          res: exists h. Fn h and AddRec h
+                                          by exists_e eh wh
+          therefore forall k. (Fn k and forall x w. Iff (Ap k x w) (exists a. Ap sn x a and Ap s a w))
+                      -> exists h. Fn h and AddRec h
+        res: exists h. Fn h and AddRec h  by exists_e ek wk
+        therefore forall sn. (Fn sn and forall p y. Iff (Ap sn p y) (exists a. Pr a y p))
+                    -> exists h. Fn h and AddRec h
+      res: exists h. Fn h and AddRec h    by exists_e fsnd wn
+      therefore forall s. (Fn s and forall x y. Iff (Ap s x y) (Num x and Succ x y))
+                  -> exists h. Fn h and AddRec h
+    res: exists h. Fn h and AddRec h      by exists_e fsucc ws
+    therefore forall i. (Fn i and forall x y. Iff (Ap i x y) (Num x and Eq x y))
+                -> exists h. Fn h and AddRec h
+  res: exists h. Fn h and AddRec h        by exists_e fid wi
+  therefore FId -> FSucc -> FSnd -> FComp -> FRec -> Refl -> PTot -> PNum -> exists h. Fn h and AddRec h
+
+-- A small toolkit: names for what the existence axioms give, and how to use them.
+define IdOf f      = forall x y. Iff (Ap f x y) (Num x and Eq x y)
+define ZeroOf f    = forall x y. Iff (Ap f x y) (Num x and Zero y)
+define SuccOf f    = forall x y. Iff (Ap f x y) (Num x and Succ x y)
+define FstOf f     = forall p y. Iff (Ap f p y) (exists b. Pr y b p)
+define SndOf f     = forall p y. Iff (Ap f p y) (exists a. Pr a y p)
+define CompOf h f g = forall x w. Iff (Ap h x w) (exists a. Ap g x a and Ap f a w)
+define TupOf h f g  = forall x w. Iff (Ap h x w) (exists a b. Ap f x a and Ap g x b and Pr a b w)
+
+theorem comp_in:
+  lemma all:
+    variable h f g x a w
+    assume c:  CompOf h f g
+    assume ga: Ap g x a
+    assume fa: Ap f a w
+    i:  Iff (Ap h x w) (exists a. Ap g x a and Ap f a w)
+                                          by forall_e c x w
+    j:  (exists a. Ap g x a and Ap f a w) -> Ap h x w
+                                          by and_e i
+    k:  Ap g x a and Ap f a w             by and_i ga fa
+    e:  exists a. Ap g x a and Ap f a w   by exists_i k
+    r:  Ap h x w                          by imp_e j e
+    therefore forall h f g x a w. CompOf h f g -> Ap g x a -> Ap f a w -> Ap h x w
+  therefore forall h f g x a w. CompOf h f g -> Ap g x a -> Ap f a w -> Ap h x w
+
+theorem comp_out:
+  lemma all:
+    variable h f g x w
+    assume c:  CompOf h f g
+    assume hw: Ap h x w
+    i:  Iff (Ap h x w) (exists a. Ap g x a and Ap f a w)
+                                          by forall_e c x w
+    j:  Ap h x w -> exists a. Ap g x a and Ap f a w
+                                          by and_e i
+    r:  exists a. Ap g x a and Ap f a w   by imp_e j hw
+    therefore forall h f g x w. CompOf h f g -> Ap h x w -> exists a. Ap g x a and Ap f a w
+  therefore forall h f g x w. CompOf h f g -> Ap h x w -> exists a. Ap g x a and Ap f a w
+
+theorem tup_in:
+  lemma all:
+    variable h f g x a b w
+    assume c:  TupOf h f g
+    assume fa: Ap f x a
+    assume gb: Ap g x b
+    assume pw: Pr a b w
+    i:  Iff (Ap h x w) (exists a b. Ap f x a and Ap g x b and Pr a b w)
+                                          by forall_e c x w
+    j:  (exists a b. Ap f x a and Ap g x b and Pr a b w) -> Ap h x w
+                                          by and_e i
+    k:  Ap f x a and Ap g x b and Pr a b w
+                                          by and_i fa gb pw
+    e:  exists a b. Ap f x a and Ap g x b and Pr a b w
+                                          by exists_i k
+    r:  Ap h x w                          by imp_e j e
+    therefore forall h f g x a b w. TupOf h f g -> Ap f x a -> Ap g x b -> Pr a b w -> Ap h x w
+  therefore forall h f g x a b w. TupOf h f g -> Ap f x a -> Ap g x b -> Pr a b w -> Ap h x w
+
+theorem tup_out:
+  lemma all:
+    variable h f g x w
+    assume c:  TupOf h f g
+    assume hw: Ap h x w
+    i:  Iff (Ap h x w) (exists a b. Ap f x a and Ap g x b and Pr a b w)
+                                          by forall_e c x w
+    j:  Ap h x w -> exists a b. Ap f x a and Ap g x b and Pr a b w
+                                          by and_e i
+    r:  exists a b. Ap f x a and Ap g x b and Pr a b w
+                                          by imp_e j hw
+    therefore forall h f g x w. TupOf h f g -> Ap h x w -> exists a b. Ap f x a and Ap g x b and Pr a b w
+  therefore forall h f g x w. TupOf h f g -> Ap h x w -> exists a b. Ap f x a and Ap g x b and Pr a b w
+
+-- the two halves of a pair, in and out
+theorem fst_in:
+  lemma all:
+    variable f a b p
+    assume c:  FstOf f
+    assume pp: Pr a b p
+    i:  Iff (Ap f p a) (exists b. Pr a b p)
+                                          by forall_e c p a
+    j:  (exists b. Pr a b p) -> Ap f p a  by and_e i
+    e:  exists b. Pr a b p                by exists_i pp
+    r:  Ap f p a                          by imp_e j e
+    therefore forall f a b p. FstOf f -> Pr a b p -> Ap f p a
+  therefore forall f a b p. FstOf f -> Pr a b p -> Ap f p a
+
+theorem snd_in:
+  lemma all:
+    variable f a b p
+    assume c:  SndOf f
+    assume pp: Pr a b p
+    i:  Iff (Ap f p b) (exists a. Pr a b p)
+                                          by forall_e c p b
+    j:  (exists a. Pr a b p) -> Ap f p b  by and_e i
+    e:  exists a. Pr a b p                by exists_i pp
+    r:  Ap f p b                          by imp_e j e
+    therefore forall f a b p. SndOf f -> Pr a b p -> Ap f p b
+  therefore forall f a b p. SndOf f -> Pr a b p -> Ap f p b
+
+theorem fst_out:
+  assume pinj: PInj
+  assume refl: Refl
+  lemma all:
+    variable f a b p y
+    assume c:  FstOf f
+    assume pp: Pr a b p
+    assume fy: Ap f p y
+    i:  Iff (Ap f p y) (exists b. Pr y b p)
+                                          by forall_e c p y
+    j:  Ap f p y -> exists b. Pr y b p    by and_e i
+    e:  exists b. Pr y b p                by imp_e j fy
+    lemma wb:
+      variable b1
+      assume pb: Pr y b1 p
+      rp: Eq p p                          by forall_e refl p
+      k:  Eq a y and Eq b b1              by imp_e pinj pp pb rp
+      r:  Eq a y                          by and_e k
+      therefore forall b1. Pr y b1 p -> Eq a y
+    r: Eq a y                             by exists_e e wb
+    therefore forall f a b p y. FstOf f -> Pr a b p -> Ap f p y -> Eq a y
+  therefore PInj -> Refl -> forall f a b p y. FstOf f -> Pr a b p -> Ap f p y -> Eq a y
+
+theorem snd_out:
+  assume pinj: PInj
+  assume refl: Refl
+  lemma all:
+    variable f a b p y
+    assume c:  SndOf f
+    assume pp: Pr a b p
+    assume fy: Ap f p y
+    i:  Iff (Ap f p y) (exists a. Pr a y p)
+                                          by forall_e c p y
+    j:  Ap f p y -> exists a. Pr a y p    by and_e i
+    e:  exists a. Pr a y p                by imp_e j fy
+    lemma wa:
+      variable a1
+      assume pa: Pr a1 y p
+      rp: Eq p p                          by forall_e refl p
+      k:  Eq a a1 and Eq b y              by imp_e pinj pp pa rp
+      r:  Eq b y                          by and_e k
+      therefore forall a1. Pr a1 y p -> Eq b y
+    r: Eq b y                             by exists_e e wa
+    therefore forall f a b p y. SndOf f -> Pr a b p -> Ap f p y -> Eq b y
+  therefore PInj -> Refl -> forall f a b p y. SndOf f -> Pr a b p -> Ap f p y -> Eq b y
+
+-- zero, successor and identity, in and out
+theorem zero_in:
+  lemma all:
+    variable f x y
+    assume c:  ZeroOf f
+    assume nx: Num x
+    assume zy: Zero y
+    i:  Iff (Ap f x y) (Num x and Zero y) by forall_e c x y
+    j:  (Num x and Zero y) -> Ap f x y    by and_e i
+    k:  Num x and Zero y                  by and_i nx zy
+    r:  Ap f x y                          by imp_e j k
+    therefore forall f x y. ZeroOf f -> Num x -> Zero y -> Ap f x y
+  therefore forall f x y. ZeroOf f -> Num x -> Zero y -> Ap f x y
+
+theorem zero_out:
+  lemma all:
+    variable f x y
+    assume c:  ZeroOf f
+    assume fy: Ap f x y
+    i:  Iff (Ap f x y) (Num x and Zero y) by forall_e c x y
+    j:  Ap f x y -> Num x and Zero y      by and_e i
+    k:  Num x and Zero y                  by imp_e j fy
+    r:  Zero y                            by and_e k
+    therefore forall f x y. ZeroOf f -> Ap f x y -> Zero y
+  therefore forall f x y. ZeroOf f -> Ap f x y -> Zero y
+
+theorem succ_in:
+  lemma all:
+    variable f x y
+    assume c:  SuccOf f
+    assume nx: Num x
+    assume sy: Succ x y
+    i:  Iff (Ap f x y) (Num x and Succ x y)
+                                          by forall_e c x y
+    j:  (Num x and Succ x y) -> Ap f x y  by and_e i
+    k:  Num x and Succ x y                by and_i nx sy
+    r:  Ap f x y                          by imp_e j k
+    therefore forall f x y. SuccOf f -> Num x -> Succ x y -> Ap f x y
+  therefore forall f x y. SuccOf f -> Num x -> Succ x y -> Ap f x y
+
+theorem succ_out:
+  lemma all:
+    variable f x y
+    assume c:  SuccOf f
+    assume fy: Ap f x y
+    i:  Iff (Ap f x y) (Num x and Succ x y)
+                                          by forall_e c x y
+    j:  Ap f x y -> Num x and Succ x y    by and_e i
+    k:  Num x and Succ x y                by imp_e j fy
+    r:  Succ x y                          by and_e k
+    therefore forall f x y. SuccOf f -> Ap f x y -> Succ x y
+  therefore forall f x y. SuccOf f -> Ap f x y -> Succ x y
+
+theorem id_in:
+  assume refl: Refl
+  lemma all:
+    variable f x
+    assume c:  IdOf f
+    assume nx: Num x
+    i:  Iff (Ap f x x) (Num x and Eq x x) by forall_e c x x
+    j:  (Num x and Eq x x) -> Ap f x x    by and_e i
+    rx: Eq x x                            by forall_e refl x
+    k:  Num x and Eq x x                  by and_i nx rx
+    r:  Ap f x x                          by imp_e j k
+    therefore forall f x. IdOf f -> Num x -> Ap f x x
+  therefore Refl -> forall f x. IdOf f -> Num x -> Ap f x x
+
+-- a function's value at a number is a number
+theorem ap_num:
+  assume total: Total
+  assume func:  Func
+  assume enum:  Enum
+  lemma all:
+    variable f x y
+    assume fn: Fn f
+    assume nx: Num x
+    assume fy: Ap f x y
+    e: exists y. Num y and Ap f x y       by imp_e total fn nx
+    lemma wu:
+      variable u
+      assume hu: Num u and Ap f x u
+      nu: Num u                           by and_e hu
+      fu: Ap f x u                        by and_e hu
+      k:  Eq u y                          by imp_e func fn fu fy
+      r:  Num y                           by imp_e enum k nu
+      therefore forall u. (Num u and Ap f x u) -> Num y
+    r: Num y                              by exists_e e wu
+    therefore forall f x y. Fn f -> Num x -> Ap f x y -> Num y
+  therefore Total -> Func -> Enum -> forall f x y. Fn f -> Num x -> Ap f x y -> Num y
+
+-- #1. Multiplication from any addition h: m(x, 0) = 0, m(x, n + 1) = m(x, n) + x. The step
+-- function reads x out of ((x, n), m(x, n)) as the first half of the first half, so pairing,
+-- the two halves, tupling and composition all do work here.
+define MulRec h m = (forall x z p y. Num x -> Zero z -> Pr x z p -> Zero y -> Ap m p y)
+                    and (forall x n n1 p q v r w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q -> Pr v x r
+                           -> Ap h r w -> Ap m q w)
+
+theorem mul_exists:
+  assume fzero: FZero
+  assume ffst:  FFst
+  assume fsnd:  FSnd
+  assume fcomp: FComp
+  assume ftup:  FTuple
+  assume frec:  FRec
+  assume ptot:  PTot
+  assume pnum:  PNum
+  assume total: Total
+  assume func:  Func
+  assume enum:  Enum
+  lemma all:
+    variable h
+    assume fh: Fn h
+    lemma wz:
+      variable zf
+      assume hz: Fn zf and ZeroOf zf
+      fz: Fn zf                           by and_e hz
+      mz: ZeroOf zf                       by and_e hz
+      lemma wf:
+        variable fs
+        assume hf: Fn fs and FstOf fs
+        ffs: Fn fs                        by and_e hf
+        mfs: FstOf fs                     by and_e hf
+        lemma ws:
+          variable sn
+          assume hs: Fn sn and SndOf sn
+          fsn: Fn sn                      by and_e hs
+          msn: SndOf sn                   by and_e hs
+          eff: exists g. Fn g and CompOf g fs fs
+                                          by imp_e fcomp ffs ffs
+          lemma wff:
+            variable ff
+            assume hff: Fn ff and CompOf ff fs fs
+            fff: Fn ff                    by and_e hff
+            mff: CompOf ff fs fs          by and_e hff
+            etp: exists g. Fn g and TupOf g sn ff
+                                          by imp_e ftup fsn fff
+            lemma wtp:
+              variable tp
+              assume htp: Fn tp and TupOf tp sn ff
+              ftp: Fn tp                  by and_e htp
+              mtp: TupOf tp sn ff         by and_e htp
+              ek: exists g. Fn g and CompOf g h tp
+                                          by imp_e fcomp fh ftp
+              lemma wk:
+                variable k
+                assume hk: Fn k and CompOf k h tp
+                fk: Fn k                  by and_e hk
+                mk: CompOf k h tp         by and_e hk
+                em: exists m. Fn m and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap m p y)
+                      and (forall x n n1 p q v t w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q -> Pr p v t
+                             -> Ap k t w -> Ap m q w)
+                                          by imp_e frec fz fk
+                lemma wm:
+                  variable m
+                  assume hm: Fn m and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap m p y)
+                               and (forall x n n1 p q v t w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q
+                                      -> Pr p v t -> Ap k t w -> Ap m q w)
+                  fm: Fn m                by and_e hm
+                  rb: forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap m p y
+                                          by and_e hm
+                  rs: forall x n n1 p q v t w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q -> Pr p v t
+                        -> Ap k t w -> Ap m q w
+                                          by and_e hm
+                  lemma base:
+                    variable x z p y
+                    assume nx: Num x
+                    assume zz: Zero z
+                    assume pp: Pr x z p
+                    assume zy: Zero y
+                    zxy: Ap zf x y        by imp_e zero_in mz nx zy
+                    res: Ap m p y         by imp_e rb zz pp zxy
+                    therefore forall x z p y. Num x -> Zero z -> Pr x z p -> Zero y -> Ap m p y
+                  lemma step:
+                    variable x n n1 p q v r w
+                    assume pp: Pr x n p
+                    assume mv: Ap m p v
+                    assume sn1: Succ n n1
+                    assume pq: Pr x n1 q
+                    assume pr: Pr v x r
+                    assume hw: Ap h r w
+                    np3: Num x and Num n and Num p
+                                          by imp_e pnum pp
+                    np:  Num p            by and_e np3
+                    nv:  Num v            by imp_e ap_num total func enum fm np mv
+                    et:  exists t. Pr p v t
+                                          by imp_e ptot np nv
+                    lemma wt:
+                      variable t
+                      assume pt: Pr p v t
+                      a1:  Ap sn t v      by imp_e snd_in msn pt
+                      a2:  Ap fs t p      by imp_e fst_in mfs pt
+                      a3:  Ap fs p x      by imp_e fst_in mfs pp
+                      a4:  Ap ff t x      by imp_e comp_in mff a2 a3
+                      a5:  Ap tp t r      by imp_e tup_in mtp a1 a4 pr
+                      a6:  Ap k t w       by imp_e comp_in mk a5 hw
+                      res: Ap m q w       by imp_e rs pp mv sn1 pq pt a6
+                      therefore forall t. Pr p v t -> Ap m q w
+                    res: Ap m q w         by exists_e et wt
+                    therefore forall x n n1 p q v r w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q -> Pr v x r
+                                -> Ap h r w -> Ap m q w
+                  mr:  MulRec h m         by and_i base step
+                  c:   Fn m and MulRec h m
+                                          by and_i fm mr
+                  res: exists m. Fn m and MulRec h m
+                                          by exists_i c
+                  therefore forall m. (Fn m and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap m p y)
+                              and (forall x n n1 p q v t w. Pr x n p -> Ap m p v -> Succ n n1 -> Pr x n1 q
+                                     -> Pr p v t -> Ap k t w -> Ap m q w))
+                              -> exists m. Fn m and MulRec h m
+                res: exists m. Fn m and MulRec h m
+                                          by exists_e em wm
+                therefore forall k. (Fn k and CompOf k h tp) -> exists m. Fn m and MulRec h m
+              res: exists m. Fn m and MulRec h m
+                                          by exists_e ek wk
+              therefore forall tp. (Fn tp and TupOf tp sn ff) -> exists m. Fn m and MulRec h m
+            res: exists m. Fn m and MulRec h m
+                                          by exists_e etp wtp
+            therefore forall ff. (Fn ff and CompOf ff fs fs) -> exists m. Fn m and MulRec h m
+          res: exists m. Fn m and MulRec h m
+                                          by exists_e eff wff
+          therefore forall sn. (Fn sn and SndOf sn) -> exists m. Fn m and MulRec h m
+        res: exists m. Fn m and MulRec h m
+                                          by exists_e fsnd ws
+        therefore forall fs. (Fn fs and FstOf fs) -> exists m. Fn m and MulRec h m
+      res: exists m. Fn m and MulRec h m  by exists_e ffst wf
+      therefore forall zf. (Fn zf and ZeroOf zf) -> exists m. Fn m and MulRec h m
+    res: exists m. Fn m and MulRec h m    by exists_e fzero wz
+    therefore forall h. Fn h -> exists m. Fn m and MulRec h m
+  therefore FZero -> FFst -> FSnd -> FComp -> FTuple -> FRec -> PTot -> PNum -> Total -> Func -> Enum
+              -> forall h. Fn h -> exists m. Fn m and MulRec h m
+
+-- #2. n + 1 is never n, along PRA's route: a predecessor, truncated subtraction, sub(a + 1,
+-- b + 1) = sub(a, b), sub(n, n) = 0 and sub(n + 1, n) = 1, the last three by uniqueness of
+-- recursive definitions, then n + 1 = n would make 1 = 0. The fact itself does not need
+-- uniqueness here: recursion alone forces a value equal to its own flip (0 to 1, successors to
+-- 0), which ZoS and ZnS rule out. So this shows the route, not that uniqueness is needed.
+
+-- w is the predecessor of v: both zero, or v is w + 1
+define PredR v w = (Zero v and Zero w) or (Num w and Succ w v)
+
+theorem pred_ex:
+  assume zos: ZoS
+  lemma all:
+    variable v
+    assume nv: Num v
+    o: Zero v or exists p. Num p and Succ p v
+                                          by imp_e zos nv
+    lemma z:
+      assume zv: Zero v
+      k: Zero v and Zero v                by and_i zv zv
+      p: PredR v v                        by or_i k
+      r: exists w. PredR v w              by exists_i p
+      therefore Zero v -> exists w. PredR v w
+    lemma s:
+      assume ex: exists p. Num p and Succ p v
+      lemma wp:
+        variable w
+        assume k: Num w and Succ w v
+        p: PredR v w                      by or_i k
+        r: exists w. PredR v w            by exists_i p
+        therefore forall w. (Num w and Succ w v) -> exists w. PredR v w
+      r: exists w. PredR v w              by exists_e ex wp
+      therefore (exists p. Num p and Succ p v) -> exists w. PredR v w
+    r: exists w. PredR v w                by or_e o z s
+    therefore forall v. Num v -> exists w. PredR v w
+  therefore ZoS -> forall v. Num v -> exists w. PredR v w
+
+theorem pred_fun:
+  assume zu:   Zu
+  assume zns:  ZnS
+  assume sinj: SInj
+  assume ez:   Ez
+  assume sym:  Sym
+  assume refl: Refl
+  lemma all:
+    variable v w v1 w1
+    assume p1: PredR v w
+    assume p2: PredR v1 w1
+    assume e:  Eq v v1
+    e2: Eq v1 v                           by imp_e sym e
+    -- a zero that is a successor is impossible
+    lemma clash:
+      variable z u
+      assume zz: Zero z
+      assume su: Succ u z
+      rz: Eq z z                          by forall_e refl z
+      ne: not (Eq z z)                    by imp_e zns zz su
+      bad: absurd                         by imp_e ne rz
+      therefore forall z u. Zero z -> Succ u z -> absurd
+    lemma c1:
+      assume h1: Zero v and Zero w
+      zv: Zero v                          by and_e h1
+      zw: Zero w                          by and_e h1
+      zv1: Zero v1                        by imp_e ez e zv
+      lemma c11:
+        assume h2: Zero v1 and Zero w1
+        zw1: Zero w1                      by and_e h2
+        r: Eq w w1                        by imp_e zu zw zw1
+        therefore (Zero v1 and Zero w1) -> Eq w w1
+      lemma c12:
+        assume h2: Num w1 and Succ w1 v1
+        s1:  Succ w1 v1                   by and_e h2
+        bad: absurd                       by imp_e clash zv1 s1
+        r:   Eq w w1                      by absurd_e bad
+        therefore (Num w1 and Succ w1 v1) -> Eq w w1
+      r: Eq w w1                          by or_e p2 c11 c12
+      therefore (Zero v and Zero w) -> Eq w w1
+    lemma c2:
+      assume h1: Num w and Succ w v
+      sv: Succ w v                        by and_e h1
+      lemma c21:
+        assume h2: Zero v1 and Zero w1
+        zv1: Zero v1                      by and_e h2
+        zv:  Zero v                       by imp_e ez e2 zv1
+        bad: absurd                       by imp_e clash zv sv
+        r:   Eq w w1                      by absurd_e bad
+        therefore (Zero v1 and Zero w1) -> Eq w w1
+      lemma c22:
+        assume h2: Num w1 and Succ w1 v1
+        s1: Succ w1 v1                    by and_e h2
+        r:  Eq w w1                       by imp_e sinj sv s1 e
+        therefore (Num w1 and Succ w1 v1) -> Eq w w1
+      r: Eq w w1                          by or_e p2 c21 c22
+      therefore (Num w and Succ w v) -> Eq w w1
+    r: Eq w w1                            by or_e p1 c1 c2
+    therefore forall v w v1 w1. PredR v w -> PredR v1 w1 -> Eq v v1 -> Eq w w1
+  therefore Zu -> ZnS -> SInj -> Ez -> Sym -> Refl -> forall v w v1 w1. PredR v w -> PredR v1 w1 -> Eq v v1 -> Eq w w1
+
+-- pd(y, v) is the predecessor of v: recursion from zero, the step reading n out of ((y, n), e)
+define PredOf pd = forall y v c w. Pr y v c -> PredR v w -> Ap pd c w
+
+theorem pred_exists:
+  assume fzero: FZero
+  assume ffst:  FFst
+  assume fsnd:  FSnd
+  assume fcomp: FComp
+  assume frec:  FRec
+  assume ptot:  PTot
+  assume pnum:  PNum
+  assume total: Total
+  lemma wz:
+    variable zf
+    assume hz: Fn zf and ZeroOf zf
+    fz: Fn zf                             by and_e hz
+    mz: ZeroOf zf                         by and_e hz
+    lemma wf:
+      variable fs
+      assume hf: Fn fs and FstOf fs
+      ffs: Fn fs                          by and_e hf
+      mfs: FstOf fs                       by and_e hf
+      lemma ws:
+        variable sn
+        assume hs: Fn sn and SndOf sn
+        fsn: Fn sn                        by and_e hs
+        msn: SndOf sn                     by and_e hs
+        eps: exists g. Fn g and CompOf g sn fs
+                                          by imp_e fcomp fsn ffs
+        lemma wps:
+          variable ps
+          assume hps: Fn ps and CompOf ps sn fs
+          fps: Fn ps                      by and_e hps
+          mps: CompOf ps sn fs            by and_e hps
+          epd: exists h. Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap h p y)
+                 and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
+                        -> Ap ps t w -> Ap h q w)
+                                          by imp_e frec fz fps
+          lemma wpd:
+            variable pd
+            assume hpd: Fn pd and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap pd p y)
+                          and (forall x n m p q v t w. Pr x n p -> Ap pd p v -> Succ n m -> Pr x m q -> Pr p v t
+                                 -> Ap ps t w -> Ap pd q w)
+            fpd: Fn pd                    by and_e hpd
+            rb:  forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap pd p y
+                                          by and_e hpd
+            rs:  forall x n m p q v t w. Pr x n p -> Ap pd p v -> Succ n m -> Pr x m q -> Pr p v t -> Ap ps t w
+                   -> Ap pd q w
+                                          by and_e hpd
+            lemma spec:
+              variable y v c w
+              assume pc: Pr y v c
+              assume pr: PredR v w
+              n3: Num y and Num v and Num c
+                                          by imp_e pnum pc
+              ny: Num y                   by and_e n3
+              lemma atz:
+                assume h: Zero v and Zero w
+                zv:  Zero v               by and_e h
+                zw:  Zero w               by and_e h
+                a:   Ap zf y w            by imp_e zero_in mz ny zw
+                res: Ap pd c w            by imp_e rb zv pc a
+                therefore (Zero v and Zero w) -> Ap pd c w
+              lemma ats:
+                assume h: Num w and Succ w v
+                nw:  Num w                by and_e h
+                sw:  Succ w v             by and_e h
+                ec0: exists c0. Pr y w c0 by imp_e ptot ny nw
+                lemma w0:
+                  variable c0
+                  assume p0: Pr y w c0
+                  m3:  Num y and Num w and Num c0
+                                          by imp_e pnum p0
+                  nc0: Num c0             by and_e m3
+                  ee:  exists e. Num e and Ap pd c0 e
+                                          by imp_e total fpd nc0
+                  lemma we:
+                    variable e
+                    assume he: Num e and Ap pd c0 e
+                    ne: Num e             by and_e he
+                    pe: Ap pd c0 e        by and_e he
+                    et: exists t. Pr c0 e t
+                                          by imp_e ptot nc0 ne
+                    lemma wt:
+                      variable t
+                      assume pt: Pr c0 e t
+                      a1:  Ap fs t c0     by imp_e fst_in mfs pt
+                      a2:  Ap sn c0 w     by imp_e snd_in msn p0
+                      a3:  Ap ps t w      by imp_e comp_in mps a1 a2
+                      res: Ap pd c w      by imp_e rs p0 pe sw pc pt a3
+                      therefore forall t. Pr c0 e t -> Ap pd c w
+                    res: Ap pd c w        by exists_e et wt
+                    therefore forall e. (Num e and Ap pd c0 e) -> Ap pd c w
+                  res: Ap pd c w          by exists_e ee we
+                  therefore forall c0. Pr y w c0 -> Ap pd c w
+                res: Ap pd c w            by exists_e ec0 w0
+                therefore (Num w and Succ w v) -> Ap pd c w
+              res: Ap pd c w              by or_e pr atz ats
+              therefore forall y v c w. Pr y v c -> PredR v w -> Ap pd c w
+            k:   Fn pd and PredOf pd      by and_i fpd spec
+            res: exists pd. Fn pd and PredOf pd
+                                          by exists_i k
+            therefore forall pd. (Fn pd and (forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap pd p y)
+                        and (forall x n m p q v t w. Pr x n p -> Ap pd p v -> Succ n m -> Pr x m q -> Pr p v t
+                               -> Ap ps t w -> Ap pd q w))
+                        -> exists pd. Fn pd and PredOf pd
+          res: exists pd. Fn pd and PredOf pd
+                                          by exists_e epd wpd
+          therefore forall ps. (Fn ps and CompOf ps sn fs) -> exists pd. Fn pd and PredOf pd
+        res: exists pd. Fn pd and PredOf pd
+                                          by exists_e eps wps
+        therefore forall sn. (Fn sn and SndOf sn) -> exists pd. Fn pd and PredOf pd
+      res: exists pd. Fn pd and PredOf pd by exists_e fsnd ws
+      therefore forall fs. (Fn fs and FstOf fs) -> exists pd. Fn pd and PredOf pd
+    res: exists pd. Fn pd and PredOf pd   by exists_e ffst wf
+    therefore forall zf. (Fn zf and ZeroOf zf) -> exists pd. Fn pd and PredOf pd
+  res: exists pd. Fn pd and PredOf pd     by exists_e fzero wz
+  therefore FZero -> FFst -> FSnd -> FComp -> FRec -> PTot -> PNum -> Total -> exists pd. Fn pd and PredOf pd
+
+-- s(a, b) is a minus b, cut off at 0: s(a, 0) = a, s(a, b + 1) = predecessor of s(a, b)
+define SubRec s = (forall a z p. Num a -> Zero z -> Pr a z p -> Ap s p a)
+                  and (forall a b b1 p q v w. Pr a b p -> Ap s p v -> Succ b b1 -> Pr a b1 q -> PredR v w -> Ap s q w)
+
+theorem sub_exists:
+  assume fid:   FId
+  assume fsnd:  FSnd
+  assume ftup:  FTuple
+  assume fcomp: FComp
+  assume frec:  FRec
+  assume ptot:  PTot
+  assume pnum:  PNum
+  assume total: Total
+  assume func:  Func
+  assume enum:  Enum
+  assume refl:  Refl
+  lemma all:
+    variable pd
+    assume fpd: Fn pd
+    assume mpd: PredOf pd
+    lemma wi:
+      variable ii
+      assume hi: Fn ii and IdOf ii
+      fi: Fn ii                           by and_e hi
+      mi: IdOf ii                         by and_e hi
+      lemma ws:
+        variable sn
+        assume hs: Fn sn and SndOf sn
+        fsn: Fn sn                        by and_e hs
+        msn: SndOf sn                     by and_e hs
+        ett: exists g. Fn g and TupOf g sn sn
+                                          by imp_e ftup fsn fsn
+        lemma wtt:
+          variable tt
+          assume htt: Fn tt and TupOf tt sn sn
+          ftt: Fn tt                      by and_e htt
+          mtt: TupOf tt sn sn             by and_e htt
+          ek: exists g. Fn g and CompOf g pd tt
+                                          by imp_e fcomp fpd ftt
+          lemma wk:
+            variable k
+            assume hk: Fn k and CompOf k pd tt
+            fk: Fn k                      by and_e hk
+            mk: CompOf k pd tt            by and_e hk
+            es: exists h. Fn h and (forall x z p y. Zero z -> Pr x z p -> Ap ii x y -> Ap h p y)
+                  and (forall x n m p q v t w. Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Pr p v t
+                         -> Ap k t w -> Ap h q w)
+                                          by imp_e frec fi fk
+            lemma wsub:
+              variable s
+              assume hsub: Fn s and (forall x z p y. Zero z -> Pr x z p -> Ap ii x y -> Ap s p y)
+                             and (forall x n m p q v t w. Pr x n p -> Ap s p v -> Succ n m -> Pr x m q -> Pr p v t
+                                    -> Ap k t w -> Ap s q w)
+              fs: Fn s                    by and_e hsub
+              rb: forall x z p y. Zero z -> Pr x z p -> Ap ii x y -> Ap s p y
+                                          by and_e hsub
+              rs: forall x n m p q v t w. Pr x n p -> Ap s p v -> Succ n m -> Pr x m q -> Pr p v t -> Ap k t w
+                    -> Ap s q w
+                                          by and_e hsub
+              lemma base:
+                variable a z p
+                assume na: Num a
+                assume zz: Zero z
+                assume pp: Pr a z p
+                ia:  Ap ii a a            by imp_e id_in refl mi na
+                res: Ap s p a             by imp_e rb zz pp ia
+                therefore forall a z p. Num a -> Zero z -> Pr a z p -> Ap s p a
+              lemma step:
+                variable a b b1 p q v w
+                assume pp: Pr a b p
+                assume sv: Ap s p v
+                assume sb: Succ b b1
+                assume pq: Pr a b1 q
+                assume pr: PredR v w
+                n3: Num a and Num b and Num p
+                                          by imp_e pnum pp
+                np: Num p                 by and_e n3
+                nv: Num v                 by imp_e ap_num total func enum fs np sv
+                et: exists t. Pr p v t    by imp_e ptot np nv
+                ec: exists c. Pr v v c    by imp_e ptot nv nv
+                lemma wt:
+                  variable t
+                  assume pt: Pr p v t
+                  lemma wc:
+                    variable c
+                    assume pc: Pr v v c
+                    a1:  Ap sn t v        by imp_e snd_in msn pt
+                    a2:  Ap tt t c        by imp_e tup_in mtt a1 a1 pc
+                    a3:  Ap pd c w        by imp_e mpd pc pr
+                    a4:  Ap k t w         by imp_e comp_in mk a2 a3
+                    res: Ap s q w         by imp_e rs pp sv sb pq pt a4
+                    therefore forall c. Pr v v c -> Ap s q w
+                  res: Ap s q w           by exists_e ec wc
+                  therefore forall t. Pr p v t -> Ap s q w
+                res: Ap s q w             by exists_e et wt
+                therefore forall a b b1 p q v w. Pr a b p -> Ap s p v -> Succ b b1 -> Pr a b1 q -> PredR v w
+                            -> Ap s q w
+              sr:  SubRec s               by and_i base step
+              k1:  Fn s and SubRec s      by and_i fs sr
+              res: exists s. Fn s and SubRec s
+                                          by exists_i k1
+              therefore forall s. (Fn s and (forall x z p y. Zero z -> Pr x z p -> Ap ii x y -> Ap s p y)
+                          and (forall x n m p q v t w. Pr x n p -> Ap s p v -> Succ n m -> Pr x m q -> Pr p v t
+                                 -> Ap k t w -> Ap s q w))
+                          -> exists s. Fn s and SubRec s
+            res: exists s. Fn s and SubRec s
+                                          by exists_e es wsub
+            therefore forall k. (Fn k and CompOf k pd tt) -> exists s. Fn s and SubRec s
+          res: exists s. Fn s and SubRec s
+                                          by exists_e ek wk
+          therefore forall tt. (Fn tt and TupOf tt sn sn) -> exists s. Fn s and SubRec s
+        res: exists s. Fn s and SubRec s  by exists_e ett wtt
+        therefore forall sn. (Fn sn and SndOf sn) -> exists s. Fn s and SubRec s
+      res: exists s. Fn s and SubRec s    by exists_e fsnd ws
+      therefore forall ii. (Fn ii and IdOf ii) -> exists s. Fn s and SubRec s
+    res: exists s. Fn s and SubRec s      by exists_e fid wi
+    therefore forall pd. Fn pd -> PredOf pd -> exists s. Fn s and SubRec s
+  therefore FId -> FSnd -> FTuple -> FComp -> FRec -> PTot -> PNum -> Total -> Func -> Enum -> Refl
+              -> forall pd. Fn pd -> PredOf pd -> exists s. Fn s and SubRec s
+
+-- sub(a + 1, b + 1) = sub(a, b)
+define SubShift s = forall a b a1 b1 p q v w. Num a -> Num b -> Succ a a1 -> Succ b b1 -> Pr a b p -> Pr a1 b1 q
+                      -> Ap s q v -> Ap s p w -> Eq v w
+
+-- sub(n, n) = 0
+define SubSelf s = forall n p v. Num n -> Pr n n p -> Ap s p v -> Zero v
+
+-- sub(n + 1, n) = 1, where y is 1 when it is the successor of a zero
+define OneV y = exists z. Zero z and Succ z y
+define SubOne s = forall n m p v. Num n -> Succ n m -> Pr m n p -> Ap s p v -> OneV v
+
+-- two ones are equal
+theorem one_eq:
+  assume zu:   Zu
+  assume es:   Es
+  assume sfun: SFun
+  assume refl: Refl
+  lemma all:
+    variable y y1
+    assume o1: OneV y
+    assume o2: OneV y1
+    lemma w1:
+      variable z
+      assume h1: Zero z and Succ z y
+      zz: Zero z                          by and_e h1
+      sy: Succ z y                        by and_e h1
+      lemma w2:
+        variable z1
+        assume h2: Zero z1 and Succ z1 y1
+        zz1: Zero z1                      by and_e h2
+        sy1: Succ z1 y1                   by and_e h2
+        e1:  Eq z z1                      by imp_e zu zz zz1
+        ry:  Eq y y                       by forall_e refl y
+        s2:  Succ z1 y                    by imp_e es e1 ry sy
+        r:   Eq y y1                      by imp_e sfun s2 sy1
+        therefore forall z1. (Zero z1 and Succ z1 y1) -> Eq y y1
+      r: Eq y y1                          by exists_e o2 w2
+      therefore forall z. (Zero z and Succ z y) -> Eq y y1
+    r: Eq y y1                            by exists_e o1 w1
+    therefore forall y y1. OneV y -> OneV y1 -> Eq y y1
+  therefore Zu -> Es -> SFun -> Refl -> forall y y1. OneV y -> OneV y1 -> Eq y y1
+
+-- With sub(n + 1, n) = 1 and sub(n, n) = 0, n + 1 = n would make 1 = 0.
+theorem succ_ne_from:
+  assume ns:    NS
+  assume ptot:  PTot
+  assume pnum:  PNum
+  assume epr:   EPr
+  assume refl:  Refl
+  assume total: Total
+  assume zns:   ZnS
+  lemma all:
+    variable s
+    assume fsub: Fn s
+    assume self: SubSelf s
+    assume one:  SubOne s
+    lemma each:
+      variable n m
+      assume nn: Num n
+      assume sm: Succ n m
+      lemma ne:
+        assume e: Eq m n
+        nm: Num m                         by imp_e ns nn sm
+        ec: exists c. Pr m n c            by imp_e ptot nm nn
+        lemma wc:
+          variable c
+          assume pc: Pr m n c
+          n3: Num m and Num n and Num c   by imp_e pnum pc
+          nc: Num c                       by and_e n3
+          ev: exists v. Num v and Ap s c v
+                                          by imp_e total fsub nc
+          lemma wv:
+            variable v
+            assume hv: Num v and Ap s c v
+            sv:  Ap s c v                 by and_e hv
+            ov:  OneV v                   by imp_e one nn sm pc sv
+            rn:  Eq n n                   by forall_e refl n
+            rc:  Eq c c                   by forall_e refl c
+            pc2: Pr n n c                 by imp_e epr e rn rc pc
+            zv:  Zero v                   by imp_e self nn pc2 sv
+            lemma wz:
+              variable z
+              assume hz: Zero z and Succ z v
+              sz:  Succ z v               by and_e hz
+              nv:  not (Eq v v)           by imp_e zns zv sz
+              rv:  Eq v v                 by forall_e refl v
+              bad: absurd                 by imp_e nv rv
+              therefore forall z. (Zero z and Succ z v) -> absurd
+            bad: absurd                   by exists_e ov wz
+            therefore forall v. (Num v and Ap s c v) -> absurd
+          bad: absurd                     by exists_e ev wv
+          therefore forall c. Pr m n c -> absurd
+        bad: absurd                       by exists_e ec wc
+        therefore not (Eq m n)
+      therefore forall n m. Num n -> Succ n m -> not (Eq m n)
+    therefore forall s. Fn s -> SubSelf s -> SubOne s -> forall n m. Num n -> Succ n m -> not (Eq m n)
+  therefore NS -> PTot -> PNum -> EPr -> Refl -> Total -> ZnS
+              -> forall s. Fn s -> SubSelf s -> SubOne s -> forall n m. Num n -> Succ n m -> not (Eq m n)
+
+
+theorem id_out:
+  lemma all:
+    variable f x y
+    assume c:  IdOf f
+    assume fy: Ap f x y
+    i:  Iff (Ap f x y) (Num x and Eq x y) by forall_e c x y
+    j:  Ap f x y -> Num x and Eq x y      by and_e i
+    k:  Num x and Eq x y                  by imp_e j fy
+    r:  Eq x y                            by and_e k
+    therefore forall f x y. IdOf f -> Ap f x y -> Eq x y
+  therefore forall f x y. IdOf f -> Ap f x y -> Eq x y
+
+-- 0 + n = n. f(x, n) = h(0, n) and g(x, n) = n solve the same recursion: 0 at the start, and
+-- one more at each step. A recursion defines one function, so f = g.
+theorem zero_left:
+  assume fzero: FZero
+  assume fsnd:  FSnd
+  assume fsucc: FSucc
+  assume ftup:  FTuple
+  assume fcomp: FComp
+  assume uniq:  FRecUniq
+  assume total: Total
+  assume func:  Func
+  assume pinj:  PInj
+  assume pnum:  PNum
+  assume ptot:  PTot
+  assume epr:   EPr
+  assume eap:   EAp
+  assume nz:    NZ
+  assume zu:    Zu
+  assume enum:  Enum
+  assume sym:   Sym
+  assume refl:  Refl
+  assume es:    Es
+  assume sfun:  SFun
+  lemma all:
+    variable h
+    assume fh: Fn h
+    assume ar: AddRec h
+    ar0: forall x z p. Num x -> Zero z -> Pr x z p -> Ap h p x
+                                          by and_e ar
+    ar1: forall x n m p q v w. Num x -> Num n -> Num v -> Pr x n p -> Ap h p v -> Succ n m -> Pr x m q -> Succ v w
+           -> Ap h q w
+                                          by and_e ar
+    lemma w1:
+      variable zf
+      assume h1: Fn zf and ZeroOf zf
+      fzf: Fn zf                          by and_e h1
+      mzf: ZeroOf zf                      by and_e h1
+      lemma w2:
+        variable sn
+        assume h2: Fn sn and SndOf sn
+        fsn: Fn sn                        by and_e h2
+        msn: SndOf sn                     by and_e h2
+        lemma w3:
+          variable sf
+          assume h3: Fn sf and SuccOf sf
+          fsf: Fn sf                      by and_e h3
+          msf: SuccOf sf                  by and_e h3
+          etu: exists g. Fn g and TupOf g zf sn
+                                          by imp_e ftup fzf fsn
+          ek:  exists g. Fn g and CompOf g sf sn
+                                          by imp_e fcomp fsf fsn
+          lemma w4:
+            variable tu
+            assume h4: Fn tu and TupOf tu zf sn
+            ftu: Fn tu                    by and_e h4
+            mtu: TupOf tu zf sn           by and_e h4
+            ef: exists g. Fn g and CompOf g h tu
+                                          by imp_e fcomp fh ftu
+            lemma w5:
+              variable k
+              assume h5: Fn k and CompOf k sf sn
+              fk: Fn k                    by and_e h5
+              mk: CompOf k sf sn          by and_e h5
+              -- the step: k at (p, v) is v + 1
+              lemma kval:
+                variable p v t w
+                assume pt: Pr p v t
+                assume kw: Ap k t w
+                u: exists a. Ap sn t a and Ap sf a w
+                                          by imp_e comp_out mk kw
+                lemma wa:
+                  variable a
+                  assume ha: Ap sn t a and Ap sf a w
+                  s1: Ap sn t a           by and_e ha
+                  s2: Ap sf a w           by and_e ha
+                  e1: Eq v a              by imp_e snd_out pinj refl msn pt s1
+                  sa: Succ a w            by imp_e succ_out msf s2
+                  e2: Eq a v              by imp_e sym e1
+                  rw: Eq w w              by forall_e refl w
+                  r:  Succ v w            by imp_e es e2 rw sa
+                  therefore forall a. (Ap sn t a and Ap sf a w) -> Succ v w
+                r: Succ v w               by exists_e u wa
+                therefore forall p v t w. Pr p v t -> Ap k t w -> Succ v w
+              lemma w6:
+                variable f
+                assume h6: Fn f and CompOf f h tu
+                ff: Fn f                  by and_e h6
+                mf: CompOf f h tu         by and_e h6
+                -- f solves it
+                lemma f_base:
+                  variable x z p y
+                  assume zz: Zero z
+                  assume pp: Pr x z p
+                  assume zy: Ap zf x y
+                  zy0: Zero y             by imp_e zero_out mzf zy
+                  n3:  Num x and Num z and Num p
+                                          by imp_e pnum pp
+                  np:  Num p              by and_e n3
+                  nz0: Num z              by and_e n3
+                  ny:  Num y              by imp_e nz zy0
+                  a1:  Ap zf p y          by imp_e zero_in mzf np zy0
+                  a2:  Ap sn p z          by imp_e snd_in msn pp
+                  ec:  exists c. Pr y z c by imp_e ptot ny nz0
+                  lemma wc:
+                    variable c
+                    assume pc: Pr y z c
+                    a3: Ap tu p c         by imp_e tup_in mtu a1 a2 pc
+                    a4: Ap h c y          by imp_e ar0 ny zz pc
+                    r:  Ap f p y          by imp_e comp_in mf a3 a4
+                    therefore forall c. Pr y z c -> Ap f p y
+                  r: Ap f p y             by exists_e ec wc
+                  therefore forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap f p y
+                lemma f_step:
+                  variable x n m p q v t w
+                  assume pp: Pr x n p
+                  assume fv: Ap f p v
+                  assume sm: Succ n m
+                  assume pq: Pr x m q
+                  assume pt: Pr p v t
+                  assume kw: Ap k t w
+                  svw: Succ v w           by imp_e kval pt kw
+                  n3:  Num x and Num n and Num p
+                                          by imp_e pnum pp
+                  np:  Num p              by and_e n3
+                  nn:  Num n              by and_e n3
+                  nv:  Num v              by imp_e ap_num total func enum ff np fv
+                  m3:  Num x and Num m and Num q
+                                          by imp_e pnum pq
+                  nm:  Num m              by and_e m3
+                  nq:  Num q              by and_e m3
+                  u:   exists c. Ap tu p c and Ap h c v
+                                          by imp_e comp_out mf fv
+                  lemma wc:
+                    variable c
+                    assume hc: Ap tu p c and Ap h c v
+                    tc:  Ap tu p c        by and_e hc
+                    hcv: Ap h c v         by and_e hc
+                    u2:  exists a b. Ap zf p a and Ap sn p b and Pr a b c
+                                          by imp_e tup_out mtu tc
+                    lemma wab:
+                      variable a b
+                      assume hab: Ap zf p a and Ap sn p b and Pr a b c
+                      za1: Ap zf p a      by and_e hab
+                      snb: Ap sn p b      by and_e hab
+                      pc:  Pr a b c       by and_e hab
+                      za:  Zero a         by imp_e zero_out mzf za1
+                      na:  Num a          by imp_e nz za
+                      e1:  Eq n b         by imp_e snd_out pinj refl msn pp snb
+                      e2:  Eq b n         by imp_e sym e1
+                      ra:  Eq a a         by forall_e refl a
+                      rc:  Eq c c         by forall_e refl c
+                      pc2: Pr a n c       by imp_e epr ra e2 rc pc
+                      ec1: exists c1. Pr a m c1
+                                          by imp_e ptot na nm
+                      lemma wc1:
+                        variable c1
+                        assume pc1: Pr a m c1
+                        hw: Ap h c1 w     by imp_e ar1 na nn nv pc2 hcv sm pc1 svw
+                        b1: Ap zf q a     by imp_e zero_in mzf nq za
+                        b2: Ap sn q m     by imp_e snd_in msn pq
+                        b3: Ap tu q c1    by imp_e tup_in mtu b1 b2 pc1
+                        r:  Ap f q w      by imp_e comp_in mf b3 hw
+                        therefore forall c1. Pr a m c1 -> Ap f q w
+                      r: Ap f q w         by exists_e ec1 wc1
+                      therefore forall a b. (Ap zf p a and Ap sn p b and Pr a b c) -> Ap f q w
+                    r: Ap f q w           by exists_e u2 wab
+                    therefore forall c. (Ap tu p c and Ap h c v) -> Ap f q w
+                  r: Ap f q w             by exists_e u wc
+                  therefore forall x n m p q v t w. Pr x n p -> Ap f p v -> Succ n m -> Pr x m q -> Pr p v t
+                              -> Ap k t w -> Ap f q w
+                rf: RecOf f zf k          by and_i f_base f_step
+                -- and so does the second half
+                lemma g_base:
+                  variable x z p y
+                  assume zz: Zero z
+                  assume pp: Pr x z p
+                  assume zy: Ap zf x y
+                  zy0: Zero y             by imp_e zero_out mzf zy
+                  a1:  Ap sn p z          by imp_e snd_in msn pp
+                  e1:  Eq z y             by imp_e zu zz zy0
+                  rp:  Eq p p             by forall_e refl p
+                  r:   Ap sn p y          by imp_e eap rp e1 a1
+                  therefore forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap sn p y
+                lemma g_step:
+                  variable x n m p q v t w
+                  assume pp: Pr x n p
+                  assume sv: Ap sn p v
+                  assume sm: Succ n m
+                  assume pq: Pr x m q
+                  assume pt: Pr p v t
+                  assume kw: Ap k t w
+                  svw: Succ v w           by imp_e kval pt kw
+                  e1:  Eq n v             by imp_e snd_out pinj refl msn pp sv
+                  e1b: Eq v n             by imp_e sym e1
+                  rw:  Eq w w             by forall_e refl w
+                  snw: Succ n w           by imp_e es e1b rw svw
+                  e2:  Eq m w             by imp_e sfun sm snw
+                  a1:  Ap sn q m          by imp_e snd_in msn pq
+                  rq:  Eq q q             by forall_e refl q
+                  r:   Ap sn q w          by imp_e eap rq e2 a1
+                  therefore forall x n m p q v t w. Pr x n p -> Ap sn p v -> Succ n m -> Pr x m q -> Pr p v t
+                              -> Ap k t w -> Ap sn q w
+                rg: RecOf sn zf k         by and_i g_base g_step
+                agree: forall x n p v w. Num x -> Num n -> Pr x n p -> Ap f p v -> Ap sn p w -> Eq v w
+                                          by imp_e uniq fzf fk ff fsn rf rg
+                -- read back: h at (0, n) is f at that pair, and its second half is n
+                lemma fin:
+                  variable z n p v
+                  assume zz: Zero z
+                  assume nn: Num n
+                  assume pp: Pr z n p
+                  assume hv: Ap h p v
+                  nzz: Num z              by imp_e nz zz
+                  n3:  Num z and Num n and Num p
+                                          by imp_e pnum pp
+                  np:  Num p              by and_e n3
+                  zp:  Ap zf p z          by imp_e zero_in mzf np zz
+                  sp:  Ap sn p n          by imp_e snd_in msn pp
+                  tp:  Ap tu p p          by imp_e tup_in mtu zp sp pp
+                  fpv: Ap f p v           by imp_e comp_in mf tp hv
+                  r:   Eq v n             by imp_e agree nzz nn pp fpv sp
+                  therefore forall z n p v. Zero z -> Num n -> Pr z n p -> Ap h p v -> Eq v n
+                therefore forall f. (Fn f and CompOf f h tu) -> ZeroLeft h
+              r: ZeroLeft h               by exists_e ef w6
+              therefore forall k. (Fn k and CompOf k sf sn) -> ZeroLeft h
+            r: ZeroLeft h                 by exists_e ek w5
+            therefore forall tu. (Fn tu and TupOf tu zf sn) -> ZeroLeft h
+          r: ZeroLeft h                   by exists_e etu w4
+          therefore forall sf. (Fn sf and SuccOf sf) -> ZeroLeft h
+        r: ZeroLeft h                     by exists_e fsucc w3
+        therefore forall sn. (Fn sn and SndOf sn) -> ZeroLeft h
+      r: ZeroLeft h                       by exists_e fsnd w2
+      therefore forall zf. (Fn zf and ZeroOf zf) -> ZeroLeft h
+    r: ZeroLeft h                         by exists_e fzero w1
+    therefore forall h. Fn h -> AddRec h -> ZeroLeft h
+  therefore FZero -> FSnd -> FSucc -> FTuple -> FComp -> FRecUniq -> Total -> Func -> PInj -> PNum -> PTot -> EPr
+              -> EAp -> NZ -> Zu -> Enum -> Sym -> Refl -> Es -> SFun -> forall h. Fn h -> AddRec h -> ZeroLeft h
+
+-- sub(a + 1, b + 1) = sub(a, b). Both s and f(a, b) = s(a + 1, b + 1) solve one recursion: a
+-- at the start, and a predecessor at each step (k at (p, v) is the predecessor of v).
+theorem sub_shift:
+  assume fid:   FId
+  assume fsucc: FSucc
+  assume ffst:  FFst
+  assume fsnd:  FSnd
+  assume ftup:  FTuple
+  assume fcomp: FComp
+  assume uniq:  FRecUniq
+  assume func:  Func
+  assume total: Total
+  assume pinj:  PInj
+  assume pnum:  PNum
+  assume ptot:  PTot
+  assume epr:   EPr
+  assume eap:   EAp
+  assume refl:  Refl
+  assume sym:   Sym
+  assume es:    Es
+  assume sfun:  SFun
+  assume ns:    NS
+  assume sex:   SEx
+  assume enum:  Enum
+  assume zos:   ZoS
+  lemma all:
+    variable pd s
+    assume fpd:  Fn pd
+    assume mpd:  PredOf pd
+    assume fsub: Fn s
+    assume sr:   SubRec s
+    srb: forall a z p. Num a -> Zero z -> Pr a z p -> Ap s p a
+                                          by and_e sr
+    srs: forall a b b1 p q v w. Pr a b p -> Ap s p v -> Succ b b1 -> Pr a b1 q -> PredR v w -> Ap s q w
+                                          by and_e sr
+    lemma w0:
+      variable ii
+      assume h0: Fn ii and IdOf ii
+      fii: Fn ii                          by and_e h0
+      mii: IdOf ii                        by and_e h0
+      lemma w1:
+        variable sf
+        assume h1: Fn sf and SuccOf sf
+        fsf: Fn sf                        by and_e h1
+        msf: SuccOf sf                    by and_e h1
+        lemma w2:
+          variable fo
+          assume h2: Fn fo and FstOf fo
+          ffo: Fn fo                      by and_e h2
+          mfo: FstOf fo                   by and_e h2
+          lemma w3:
+            variable so
+            assume h3: Fn so and SndOf so
+            fso: Fn so                    by and_e h3
+            mso: SndOf so                 by and_e h3
+            ett: exists g. Fn g and TupOf g so so
+                                          by imp_e ftup fso fso
+            ecf: exists g. Fn g and CompOf g sf fo
+                                          by imp_e fcomp fsf ffo
+            ecs: exists g. Fn g and CompOf g sf so
+                                          by imp_e fcomp fsf fso
+            lemma wtt:
+              variable tt
+              assume htt: Fn tt and TupOf tt so so
+              ftt: Fn tt                  by and_e htt
+              mtt: TupOf tt so so         by and_e htt
+              ek: exists g. Fn g and CompOf g pd tt
+                                          by imp_e fcomp fpd ftt
+              lemma wk:
+                variable k
+                assume hk: Fn k and CompOf k pd tt
+                fk: Fn k                  by and_e hk
+                mk: CompOf k pd tt        by and_e hk
+                lemma w4:
+                  variable cf
+                  assume h4: Fn cf and CompOf cf sf fo
+                  fcf: Fn cf              by and_e h4
+                  mcf: CompOf cf sf fo    by and_e h4
+                  lemma w5:
+                    variable cs
+                    assume h5: Fn cs and CompOf cs sf so
+                    fcs: Fn cs            by and_e h5
+                    mcs: CompOf cs sf so  by and_e h5
+                    etq: exists g. Fn g and TupOf g cf cs
+                                          by imp_e ftup fcf fcs
+                    lemma w6:
+                      variable tq
+                      assume h6: Fn tq and TupOf tq cf cs
+                      ftq: Fn tq          by and_e h6
+                      mtq: TupOf tq cf cs by and_e h6
+                      ef: exists g. Fn g and CompOf g s tq
+                                          by imp_e fcomp fsub ftq
+                      lemma w7:
+                        variable f
+                        assume h7: Fn f and CompOf f s tq
+                        ff: Fn f          by and_e h7
+                        mf: CompOf f s tq by and_e h7
+                  -- f at (a, b) is s at (a + 1, b + 1)
+                  lemma fun:
+                    variable a b p v
+                    assume pp: Pr a b p
+                    assume fv: Ap f p v
+                    u1: exists c. Ap tq p c and Ap s c v
+                                          by imp_e comp_out mf fv
+                    lemma wc:
+                      variable c
+                      assume hc: Ap tq p c and Ap s c v
+                      tc:  Ap tq p c      by and_e hc
+                      scv: Ap s c v       by and_e hc
+                      u2:  exists a2 b2. Ap cf p a2 and Ap cs p b2 and Pr a2 b2 c
+                                          by imp_e tup_out mtq tc
+                      lemma wab:
+                        variable a2 b2
+                        assume hab: Ap cf p a2 and Ap cs p b2 and Pr a2 b2 c
+                        ca: Ap cf p a2    by and_e hab
+                        cb: Ap cs p b2    by and_e hab
+                        pc: Pr a2 b2 c    by and_e hab
+                        u3: exists a3. Ap fo p a3 and Ap sf a3 a2
+                                          by imp_e comp_out mcf ca
+                        u4: exists b3. Ap so p b3 and Ap sf b3 b2
+                                          by imp_e comp_out mcs cb
+                        lemma wa3:
+                          variable a3
+                          assume ha: Ap fo p a3 and Ap sf a3 a2
+                          fa:  Ap fo p a3 by and_e ha
+                          ga:  Ap sf a3 a2
+                                          by and_e ha
+                          ea:  Eq a a3    by imp_e fst_out pinj refl mfo pp fa
+                          sa3: Succ a3 a2 by imp_e succ_out msf ga
+                          ea2: Eq a3 a    by imp_e sym ea
+                          r2:  Eq a2 a2   by forall_e refl a2
+                          sa:  Succ a a2  by imp_e es ea2 r2 sa3
+                          lemma wb3:
+                            variable b3
+                            assume hb: Ap so p b3 and Ap sf b3 b2
+                            fb:  Ap so p b3
+                                          by and_e hb
+                            gb:  Ap sf b3 b2
+                                          by and_e hb
+                            eb:  Eq b b3  by imp_e snd_out pinj refl mso pp fb
+                            sb3: Succ b3 b2
+                                          by imp_e succ_out msf gb
+                            eb2: Eq b3 b  by imp_e sym eb
+                            r3:  Eq b2 b2 by forall_e refl b2
+                            sb:  Succ b b2
+                                          by imp_e es eb2 r3 sb3
+                            kk:   Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by and_i sa sb pc scv
+                            r:   exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by exists_i kk
+                            therefore forall b3. (Ap so p b3 and Ap sf b3 b2)
+                                        -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                          r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by exists_e u4 wb3
+                          therefore forall a3. (Ap fo p a3 and Ap sf a3 a2)
+                                      -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                        r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by exists_e u3 wa3
+                        therefore forall a2 b2. (Ap cf p a2 and Ap cs p b2 and Pr a2 b2 c)
+                                    -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                      r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by exists_e u2 wab
+                      therefore forall c. (Ap tq p c and Ap s c v)
+                                  -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                    r: exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by exists_e u1 wc
+                    therefore forall a b p v. Pr a b p -> Ap f p v
+                                -> exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                  -- and back
+                  lemma pack:
+                    variable a b a2 b2 p c v
+                    assume pp: Pr a b p
+                    assume sa: Succ a a2
+                    assume sb: Succ b b2
+                    assume pc: Pr a2 b2 c
+                    assume sc: Ap s c v
+                    n3: Num a and Num b and Num p
+                                          by imp_e pnum pp
+                    na: Num a             by and_e n3
+                    nb: Num b             by and_e n3
+                    x1: Ap fo p a         by imp_e fst_in mfo pp
+                    x2: Ap sf a a2        by imp_e succ_in msf na sa
+                    x3: Ap cf p a2        by imp_e comp_in mcf x1 x2
+                    y1: Ap so p b         by imp_e snd_in mso pp
+                    y2: Ap sf b b2        by imp_e succ_in msf nb sb
+                    y3: Ap cs p b2        by imp_e comp_in mcs y1 y2
+                    t:  Ap tq p c         by imp_e tup_in mtq x3 y3 pc
+                    r:  Ap f p v          by imp_e comp_in mf t sc
+                    therefore forall a b a2 b2 p c v. Pr a b p -> Succ a a2 -> Succ b b2 -> Pr a2 b2 c -> Ap s c v
+                                -> Ap f p v
+                  -- the step: k at (p, v) is the predecessor of v
+                  lemma kval:
+                    variable p v t w e
+                    assume pt: Pr p v t
+                    assume kw: Ap k t w
+                    assume pe: PredR v e
+                    u: exists c. Ap tt t c and Ap pd c w
+                                          by imp_e comp_out mk kw
+                    lemma wc:
+                      variable c
+                      assume hc: Ap tt t c and Ap pd c w
+                      ttc: Ap tt t c      by and_e hc
+                      pdw: Ap pd c w      by and_e hc
+                      u2:  exists b1 b2. Ap so t b1 and Ap so t b2 and Pr b1 b2 c
+                                          by imp_e tup_out mtt ttc
+                      lemma wb:
+                        variable b1 b2
+                        assume hb: Ap so t b1 and Ap so t b2 and Pr b1 b2 c
+                        x1:  Ap so t b1   by and_e hb
+                        x2:  Ap so t b2   by and_e hb
+                        pc:  Pr b1 b2 c   by and_e hb
+                        e1:  Eq v b1      by imp_e snd_out pinj refl mso pt x1
+                        e2:  Eq v b2      by imp_e snd_out pinj refl mso pt x2
+                        e3:  Eq b1 v      by imp_e sym e1
+                        e4:  Eq b2 v      by imp_e sym e2
+                        rc:  Eq c c       by forall_e refl c
+                        pvc: Pr v v c     by imp_e epr e3 e4 rc pc
+                        pde: Ap pd c e    by imp_e mpd pvc pe
+                        r:   Eq e w       by imp_e func fpd pde pdw
+                        therefore forall b1 b2. (Ap so t b1 and Ap so t b2 and Pr b1 b2 c) -> Eq e w
+                      r: Eq e w           by exists_e u2 wb
+                      therefore forall c. (Ap tt t c and Ap pd c w) -> Eq e w
+                    r: Eq e w             by exists_e u wc
+                    therefore forall p v t w e. Pr p v t -> Ap k t w -> PredR v e -> Eq e w
+                  -- s solves it
+                  lemma s_base:
+                    variable a z p y
+                    assume zz: Zero z
+                    assume pp: Pr a z p
+                    assume iy: Ap ii a y
+                    n3: Num a and Num z and Num p
+                                          by imp_e pnum pp
+                    na: Num a             by and_e n3
+                    sa: Ap s p a          by imp_e srb na zz pp
+                    e:  Eq a y            by imp_e id_out mii iy
+                    rp: Eq p p            by forall_e refl p
+                    r:  Ap s p y          by imp_e eap rp e sa
+                    therefore forall a z p y. Zero z -> Pr a z p -> Ap ii a y -> Ap s p y
+                  lemma s_step:
+                    variable a b b1 p q v t w
+                    assume pp:  Pr a b p
+                    assume sv:  Ap s p v
+                    assume sb1: Succ b b1
+                    assume pq:  Pr a b1 q
+                    assume pt:  Pr p v t
+                    assume kw:  Ap k t w
+                    n3: Num a and Num b and Num p
+                                          by imp_e pnum pp
+                    np: Num p             by and_e n3
+                    nv: Num v             by imp_e ap_num total func enum fsub np sv
+                    ee: exists e. PredR v e
+                                          by imp_e pred_ex zos nv
+                    lemma we:
+                      variable e
+                      assume pe: PredR v e
+                      e1:  Eq e w         by imp_e kval pt kw pe
+                      sqe: Ap s q e       by imp_e srs pp sv sb1 pq pe
+                      rq:  Eq q q         by forall_e refl q
+                      r:   Ap s q w       by imp_e eap rq e1 sqe
+                      therefore forall e. PredR v e -> Ap s q w
+                    r: Ap s q w           by exists_e ee we
+                    therefore forall a b b1 p q v t w. Pr a b p -> Ap s p v -> Succ b b1 -> Pr a b1 q -> Pr p v t
+                                -> Ap k t w -> Ap s q w
+                  rs: RecOf s ii k        by and_i s_base s_step
+                  -- and so does f
+                  lemma f_base:
+                    variable a z p y
+                    assume zz: Zero z
+                    assume pp: Pr a z p
+                    assume iy: Ap ii a y
+                    n3:  Num a and Num z and Num p
+                                          by imp_e pnum pp
+                    na:  Num a            by and_e n3
+                    nz0: Num z            by and_e n3
+                    e:   Eq a y           by imp_e id_out mii iy
+                    ea2: exists t. Succ a t
+                                          by imp_e sex na
+                    eb2: exists t. Succ z t
+                                          by imp_e sex nz0
+                    lemma wa2:
+                      variable a2
+                      assume sa: Succ a a2
+                      na2: Num a2         by imp_e ns na sa
+                      ec0: exists c0. Pr a2 z c0
+                                          by imp_e ptot na2 nz0
+                      lemma wb2:
+                        variable b2
+                        assume sz: Succ z b2
+                        nb2: Num b2       by imp_e ns nz0 sz
+                        ec: exists c. Pr a2 b2 c
+                                          by imp_e ptot na2 nb2
+                        lemma wc:
+                          variable c
+                          assume pc: Pr a2 b2 c
+                          lemma wc0:
+                            variable c0
+                            assume p0: Pr a2 z c0
+                            s0:  Ap s c0 a2
+                                          by imp_e srb na2 zz p0
+                            k1:  Num a and Succ a a2
+                                          by and_i na sa
+                            pr:  PredR a2 a
+                                          by or_i k1
+                            sca: Ap s c a by imp_e srs p0 s0 sz pc pr
+                            fpa: Ap f p a by imp_e pack pp sa sz pc sca
+                            rp:  Eq p p   by forall_e refl p
+                            r:   Ap f p y by imp_e eap rp e fpa
+                            therefore forall c0. Pr a2 z c0 -> Ap f p y
+                          r: Ap f p y     by exists_e ec0 wc0
+                          therefore forall c. Pr a2 b2 c -> Ap f p y
+                        r: Ap f p y       by exists_e ec wc
+                        therefore forall b2. Succ z b2 -> Ap f p y
+                      r: Ap f p y         by exists_e eb2 wb2
+                      therefore forall a2. Succ a a2 -> Ap f p y
+                    r: Ap f p y           by exists_e ea2 wa2
+                    therefore forall a z p y. Zero z -> Pr a z p -> Ap ii a y -> Ap f p y
+                  lemma f_step:
+                    variable a b b1 p q v t w
+                    assume pp:  Pr a b p
+                    assume fv:  Ap f p v
+                    assume sb1: Succ b b1
+                    assume pq:  Pr a b1 q
+                    assume pt:  Pr p v t
+                    assume kw:  Ap k t w
+                    n3:  Num a and Num b and Num p
+                                          by imp_e pnum pp
+                    na:  Num a            by and_e n3
+                    np:  Num p            by and_e n3
+                    m3:  Num a and Num b1 and Num q
+                                          by imp_e pnum pq
+                    nb1: Num b1           by and_e m3
+                    nv:  Num v            by imp_e ap_num total func enum ff np fv
+                    ee:  exists e. PredR v e
+                                          by imp_e pred_ex zos nv
+                    u:   exists a2 b2 c. Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                                          by imp_e fun pp fv
+                    eb3: exists t. Succ b1 t
+                                          by imp_e sex nb1
+                    lemma we:
+                      variable e
+                      assume pe: PredR v e
+                      e1: Eq e w          by imp_e kval pt kw pe
+                      lemma wu:
+                        variable a2 b2 c
+                        assume hu: Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v
+                        sa2: Succ a a2    by and_e hu
+                        sb2: Succ b b2    by and_e hu
+                        pc:  Pr a2 b2 c   by and_e hu
+                        scv: Ap s c v     by and_e hu
+                        na2: Num a2       by imp_e ns na sa2
+                        lemma wb3:
+                          variable b3
+                          assume sb3: Succ b1 b3
+                          nb3: Num b3     by imp_e ns nb1 sb3
+                          ecc: exists c1. Pr a2 b3 c1
+                                          by imp_e ptot na2 nb3
+                          lemma wcc:
+                            variable cc
+                            assume pcc: Pr a2 b3 cc
+                            e4:  Eq b2 b1 by imp_e sfun sb2 sb1
+                            e5:  Eq b1 b2 by imp_e sym e4
+                            rb3: Eq b3 b3 by forall_e refl b3
+                            s23: Succ b2 b3
+                                          by imp_e es e5 rb3 sb3
+                            sce: Ap s cc e
+                                          by imp_e srs pc scv s23 pcc pe
+                            rcc: Eq cc cc by forall_e refl cc
+                            scw: Ap s cc w
+                                          by imp_e eap rcc e1 sce
+                            r:   Ap f q w by imp_e pack pq sa2 sb3 pcc scw
+                            therefore forall cc. Pr a2 b3 cc -> Ap f q w
+                          r: Ap f q w     by exists_e ecc wcc
+                          therefore forall b3. Succ b1 b3 -> Ap f q w
+                        r: Ap f q w       by exists_e eb3 wb3
+                        therefore forall a2 b2 c. (Succ a a2 and Succ b b2 and Pr a2 b2 c and Ap s c v) -> Ap f q w
+                      r: Ap f q w         by exists_e u wu
+                      therefore forall e. PredR v e -> Ap f q w
+                    r: Ap f q w           by exists_e ee we
+                    therefore forall a b b1 p q v t w. Pr a b p -> Ap f p v -> Succ b b1 -> Pr a b1 q -> Pr p v t
+                                -> Ap k t w -> Ap f q w
+                  rf: RecOf f ii k        by and_i f_base f_step
+                  agree: forall x n p v w. Num x -> Num n -> Pr x n p -> Ap f p v -> Ap s p w -> Eq v w
+                                          by imp_e uniq fii fk ff fsub rf rs
+                  lemma fin:
+                    variable a b a1 b1 p q v w
+                    assume na: Num a
+                    assume nb: Num b
+                    assume sa: Succ a a1
+                    assume sb: Succ b b1
+                    assume pp: Pr a b p
+                    assume pq: Pr a1 b1 q
+                    assume sv: Ap s q v
+                    assume sw: Ap s p w
+                    fpv: Ap f p v         by imp_e pack pp sa sb pq sv
+                    r:   Eq v w           by imp_e agree na nb pp fpv sw
+                    therefore forall a b a1 b1 p q v w. Num a -> Num b -> Succ a a1 -> Succ b b1 -> Pr a b p
+                                -> Pr a1 b1 q -> Ap s q v -> Ap s p w -> Eq v w
+                        therefore forall f. (Fn f and CompOf f s tq) -> SubShift s
+                      r: SubShift s       by exists_e ef w7
+                      therefore forall tq. (Fn tq and TupOf tq cf cs) -> SubShift s
+                    r: SubShift s         by exists_e etq w6
+                    therefore forall cs. (Fn cs and CompOf cs sf so) -> SubShift s
+                  r: SubShift s           by exists_e ecs w5
+                  therefore forall cf. (Fn cf and CompOf cf sf fo) -> SubShift s
+                r: SubShift s             by exists_e ecf w4
+                therefore forall k. (Fn k and CompOf k pd tt) -> SubShift s
+              r: SubShift s               by exists_e ek wk
+              therefore forall tt. (Fn tt and TupOf tt so so) -> SubShift s
+            r: SubShift s                 by exists_e ett wtt
+            therefore forall so. (Fn so and SndOf so) -> SubShift s
+          r: SubShift s                   by exists_e fsnd w3
+          therefore forall fo. (Fn fo and FstOf fo) -> SubShift s
+        r: SubShift s                     by exists_e ffst w2
+        therefore forall sf. (Fn sf and SuccOf sf) -> SubShift s
+      r: SubShift s                       by exists_e fsucc w1
+      therefore forall ii. (Fn ii and IdOf ii) -> SubShift s
+    r: SubShift s                         by exists_e fid w0
+    therefore forall pd s. Fn pd -> PredOf pd -> Fn s -> SubRec s -> SubShift s
+  therefore FId -> FSucc -> FFst -> FSnd -> FTuple -> FComp -> FRecUniq -> Func -> Total -> PInj -> PNum -> PTot
+              -> EPr -> EAp -> Refl -> Sym -> Es -> SFun -> NS -> SEx -> Enum -> ZoS
+              -> forall pd s. Fn pd -> PredOf pd -> Fn s -> SubRec s -> SubShift s
+
+-- sub(n, n) = 0. f(x, n) = s(n, n) and the zero function solve one recursion: 0 at the start,
+-- and keep the value at each step (sub_shift gives s(n + 1, n + 1) = s(n, n)).
+theorem sub_self:
+  assume fzero: FZero
+  assume fsnd:  FSnd
+  assume ftup:  FTuple
+  assume fcomp: FComp
+  assume uniq:  FRecUniq
+  assume total: Total
+  assume pinj:  PInj
+  assume pnum:  PNum
+  assume ptot:  PTot
+  assume epr:   EPr
+  assume eap:   EAp
+  assume refl:  Refl
+  assume sym:   Sym
+  assume trans: Trans
+  assume ez:    Ez
+  assume zu:    Zu
+  assume zex:   ZEx
+  assume ns:    NS
+  lemma all:
+    variable s
+    assume fsub: Fn s
+    assume sr:   SubRec s
+    assume sh:   SubShift s
+    srb: forall a z p. Num a -> Zero z -> Pr a z p -> Ap s p a
+                                          by and_e sr
+    lemma w1:
+      variable zf
+      assume h1: Fn zf and ZeroOf zf
+      fzf: Fn zf                          by and_e h1
+      mzf: ZeroOf zf                      by and_e h1
+      lemma w2:
+        variable so
+        assume h2: Fn so and SndOf so
+        fso: Fn so                        by and_e h2
+        mso: SndOf so                     by and_e h2
+        edd: exists g. Fn g and TupOf g so so
+                                          by imp_e ftup fso fso
+        lemma w3:
+          variable dd
+          assume h3: Fn dd and TupOf dd so so
+          fdd: Fn dd                      by and_e h3
+          mdd: TupOf dd so so             by and_e h3
+          ef: exists g. Fn g and CompOf g s dd
+                                          by imp_e fcomp fsub fdd
+          lemma w4:
+            variable f
+            assume h4: Fn f and CompOf f s dd
+            ff: Fn f                      by and_e h4
+            mf: CompOf f s dd             by and_e h4
+            -- f at (x, n) is s at (n, n)
+            lemma fun:
+              variable x n p v
+              assume pp: Pr x n p
+              assume fv: Ap f p v
+              u1: exists c. Ap dd p c and Ap s c v
+                                          by imp_e comp_out mf fv
+              lemma wc:
+                variable c
+                assume hc: Ap dd p c and Ap s c v
+                dc:  Ap dd p c            by and_e hc
+                scv: Ap s c v             by and_e hc
+                u2:  exists b1 b2. Ap so p b1 and Ap so p b2 and Pr b1 b2 c
+                                          by imp_e tup_out mdd dc
+                lemma wb:
+                  variable b1 b2
+                  assume hb: Ap so p b1 and Ap so p b2 and Pr b1 b2 c
+                  a1:  Ap so p b1         by and_e hb
+                  a2:  Ap so p b2         by and_e hb
+                  pc:  Pr b1 b2 c         by and_e hb
+                  e1:  Eq n b1            by imp_e snd_out pinj refl mso pp a1
+                  e2:  Eq n b2            by imp_e snd_out pinj refl mso pp a2
+                  e3:  Eq b1 n            by imp_e sym e1
+                  e4:  Eq b2 n            by imp_e sym e2
+                  rc:  Eq c c             by forall_e refl c
+                  pnc: Pr n n c           by imp_e epr e3 e4 rc pc
+                  k:   Pr n n c and Ap s c v
+                                          by and_i pnc scv
+                  r:   exists c. Pr n n c and Ap s c v
+                                          by exists_i k
+                  therefore forall b1 b2. (Ap so p b1 and Ap so p b2 and Pr b1 b2 c)
+                              -> exists c. Pr n n c and Ap s c v
+                r: exists c. Pr n n c and Ap s c v
+                                          by exists_e u2 wb
+                therefore forall c. (Ap dd p c and Ap s c v) -> exists c. Pr n n c and Ap s c v
+              r: exists c. Pr n n c and Ap s c v
+                                          by exists_e u1 wc
+              therefore forall x n p v. Pr x n p -> Ap f p v -> exists c. Pr n n c and Ap s c v
+            lemma pack:
+              variable x n p c v
+              assume pp: Pr x n p
+              assume pc: Pr n n c
+              assume sc: Ap s c v
+              a1: Ap so p n               by imp_e snd_in mso pp
+              a2: Ap dd p c               by imp_e tup_in mdd a1 a1 pc
+              r:  Ap f p v                by imp_e comp_in mf a2 sc
+              therefore forall x n p c v. Pr x n p -> Pr n n c -> Ap s c v -> Ap f p v
+            -- the zero function solves it
+            lemma z_base:
+              variable x z p y
+              assume zz: Zero z
+              assume pp: Pr x z p
+              assume zy: Ap zf x y
+              zy0: Zero y                 by imp_e zero_out mzf zy
+              n3:  Num x and Num z and Num p
+                                          by imp_e pnum pp
+              np:  Num p                  by and_e n3
+              r:   Ap zf p y              by imp_e zero_in mzf np zy0
+              therefore forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap zf p y
+            lemma z_step:
+              variable x n m p q v t w
+              assume pp: Pr x n p
+              assume zv: Ap zf p v
+              assume sm: Succ n m
+              assume pq: Pr x m q
+              assume pt: Pr p v t
+              assume kw: Ap so t w
+              e1:  Eq v w                 by imp_e snd_out pinj refl mso pt kw
+              zv0: Zero v                 by imp_e zero_out mzf zv
+              zw:  Zero w                 by imp_e ez e1 zv0
+              m3:  Num x and Num m and Num q
+                                          by imp_e pnum pq
+              nq:  Num q                  by and_e m3
+              r:   Ap zf q w              by imp_e zero_in mzf nq zw
+              therefore forall x n m p q v t w. Pr x n p -> Ap zf p v -> Succ n m -> Pr x m q -> Pr p v t
+                          -> Ap so t w -> Ap zf q w
+            rz: RecOf zf zf so            by and_i z_base z_step
+            -- and so does f
+            lemma f_base:
+              variable x z p y
+              assume zz: Zero z
+              assume pp: Pr x z p
+              assume zy: Ap zf x y
+              zy0: Zero y                 by imp_e zero_out mzf zy
+              n3:  Num x and Num z and Num p
+                                          by imp_e pnum pp
+              nz0: Num z                  by and_e n3
+              ec:  exists c. Pr z z c     by imp_e ptot nz0 nz0
+              lemma wc:
+                variable c
+                assume pc: Pr z z c
+                scz: Ap s c z             by imp_e srb nz0 zz pc
+                fpz: Ap f p z             by imp_e pack pp pc scz
+                e1:  Eq z y               by imp_e zu zz zy0
+                rp:  Eq p p               by forall_e refl p
+                r:   Ap f p y             by imp_e eap rp e1 fpz
+                therefore forall c. Pr z z c -> Ap f p y
+              r: Ap f p y                 by exists_e ec wc
+              therefore forall x z p y. Zero z -> Pr x z p -> Ap zf x y -> Ap f p y
+            lemma f_step:
+              variable x n m p q v t w
+              assume pp: Pr x n p
+              assume fv: Ap f p v
+              assume sm: Succ n m
+              assume pq: Pr x m q
+              assume pt: Pr p v t
+              assume kw: Ap so t w
+              e1: Eq v w                  by imp_e snd_out pinj refl mso pt kw
+              n3: Num x and Num n and Num p
+                                          by imp_e pnum pp
+              nn: Num n                   by and_e n3
+              nm: Num m                   by imp_e ns nn sm
+              u:  exists c. Pr n n c and Ap s c v
+                                          by imp_e fun pp fv
+              ec1: exists c1. Pr m m c1   by imp_e ptot nm nm
+              lemma wc:
+                variable c
+                assume hc: Pr n n c and Ap s c v
+                pc:  Pr n n c             by and_e hc
+                scv: Ap s c v             by and_e hc
+                lemma wc1:
+                  variable c1
+                  assume pc1: Pr m m c1
+                  m4:  Num m and Num m and Num c1
+                                          by imp_e pnum pc1
+                  nc1: Num c1             by and_e m4
+                  eu:  exists u. Num u and Ap s c1 u
+                                          by imp_e total fsub nc1
+                  lemma wu:
+                    variable uu
+                    assume hu: Num uu and Ap s c1 uu
+                    scu: Ap s c1 uu       by and_e hu
+                    e2:  Eq uu v          by imp_e sh nn nn sm sm pc pc1 scu scv
+                    e3:  Eq uu w          by imp_e trans e2 e1
+                    fqu: Ap f q uu        by imp_e pack pq pc1 scu
+                    rq:  Eq q q           by forall_e refl q
+                    r:   Ap f q w         by imp_e eap rq e3 fqu
+                    therefore forall uu. (Num uu and Ap s c1 uu) -> Ap f q w
+                  r: Ap f q w             by exists_e eu wu
+                  therefore forall c1. Pr m m c1 -> Ap f q w
+                r: Ap f q w               by exists_e ec1 wc1
+                therefore forall c. (Pr n n c and Ap s c v) -> Ap f q w
+              r: Ap f q w                 by exists_e u wc
+              therefore forall x n m p q v t w. Pr x n p -> Ap f p v -> Succ n m -> Pr x m q -> Pr p v t
+                          -> Ap so t w -> Ap f q w
+            rf: RecOf f zf so             by and_i f_base f_step
+            agree: forall x n p v w. Num x -> Num n -> Pr x n p -> Ap f p v -> Ap zf p w -> Eq v w
+                                          by imp_e uniq fzf fso ff fzf rf rz
+            lemma fin:
+              variable n p v
+              assume nn: Num n
+              assume pp: Pr n n p
+              assume sv: Ap s p v
+              n3:  Num n and Num n and Num p
+                                          by imp_e pnum pp
+              np:  Num p                  by and_e n3
+              fpv: Ap f p v               by imp_e pack pp pp sv
+              lemma wz:
+                variable z0
+                assume z0z: Zero z0
+                zp:  Ap zf p z0           by imp_e zero_in mzf np z0z
+                e1:  Eq v z0              by imp_e agree nn nn pp fpv zp
+                e2:  Eq z0 v              by imp_e sym e1
+                r:   Zero v               by imp_e ez e2 z0z
+                therefore forall z0. Zero z0 -> Zero v
+              r: Zero v                   by exists_e zex wz
+              therefore forall n p v. Num n -> Pr n n p -> Ap s p v -> Zero v
+            therefore forall f. (Fn f and CompOf f s dd) -> SubSelf s
+          r: SubSelf s                    by exists_e ef w4
+          therefore forall dd. (Fn dd and TupOf dd so so) -> SubSelf s
+        r: SubSelf s                      by exists_e edd w3
+        therefore forall so. (Fn so and SndOf so) -> SubSelf s
+      r: SubSelf s                        by exists_e fsnd w2
+      therefore forall zf. (Fn zf and ZeroOf zf) -> SubSelf s
+    r: SubSelf s                          by exists_e fzero w1
+    therefore forall s. Fn s -> SubRec s -> SubShift s -> SubSelf s
+  therefore FZero -> FSnd -> FTuple -> FComp -> FRecUniq -> Total -> PInj -> PNum -> PTot -> EPr -> EAp -> Refl -> Sym
+              -> Trans -> Ez -> Zu -> ZEx -> NS -> forall s. Fn s -> SubRec s -> SubShift s -> SubSelf s
+
+-- sub(n + 1, n) = 1. f(x, n) = s(n + 1, n) and the constant 1 solve one recursion: 1 at the
+-- start, and keep the value at each step (sub_shift gives s(n + 2, n + 1) = s(n + 1, n)).
+theorem sub_one:
+  assume fsucc: FSucc
+  assume fzero: FZero
+  assume fsnd:  FSnd
+  assume ftup:  FTuple
+  assume fcomp: FComp
+  assume uniq:  FRecUniq
+  assume total: Total
+  assume pinj:  PInj
+  assume pnum:  PNum
+  assume ptot:  PTot
+  assume epr:   EPr
+  assume eap:   EAp
+  assume refl:  Refl
+  assume sym:   Sym
+  assume trans: Trans
+  assume es:    Es
+  assume sfun:  SFun
+  assume ns:    NS
+  assume nz:    NZ
+  assume zu:    Zu
+  assume zex:   ZEx
+  assume sex:   SEx
+  lemma all:
+    variable s
+    assume fsub: Fn s
+    assume sr:   SubRec s
+    assume sh:   SubShift s
+    srb: forall a z p. Num a -> Zero z -> Pr a z p -> Ap s p a
+                                          by and_e sr
+    lemma w1:
+      variable sf
+      assume h1: Fn sf and SuccOf sf
+      fsf: Fn sf                          by and_e h1
+      msf: SuccOf sf                      by and_e h1
+      lemma w2:
+        variable zf
+        assume h2: Fn zf and ZeroOf zf
+        fzf: Fn zf                        by and_e h2
+        mzf: ZeroOf zf                    by and_e h2
+        lemma w3:
+          variable so
+          assume h3: Fn so and SndOf so
+          fso: Fn so                      by and_e h3
+          mso: SndOf so                   by and_e h3
+          ecs: exists g. Fn g and CompOf g sf so
+                                          by imp_e fcomp fsf fso
+          eo: exists g. Fn g and CompOf g sf zf
+                                          by imp_e fcomp fsf fzf
+          lemma w4:
+            variable cs
+            assume h4: Fn cs and CompOf cs sf so
+            fcs: Fn cs                    by and_e h4
+            mcs: CompOf cs sf so          by and_e h4
+            lemma w5:
+              variable o
+              assume h5: Fn o and CompOf o sf zf
+              fo: Fn o                    by and_e h5
+              mo: CompOf o sf zf          by and_e h5
+              eee: exists g. Fn g and TupOf g cs so
+                                          by imp_e ftup fcs fso
+              lemma w6:
+                variable ee
+                assume h6: Fn ee and TupOf ee cs so
+                fee: Fn ee                by and_e h6
+                mee: TupOf ee cs so       by and_e h6
+                ef: exists g. Fn g and CompOf g s ee
+                                          by imp_e fcomp fsub fee
+                lemma w7:
+                  variable f
+                  assume h7: Fn f and CompOf f s ee
+                  ff: Fn f                by and_e h7
+                  mf: CompOf f s ee       by and_e h7
+                  -- the constant function's values are 1
+                  lemma oval:
+                    variable x y
+                    assume oy: Ap o x y
+                    u: exists a. Ap zf x a and Ap sf a y
+                                          by imp_e comp_out mo oy
+                    lemma wa:
+                      variable a
+                      assume ha: Ap zf x a and Ap sf a y
+                      za1: Ap zf x a      by and_e ha
+                      sa1: Ap sf a y      by and_e ha
+                      za:  Zero a         by imp_e zero_out mzf za1
+                      sa:  Succ a y       by imp_e succ_out msf sa1
+                      k:   Zero a and Succ a y
+                                          by and_i za sa
+                      r:   OneV y         by exists_i k
+                      therefore forall a. (Ap zf x a and Ap sf a y) -> OneV y
+                    r: OneV y             by exists_e u wa
+                    therefore forall x y. Ap o x y -> OneV y
+                  -- f at (x, n) is s at (n + 1, n)
+                  lemma fun:
+                    variable x n p v
+                    assume pp: Pr x n p
+                    assume fv: Ap f p v
+                    u1: exists c. Ap ee p c and Ap s c v
+                                          by imp_e comp_out mf fv
+                    lemma wc:
+                      variable c
+                      assume hc: Ap ee p c and Ap s c v
+                      ec:  Ap ee p c      by and_e hc
+                      scv: Ap s c v       by and_e hc
+                      u2:  exists a1 b1. Ap cs p a1 and Ap so p b1 and Pr a1 b1 c
+                                          by imp_e tup_out mee ec
+                      lemma wab:
+                        variable a1 b1
+                        assume hab: Ap cs p a1 and Ap so p b1 and Pr a1 b1 c
+                        ca:  Ap cs p a1   by and_e hab
+                        sb:  Ap so p b1   by and_e hab
+                        pc:  Pr a1 b1 c   by and_e hab
+                        u3:  exists a3. Ap so p a3 and Ap sf a3 a1
+                                          by imp_e comp_out mcs ca
+                        lemma wa3:
+                          variable a3
+                          assume ha: Ap so p a3 and Ap sf a3 a1
+                          g1:  Ap so p a3 by and_e ha
+                          g2:  Ap sf a3 a1
+                                          by and_e ha
+                          e1:  Eq n a3    by imp_e snd_out pinj refl mso pp g1
+                          sa3: Succ a3 a1 by imp_e succ_out msf g2
+                          e2:  Eq a3 n    by imp_e sym e1
+                          ra1: Eq a1 a1   by forall_e refl a1
+                          sn1: Succ n a1  by imp_e es e2 ra1 sa3
+                          e3:  Eq n b1    by imp_e snd_out pinj refl mso pp sb
+                          e4:  Eq b1 n    by imp_e sym e3
+                          rc:  Eq c c     by forall_e refl c
+                          pc2: Pr a1 n c  by imp_e epr ra1 e4 rc pc
+                          k:   Succ n a1 and Pr a1 n c and Ap s c v
+                                          by and_i sn1 pc2 scv
+                          r:   exists m c. Succ n m and Pr m n c and Ap s c v
+                                          by exists_i k
+                          therefore forall a3. (Ap so p a3 and Ap sf a3 a1)
+                                      -> exists m c. Succ n m and Pr m n c and Ap s c v
+                        r: exists m c. Succ n m and Pr m n c and Ap s c v
+                                          by exists_e u3 wa3
+                        therefore forall a1 b1. (Ap cs p a1 and Ap so p b1 and Pr a1 b1 c)
+                                    -> exists m c. Succ n m and Pr m n c and Ap s c v
+                      r: exists m c. Succ n m and Pr m n c and Ap s c v
+                                          by exists_e u2 wab
+                      therefore forall c. (Ap ee p c and Ap s c v) -> exists m c. Succ n m and Pr m n c and Ap s c v
+                    r: exists m c. Succ n m and Pr m n c and Ap s c v
+                                          by exists_e u1 wc
+                    therefore forall x n p v. Pr x n p -> Ap f p v -> exists m c. Succ n m and Pr m n c and Ap s c v
+                  lemma pack:
+                    variable x n m p c v
+                    assume pp: Pr x n p
+                    assume sm: Succ n m
+                    assume pc: Pr m n c
+                    assume sc: Ap s c v
+                    n3: Num x and Num n and Num p
+                                          by imp_e pnum pp
+                    nn: Num n             by and_e n3
+                    a1: Ap so p n         by imp_e snd_in mso pp
+                    a2: Ap sf n m         by imp_e succ_in msf nn sm
+                    a3: Ap cs p m         by imp_e comp_in mcs a1 a2
+                    a4: Ap ee p c         by imp_e tup_in mee a3 a1 pc
+                    r:  Ap f p v          by imp_e comp_in mf a4 sc
+                    therefore forall x n m p c v. Pr x n p -> Succ n m -> Pr m n c -> Ap s c v -> Ap f p v
+                  -- any 1 is a value of the constant function, at any number
+                  lemma oin:
+                    variable x y
+                    assume nx: Num x
+                    assume oy: OneV y
+                    lemma wz:
+                      variable z
+                      assume hz: Zero z and Succ z y
+                      zz:  Zero z         by and_e hz
+                      sy:  Succ z y       by and_e hz
+                      nz0: Num z          by imp_e nz zz
+                      a1:  Ap zf x z      by imp_e zero_in mzf nx zz
+                      a2:  Ap sf z y      by imp_e succ_in msf nz0 sy
+                      r:   Ap o x y       by imp_e comp_in mo a1 a2
+                      therefore forall z. (Zero z and Succ z y) -> Ap o x y
+                    r: Ap o x y           by exists_e oy wz
+                    therefore forall x y. Num x -> OneV y -> Ap o x y
+                  -- the constant function solves it
+                  lemma o_base:
+                    variable x z p y
+                    assume zz: Zero z
+                    assume pp: Pr x z p
+                    assume oy: Ap o x y
+                    o1: OneV y            by imp_e oval oy
+                    n3: Num x and Num z and Num p
+                                          by imp_e pnum pp
+                    np: Num p             by and_e n3
+                    r:  Ap o p y          by imp_e oin np o1
+                    therefore forall x z p y. Zero z -> Pr x z p -> Ap o x y -> Ap o p y
+                  lemma o_step:
+                    variable x n m p q v t w
+                    assume pp: Pr x n p
+                    assume ov: Ap o p v
+                    assume sm: Succ n m
+                    assume pq: Pr x m q
+                    assume pt: Pr p v t
+                    assume kw: Ap so t w
+                    e1: Eq v w            by imp_e snd_out pinj refl mso pt kw
+                    o1: OneV v            by imp_e oval ov
+                    lemma wz:
+                      variable z
+                      assume hz: Zero z and Succ z v
+                      zz: Zero z          by and_e hz
+                      sv: Succ z v        by and_e hz
+                      rz: Eq z z          by forall_e refl z
+                      sw: Succ z w        by imp_e es rz e1 sv
+                      k1: Zero z and Succ z w
+                                          by and_i zz sw
+                      r:  OneV w          by exists_i k1
+                      therefore forall z. (Zero z and Succ z v) -> OneV w
+                    o2: OneV w            by exists_e o1 wz
+                    m3: Num x and Num m and Num q
+                                          by imp_e pnum pq
+                    nq: Num q             by and_e m3
+                    r:  Ap o q w          by imp_e oin nq o2
+                    therefore forall x n m p q v t w. Pr x n p -> Ap o p v -> Succ n m -> Pr x m q -> Pr p v t
+                                -> Ap so t w -> Ap o q w
+                  ro: RecOf o o so        by and_i o_base o_step
+                  -- and so does f
+                  lemma f_base:
+                    variable x z p y
+                    assume zz: Zero z
+                    assume pp: Pr x z p
+                    assume oy: Ap o x y
+                    o1:  OneV y           by imp_e oval oy
+                    n3:  Num x and Num z and Num p
+                                          by imp_e pnum pp
+                    nz0: Num z            by and_e n3
+                    em:  exists t. Succ z t
+                                          by imp_e sex nz0
+                    lemma wm:
+                      variable m
+                      assume sm: Succ z m
+                      nm: Num m           by imp_e ns nz0 sm
+                      ec: exists c. Pr m z c
+                                          by imp_e ptot nm nz0
+                      lemma wc:
+                        variable c
+                        assume pc: Pr m z c
+                        scm: Ap s c m     by imp_e srb nm zz pc
+                        fpm: Ap f p m     by imp_e pack pp sm pc scm
+                        k1:  Zero z and Succ z m
+                                          by and_i zz sm
+                        o2:  OneV m       by exists_i k1
+                        e1:  Eq m y       by imp_e one_eq zu es sfun refl o2 o1
+                        rp:  Eq p p       by forall_e refl p
+                        r:   Ap f p y     by imp_e eap rp e1 fpm
+                        therefore forall c. Pr m z c -> Ap f p y
+                      r: Ap f p y         by exists_e ec wc
+                      therefore forall m. Succ z m -> Ap f p y
+                    r: Ap f p y           by exists_e em wm
+                    therefore forall x z p y. Zero z -> Pr x z p -> Ap o x y -> Ap f p y
+                  lemma f_step:
+                    variable x n n1 p q v t w
+                    assume pp:  Pr x n p
+                    assume fv:  Ap f p v
+                    assume sn1: Succ n n1
+                    assume pq:  Pr x n1 q
+                    assume pt:  Pr p v t
+                    assume kw:  Ap so t w
+                    e1:  Eq v w           by imp_e snd_out pinj refl mso pt kw
+                    n3:  Num x and Num n and Num p
+                                          by imp_e pnum pp
+                    nn:  Num n            by and_e n3
+                    nn1: Num n1           by imp_e ns nn sn1
+                    u:   exists m c. Succ n m and Pr m n c and Ap s c v
+                                          by imp_e fun pp fv
+                    em1: exists t. Succ n1 t
+                                          by imp_e sex nn1
+                    lemma wu:
+                      variable m c
+                      assume hu: Succ n m and Pr m n c and Ap s c v
+                      sm:  Succ n m       by and_e hu
+                      pc:  Pr m n c       by and_e hu
+                      scv: Ap s c v       by and_e hu
+                      nm:  Num m          by imp_e ns nn sm
+                      lemma wm1:
+                        variable m1
+                        assume sm1: Succ n1 m1
+                        nm1: Num m1       by imp_e ns nn1 sm1
+                        ec1: exists c1. Pr m1 n1 c1
+                                          by imp_e ptot nm1 nn1
+                        lemma wc1:
+                          variable c1
+                          assume pc1: Pr m1 n1 c1
+                          m4:  Num m1 and Num n1 and Num c1
+                                          by imp_e pnum pc1
+                          nc1: Num c1     by and_e m4
+                          eu:  exists u. Num u and Ap s c1 u
+                                          by imp_e total fsub nc1
+                          lemma wuu:
+                            variable uu
+                            assume hu1: Num uu and Ap s c1 uu
+                            scu: Ap s c1 uu
+                                          by and_e hu1
+                            e2:  Eq m n1  by imp_e sfun sm sn1
+                            e3:  Eq n1 m  by imp_e sym e2
+                            rm1: Eq m1 m1 by forall_e refl m1
+                            smm: Succ m m1
+                                          by imp_e es e3 rm1 sm1
+                            e4:  Eq uu v  by imp_e sh nm nn smm sn1 pc pc1 scu scv
+                            e5:  Eq uu w  by imp_e trans e4 e1
+                            fqu: Ap f q uu
+                                          by imp_e pack pq sm1 pc1 scu
+                            rq:  Eq q q   by forall_e refl q
+                            r:   Ap f q w by imp_e eap rq e5 fqu
+                            therefore forall uu. (Num uu and Ap s c1 uu) -> Ap f q w
+                          r: Ap f q w     by exists_e eu wuu
+                          therefore forall c1. Pr m1 n1 c1 -> Ap f q w
+                        r: Ap f q w       by exists_e ec1 wc1
+                        therefore forall m1. Succ n1 m1 -> Ap f q w
+                      r: Ap f q w         by exists_e em1 wm1
+                      therefore forall m c. (Succ n m and Pr m n c and Ap s c v) -> Ap f q w
+                    r: Ap f q w           by exists_e u wu
+                    therefore forall x n n1 p q v t w. Pr x n p -> Ap f p v -> Succ n n1 -> Pr x n1 q -> Pr p v t
+                                -> Ap so t w -> Ap f q w
+                  rf: RecOf f o so        by and_i f_base f_step
+                  agree: forall x n p v w. Num x -> Num n -> Pr x n p -> Ap f p v -> Ap o p w -> Eq v w
+                                          by imp_e uniq fo fso ff fo rf ro
+                  lemma fin:
+                    variable n m p v
+                    assume nn: Num n
+                    assume sm: Succ n m
+                    assume pp: Pr m n p
+                    assume sv: Ap s p v
+                    eq0: exists q. Pr n n q
+                                          by imp_e ptot nn nn
+                    lemma wq:
+                      variable q
+                      assume pq: Pr n n q
+                      n3:  Num n and Num n and Num q
+                                          by imp_e pnum pq
+                      nq:  Num q          by and_e n3
+                      fqv: Ap f q v       by imp_e pack pq sm pp sv
+                      lemma wz:
+                        variable z0
+                        assume z0z: Zero z0
+                        nz0: Num z0       by imp_e nz z0z
+                        es1: exists t. Succ z0 t
+                                          by imp_e sex nz0
+                        lemma wt:
+                          variable t
+                          assume st: Succ z0 t
+                          k1:  Zero z0 and Succ z0 t
+                                          by and_i z0z st
+                          ot:  OneV t     by exists_i k1
+                          oq:  Ap o q t   by imp_e oin nq ot
+                          e1:  Eq v t     by imp_e agree nn nn pq fqv oq
+                          e2:  Eq t v     by imp_e sym e1
+                          rz:  Eq z0 z0   by forall_e refl z0
+                          sv1: Succ z0 v  by imp_e es rz e2 st
+                          k2:  Zero z0 and Succ z0 v
+                                          by and_i z0z sv1
+                          r:   OneV v     by exists_i k2
+                          therefore forall t. Succ z0 t -> OneV v
+                        r: OneV v         by exists_e es1 wt
+                        therefore forall z0. Zero z0 -> OneV v
+                      r: OneV v           by exists_e zex wz
+                      therefore forall q. Pr n n q -> OneV v
+                    r: OneV v             by exists_e eq0 wq
+                    therefore forall n m p v. Num n -> Succ n m -> Pr m n p -> Ap s p v -> OneV v
+                  therefore forall f. (Fn f and CompOf f s ee) -> SubOne s
+                r: SubOne s               by exists_e ef w7
+                therefore forall ee. (Fn ee and TupOf ee cs so) -> SubOne s
+              r: SubOne s                 by exists_e eee w6
+              therefore forall o. (Fn o and CompOf o sf zf) -> SubOne s
+            r: SubOne s                   by exists_e eo w5
+            therefore forall cs. (Fn cs and CompOf cs sf so) -> SubOne s
+          r: SubOne s                     by exists_e ecs w4
+          therefore forall so. (Fn so and SndOf so) -> SubOne s
+        r: SubOne s                       by exists_e fsnd w3
+        therefore forall zf. (Fn zf and ZeroOf zf) -> SubOne s
+      r: SubOne s                         by exists_e fzero w2
+      therefore forall sf. (Fn sf and SuccOf sf) -> SubOne s
+    r: SubOne s                           by exists_e fsucc w1
+    therefore forall s. Fn s -> SubRec s -> SubShift s -> SubOne s
+  therefore FSucc -> FZero -> FSnd -> FTuple -> FComp -> FRecUniq -> Total -> PInj -> PNum -> PTot -> EPr -> EAp
+              -> Refl -> Sym -> Trans -> Es -> SFun -> NS -> NZ -> Zu -> ZEx -> SEx
+              -> forall s. Fn s -> SubRec s -> SubShift s -> SubOne s
+
+-- The whole system as one bundle.
+define PRA = ZEx and NZ and NS and SEx and SFun and Zu and ZnS and SInj and ZoS and Refl and Sym and Trans
+             and DecEq and Ez and Enum and Es and EPr and EAp and PTot and PNum and PFun and PInj and PSurj
+             and Total and Func and FId and FZero and FSucc and FFst and FSnd and FComp and FTuple and FRec
+             and FRecUniq
+
+-- n + 1 is never n, from PRA.
+theorem succ_never_self:
+  assume pra: PRA
+  zex:   ZEx                              by and_e pra
+  nz:    NZ                               by and_e pra
+  ns:    NS                               by and_e pra
+  sex:   SEx                              by and_e pra
+  sfun:  SFun                             by and_e pra
+  zu:    Zu                               by and_e pra
+  zns:   ZnS                              by and_e pra
+  zos:   ZoS                              by and_e pra
+  refl:  Refl                             by and_e pra
+  sym:   Sym                              by and_e pra
+  trans: Trans                            by and_e pra
+  ez:    Ez                               by and_e pra
+  enum:  Enum                             by and_e pra
+  es:    Es                               by and_e pra
+  epr:   EPr                              by and_e pra
+  eap:   EAp                              by and_e pra
+  ptot:  PTot                             by and_e pra
+  pnum:  PNum                             by and_e pra
+  pinj:  PInj                             by and_e pra
+  total: Total                            by and_e pra
+  func:  Func                             by and_e pra
+  fid:   FId                              by and_e pra
+  fzero: FZero                            by and_e pra
+  fsucc: FSucc                            by and_e pra
+  ffst:  FFst                             by and_e pra
+  fsnd:  FSnd                             by and_e pra
+  fcomp: FComp                            by and_e pra
+  ftup:  FTuple                           by and_e pra
+  frec:  FRec                             by and_e pra
+  uniq:  FRecUniq                         by and_e pra
+  epd: exists pd. Fn pd and PredOf pd     by imp_e pred_exists fzero ffst fsnd fcomp frec ptot pnum total
+  lemma wpd:
+    variable pd
+    assume hpd: Fn pd and PredOf pd
+    fpd: Fn pd                            by and_e hpd
+    mpd: PredOf pd                        by and_e hpd
+    es1: exists s. Fn s and SubRec s      by imp_e sub_exists fid fsnd ftup fcomp frec ptot pnum total func enum refl
+                                             fpd mpd
+    lemma ws:
+      variable s
+      assume hs: Fn s and SubRec s
+      fs:   Fn s                          by and_e hs
+      sr:   SubRec s                      by and_e hs
+      sh:   SubShift s                    by imp_e sub_shift fid fsucc ffst fsnd ftup fcomp uniq func total pinj pnum
+                                             ptot epr eap refl sym es sfun ns sex enum zos fpd mpd fs sr
+      self: SubSelf s                     by imp_e sub_self fzero fsnd ftup fcomp uniq total pinj pnum ptot epr eap refl
+                                             sym trans ez zu zex ns fs sr sh
+      one:  SubOne s                      by imp_e sub_one fsucc fzero fsnd ftup fcomp uniq total pinj pnum ptot epr eap
+                                             refl sym trans es sfun ns nz zu zex sex fs sr sh
+      r:    forall n m. Num n -> Succ n m -> not (Eq m n)
+                                          by imp_e succ_ne_from ns ptot pnum epr refl total zns fs self one
+      therefore forall s. (Fn s and SubRec s) -> forall n m. Num n -> Succ n m -> not (Eq m n)
+    r: forall n m. Num n -> Succ n m -> not (Eq m n)
+                                          by exists_e es1 ws
+    therefore forall pd. (Fn pd and PredOf pd) -> forall n m. Num n -> Succ n m -> not (Eq m n)
+  r: forall n m. Num n -> Succ n m -> not (Eq m n)
+                                          by exists_e epd wpd
+  therefore PRA -> forall n m. Num n -> Succ n m -> not (Eq m n)
