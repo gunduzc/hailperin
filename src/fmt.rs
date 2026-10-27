@@ -214,8 +214,8 @@ fn render(it: &Item, column: Option<usize>, opts: &Options) -> String {
     s
 }
 
-/// Tokens joined with spaces, except around punctuation: none before `:`, `)` and `.`, none
-/// after `(`, and none after the `.` of a theory member `T.m`.
+/// Tokens joined with spaces, except around punctuation: none before `:`, `)` and `.`, and
+/// none after `(`.
 fn render_toks(toks: &[Tok]) -> String {
     let mut s = String::new();
     for (i, t) in toks.iter().enumerate() {
@@ -224,7 +224,6 @@ fn render_toks(toks: &[Tok]) -> String {
             (None, _) => false,
             (_, Tok::Sym(Sym::Colon | Sym::RParen | Sym::Dot)) => false,
             (Some(Tok::Sym(Sym::LParen)), _) => false,
-            (Some(Tok::Sym(Sym::Dot)), _) => !matches!(toks.get(i.wrapping_sub(2)), Some(Tok::Upper(_))),
             _ => true,
         };
         if space {

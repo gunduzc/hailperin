@@ -6,7 +6,7 @@ use crate::Error;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Tok {
-    /// A name starting with an uppercase letter: a predicate, definition or theory.
+    /// A name starting with an uppercase letter: a predicate or a definition.
     Upper(String),
     /// A name starting with a lowercase letter: a variable, label, theorem or rule.
     Lower(String),
@@ -147,7 +147,6 @@ pub fn lex(src: &str) -> Result<Vec<Token>, Error> {
             b'.' => (Sym::Dot, 1),
             b'=' => (Sym::Equals, 1),
             b'-' if at(i + 1, b'>') => (Sym::Arrow, 2),
-            b'{' if at(i + 1, b'-') => return Err(Error::new(line, "comments are `--` to the end of the line, not `{- -}`")),
             b'_' => return Err(Error::new(line, "a name starts with a letter, not `_`")),
             b'\'' => return Err(Error::new(line, "there are no primes: write `xp` or `x1`")),
             _ => return Err(Error::new(line, format!("unexpected character `{}`", c as char))),
@@ -200,7 +199,7 @@ mod tests {
     fn line_comments() {
         assert_eq!(toks("a -- x -> y\nb"), [Tok::Lower("a".into()), Tok::Lower("b".into())]);
         assert_eq!(lex("a -- c\nb").unwrap()[1].line, 2);
-        assert_eq!(lex("{- old -}").unwrap_err().msg, "comments are `--` to the end of the line, not `{- -}`");
+        assert_eq!(lex("{ x").unwrap_err().msg, "unexpected character `{`");
     }
 
     #[test]

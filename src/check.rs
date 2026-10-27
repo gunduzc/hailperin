@@ -12,7 +12,7 @@
 //! is free, since the kernel theorem doesn't change. A line that isn't under a layer yet is
 //! put under it first, by weakening.
 
-use crate::kernel::formula::{absurd, all, and, atom, ex, hole_names, imp, or, Formula, Name, Node, Template};
+use crate::kernel::formula::{absurd, all, and, atom, ex, fresh, hole_names, imp, or, Formula, Name, Node, Template};
 use crate::kernel::{self, Axiom, Lemma, Thm};
 use crate::parse::{Arg, Assume, Block, FExpr, Item, Just, Line, Param, Step, TArg, Therefore};
 use crate::print::show;
@@ -31,7 +31,7 @@ enum Kind {
     Pred(usize),
 }
 
-/// A definition, or a theory member: parameters and a body.
+/// A definition: parameters and a body.
 struct Def {
     params: Vec<(String, Kind)>,
     body: Formula,
@@ -98,6 +98,8 @@ struct Cx {
     lines: Vec<Labeled>,
     /// The index in `lines` where the current block began, innermost last.
     blocks: Vec<usize>,
+    /// The labels of lemmas that have closed, with the lemma each belonged to, for messages.
+    closed: Vec<(String, String)>,
 }
 
 impl Cx {
@@ -283,7 +285,7 @@ impl Checker {
             }
             Item::Define { name, params, body, line } => {
                 self.new_global(name, *line)?;
-                let def = self.definition(params, body, *line, false)?;
+                let def = self.definition(params, body)?;
                 // Messages print an instance by name, unless the definition only renames an atom.
                 let individuals = def.params.iter().all(|(_, k)| matches!(k, Kind::Individual));
                 if individuals && !matches!(def.body.node(), Node::Atom(..)) {
@@ -305,7 +307,7 @@ impl Checker {
 
     fn new_global(&self, name: &str, line: usize) -> Result<(), Error> {
         if RULES.contains(&name) {
-            return Err(Error::new(line, format!("`{name}` is a rule")));
+            return Err(Error::new(line, format!("`{name}` is a rule, so it can't be a theorem's name")));
         }
         if self.globals.contains_key(name) {
             return Err(Error::new(line, format!("`{name}` is already defined")));
@@ -313,11 +315,11 @@ impl Checker {
         Ok(())
     }
 
-    // ---- definitions and theories ----
+    // ---- definitions ----
 
-    /// `define Name params = body`, or a theory member. Uppercase parameters are predicates
-    /// or statements, with the arity their placeholders fix; lowercase ones are individuals.
-    fn definition(&self, params: &[Param], body: &FExpr, line: usize, closed: bool) -> Result<Def, Error> {
+    /// `define Name params = body`. Uppercase parameters are predicates or statements, with the
+    /// arity their placeholders fix; lowercase ones are individuals.
+    fn definition(&self, params: &[Param], body: &FExpr) -> Result<Def, Error> {
         let preds = self.params(params)?;
         let mut kinds = Vec::new();
         let mut bound = Vec::new();
@@ -325,9 +327,6 @@ impl Checker {
             if upper(&p.name) {
                 kinds.push((p.name.clone(), Kind::Pred(p.holes.len())));
             } else {
-                if closed {
-                    return Err(Error::new(line, format!("`{}` is lowercase, and a theory member's parameters are predicates", p.name)));
-                }
                 kinds.push((p.name.clone(), Kind::Individual));
                 bound.push(Name::from(p.name.as_str()));
             }
@@ -381,6 +380,10 @@ impl Checker {
         cx.blocks.push(start_lines);
         let res = self.block_body(b, cx, name, start_depth, theorem);
         cx.blocks.pop();
+        if !theorem {
+            let gone: Vec<(String, String)> = cx.lines[start_lines..].iter().map(|l| (l.label.clone(), name.to_string())).collect();
+            cx.closed.extend(gone);
+        }
         cx.lines.truncate(start_lines);
         cx.stack.truncate(start_depth);
         res
@@ -444,7 +447,15 @@ impl Checker {
         // The line under every layer the block opened, outermost first, then each closed,
         // innermost first.
         let block: Vec<usize> = (start_depth..cx.stack.len()).collect();
-        let mut o = self.weaken(cx, &above, &union(&above.layers, &block)).map_err(|m| Error::new(line, m))?;
+        // An assumption the line is weakened under brings the layers of the variables it mentions.
+        let mut target = union(&above.layers, &block);
+        let mentioned: Vec<usize> = target
+            .iter()
+            .filter_map(|&i| if let Entry::Hyp(h) = &cx.stack[i] { Some(h.free_vars().iter().filter_map(|x| cx.var_index(x)).collect::<Vec<_>>()) } else { None })
+            .flatten()
+            .collect();
+        target = union(&target, &mentioned);
+        let mut o = self.weaken(cx, &above, &target).map_err(|m| Error::new(line, m))?;
         for &i in block.iter().rev() {
             let var = matches!(cx.stack[i], Entry::Var(_));
             o = self.close_at(cx, &o, i, var).map_err(|m| Error::new(line, m))?;
@@ -452,8 +463,18 @@ impl Checker {
         let want = self.proof_formula(&t.formula, cx)?;
         let got = self.body(cx, &o).map_err(|m| Error::new(line, m))?;
         if got != want {
-            let opened = cx.stack[start_depth..].iter().map(describe).collect::<Vec<_>>();
-            let over = if opened.is_empty() { String::new() } else { format!(", closed over {}", opened.join(", ")) };
+            // What the block opened, by name: variables, and assumptions by their labels.
+            let opened: Vec<String> = (start_depth..cx.stack.len())
+                .map(|i| match &cx.stack[i] {
+                    Entry::Var(x) => format!("`{x}`"),
+                    Entry::Hyp(h) => cx.lines.iter().find(|l| l.hyp_index == Some(i)).map_or_else(|| show(h), |l| format!("`{}`", l.label)),
+                })
+                .collect();
+            let over = match opened.split_last() {
+                None => String::new(),
+                Some((last, [])) => format!(", closed over {last},"),
+                Some((last, rest)) => format!(", closed over {} and {last},", rest.join(", ")),
+            };
             return Err(Error::new(line, format!("`{label}`{over} gives {}, not {}", show(&got), show(&want))));
         }
         self.trace_line(cx, name, &o, &want);
@@ -614,7 +635,10 @@ impl Checker {
                 match self.globals.get(n) {
                     Some(Global::Theorem(info)) => self.call(n, info, &[], &[], cx, None, *line),
                     _ if cx.var_index(n).is_some() => Err(Error::new(*line, format!("`{n}` is a variable, and a line is needed here"))),
-                    _ => Err(Error::new(*line, format!("`{n}` is not a line here{}", self.did_you_mean(n, cx)))),
+                    _ => match cx.closed.iter().rev().find(|(l, _)| l == n) {
+                        Some((_, lemma)) => Err(Error::new(*line, format!("`{n}` was a line of lemma `{lemma}`, which has closed"))),
+                        None => Err(Error::new(*line, format!("`{n}` is not a line or a theorem here{}", self.did_you_mean(n, cx)))),
+                    },
                 }
             }
             Arg::Instance { head: n, targs, line } => match self.globals.get(n) {
@@ -632,7 +656,7 @@ impl Checker {
                 None if cx.lookup(n).is_some() => Err(Error::new(*line, format!("`{n}` is a line, and a variable is needed here"))),
                 None => Err(Error::new(*line, format!("`{n}` is not a variable in scope: declare it with `variable {n}` in this block"))),
             },
-            other => Err(Error::new(other.line(), "expected a variable")),
+            other => Err(Error::new(other.line(), "a variable is needed here, not a theorem's instance")),
         }
     }
 
@@ -909,8 +933,9 @@ impl Checker {
             "absurd_e" => {
                 need(1, "one line, `absurd`")?;
                 let f = self.arg_open(&args[0], cx)?;
-                if self.body(cx, &f).map_err(err)? != absurd() {
-                    return Err(err("`absurd_e` needs a line that is `absurd`".into()));
+                let ff = self.body(cx, &f).map_err(err)?;
+                if ff != absurd() {
+                    return Err(err(format!("`absurd_e` needs a line that is `absurd`, and {} isn't", show(&ff))));
                 }
                 self.apply_axiom(cx, Axiom::Efq(want.clone()), &[f]).map_err(err)
             }
@@ -957,7 +982,20 @@ impl Checker {
                 let Some((ys, pairs, a)) = found else {
                     return Err(err(format!("{} is not {} at any variables in scope", show(&fl), show(want))));
                 };
-                let binders: Vec<Name> = binders[..ys.len()].to_vec();
+                let mut binders: Vec<Name> = binders[..ys.len()].to_vec();
+                // A binder named like an outer binder's witness would capture it as the instance
+                // is built, so it is renamed apart first. The result is the same up to bound names.
+                let (mut a, mut pairs) = (a, pairs);
+                for j in 1..binders.len() {
+                    if ys[..j].contains(&binders[j]) {
+                        let mut taken: BTreeSet<&str> = ys.iter().chain(&binders).chain(&in_scope).map(|n| &**n).collect();
+                        taken.extend(a.free_vars().iter().map(|n| &**n));
+                        let nb = fresh(&binders[j], &taken);
+                        a = a.subst_vars(&[(binders[j].clone(), nb.clone())]);
+                        pairs[j].0 = nb.clone();
+                        binders[j] = nb;
+                    }
+                }
                 // Innermost binder first: a[y/x] -> exists x. a, with the outer witnesses in place.
                 let mut o = l;
                 for k in (0..binders.len()).rev() {
@@ -981,7 +1019,11 @@ impl Checker {
                     cur = a;
                 }
                 if xs.is_empty() {
-                    return Err(err(format!("`exists_e` needs an `exists`, and {} isn't one", show(&fe))));
+                    let first = match &args[0] {
+                        Arg::Ident(n, _) => format!("`{n}`"),
+                        Arg::Instance { head, .. } => format!("the instance of `{head}`"),
+                    };
+                    return Err(err(format!("{first} is {}, which is not an `exists`: `exists_e` takes the `exists` first, then the lemma", show(&fe))));
                 }
                 let innermost = cur.clone();
                 // The witness line: one `forall` per binder it eliminates, then `A -> C`. It may
@@ -1292,16 +1334,16 @@ impl Checker {
 
     /// Modus ponens under `stack`: `f` proves `A -> B` there, `a` proves `A`.
     fn mp(&self, stack: &[Entry], f: &Thm, a: &Thm) -> Result<Thm, String> {
-        if stack.is_empty() {
-            return kernel::mp(a, f);
-        }
-        let fb = unwrap(f.concl(), stack)?;
-        let ab = unwrap(a.concl(), stack)?;
+        // The shape is checked here, so a mismatch is reported in the file's syntax.
+        let (fb, ab) = if stack.is_empty() { (f.concl().clone(), a.concl().clone()) } else { (unwrap(f.concl(), stack)?, unwrap(a.concl(), stack)?) };
         let Node::Imp(p, q) = fb.node() else {
             return Err(format!("{} is not an implication", show(&fb)));
         };
         if *p != ab {
             return Err(format!("{} needs {}, but got {}", show(&fb), show(p), show(&ab)));
+        }
+        if stack.is_empty() {
+            return kernel::mp(a, f);
         }
         self.use_shape_rule(stack, Rule::Mp, &[p.clone(), q.clone()], &[f, a])
     }
@@ -1597,7 +1639,7 @@ impl Checker {
         }
         let templates: Vec<Template> = sol.into_iter().map(|t| t.expect("every template was solved")).collect();
         // The instance is closed over the variables its templates mention, outermost first,
-        // and instantiated back at them, like a theory member.
+        // and instantiated back at them.
         let mut extras: Vec<(usize, Name)> = templates
             .iter()
             .flat_map(Template::extras)

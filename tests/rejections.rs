@@ -37,9 +37,9 @@ fn a_witness_makes_it_go_through() {
 fn therefore_states_the_closure() {
     // Q is derived under x, so the lemma yields `forall x. Q`, not `Q`.
     let src = "theorem bad:\n predicate P x\n predicate Q\n assume f: forall x. P x -> Q\n assume p: forall x. P x\n lemma l:\n  variable x\n  fx: P x -> Q by forall_e f x\n  px: P x by forall_e p x\n  q: Q by imp_e fx px\n  therefore Q\n therefore (forall x. P x -> Q) -> (forall x. P x) -> Q";
-    assert_eq!(err(src), "bad: `q`, closed over the variable `x` gives forall x. Q, not Q");
+    assert_eq!(err(src), "bad: `q`, closed over `x`, gives forall x. Q, not Q");
     let src = "theorem bad:\n predicate A\n assume a: A\n therefore A";
-    assert_eq!(err(src), "bad: `a`, closed over the assumption A gives A -> A, not A");
+    assert_eq!(err(src), "bad: `a`, closed over `a`, gives A -> A, not A");
 }
 
 #[test]
@@ -79,7 +79,7 @@ fn sections_come_in_order() {
 #[test]
 fn labels_are_local_to_their_block() {
     let src = "theorem bad:\n predicate A\n lemma l:\n  assume a: A\n  k: A by reit a\n  therefore A -> A\n j: A by reit k\n therefore A";
-    assert_eq!(err(src), "bad: `k` is not a line here");
+    assert_eq!(err(src), "bad: `k` was a line of lemma `l`, which has closed");
 }
 
 #[test]
@@ -191,7 +191,7 @@ fn neg_check_exists_e_witness() {
 #[test]
 fn neg_check_label_local() {
     let src = "-- A lemma's labels are local to it.\ntheorem bad:\n  predicate A\n  lemma l:\n    assume a: A\n    k: A by reit a\n    therefore A -> A\n  j: A by reit k\n  therefore A\n";
-    assert_eq!(fail(src), "failure: line 8: bad: `k` is not a line here");
+    assert_eq!(fail(src), "failure: line 8: bad: `k` was a line of lemma `l`, which has closed");
 }
 
 #[test]
@@ -233,13 +233,13 @@ fn neg_check_template_arity() {
 #[test]
 fn neg_check_therefore_closes_assumptions() {
     let src = "-- A block's `therefore` closes every assumption the block opened.\ntheorem bad:\n  predicate A\n  lemma l:\n    assume a: A\n    therefore A\n  therefore A\n";
-    assert_eq!(fail(src), "failure: line 6: bad: `a`, closed over the assumption A gives A -> A, not A");
+    assert_eq!(fail(src), "failure: line 6: bad: `a`, closed over `a`, gives A -> A, not A");
 }
 
 #[test]
 fn neg_check_therefore_closes_variables() {
     let src = "-- A block's `therefore` closes every variable the block opened.\npredicate P x\ntheorem bad:\n  assume h: forall x. P x\n  lemma l:\n    variable x\n    px: P x by forall_e h x\n    therefore P x\n  therefore (forall x. P x) -> P x\n";
-    assert_eq!(fail(src), "failure: line 8: bad: `px`, closed over the variable `x` gives forall x. P x, not P x");
+    assert_eq!(fail(src), "failure: line 8: bad: `px`, closed over `x`, gives forall x. P x, not P x");
 }
 
 #[test]
@@ -288,12 +288,6 @@ fn neg_empty_textbook_forall_exists() {
 fn neg_empty_vacuous_inst() {
     let src = "-- Dropping a vacuous `forall`: `forall_e` needs a variable, and there is none.\ntheorem vacuous:\n  predicate A\n  assume h: forall x. A\n  a: A by forall_e h\n  therefore (forall x. A) -> A\n";
     assert_eq!(fail(src), "failure: line 5: vacuous: `forall_e` takes a `forall` line, then the variables");
-}
-
-#[test]
-fn neg_lex_block_comment() {
-    let src = "{- the old comment syntax -}\ntheorem t:\n  predicate A\n  assume a: A\n  therefore A -> A\n";
-    assert_eq!(fail(src), "failure: line 1: comments are `--` to the end of the line, not `{- -}`");
 }
 
 #[test]
@@ -359,7 +353,7 @@ fn neg_parse_name_needs_colon() {
 #[test]
 fn neg_parse_missing_therefore() {
     let src = "theorem t:\n  predicate A\n  assume a: A\n  k: A by reit a\ntheorem u:\n  predicate A\n  assume a: A\n  therefore A -> A\n";
-    assert_eq!(fail(src), "failure: line 5: the block `t` has no `therefore`");
+    assert_eq!(fail(src), "failure: line 4: the block `t` has no `therefore`");
 }
 
 
@@ -407,7 +401,7 @@ fn axioms_are_assumptions() {
     // The statement must say what was assumed.
     let src = "predicate P x\npredicate Q x\ndefine Ax = forall x. P x -> Q x\n\
         theorem t:\n assume ax: Ax\n lemma l:\n  variable x\n  assume p: P x\n  q: Q x by imp_e ax p\n  therefore forall x. P x -> Q x\n therefore forall x. P x -> Q x";
-    assert!(err(src).starts_with("t: `l`, closed over the assumption"));
+    assert!(err(src).starts_with("t: `l`, closed over `ax`, gives"));
     // A citation has to supply it.
     let src = "predicate P x\npredicate Q x\ndefine Ax = forall x. P x -> Q x\n\
         theorem t:\n assume ax: Ax\n lemma l:\n  variable x\n  assume p: P x\n  q: Q x by imp_e ax p\n  therefore forall x. P x -> Q x\n therefore Ax -> forall x. P x -> Q x\n\
@@ -424,12 +418,26 @@ fn schemas_are_definitions() {
     assert_eq!(ok(src).len(), 1);
 }
 
+/// Closing weakens a line under the block's assumptions, together with the variables they
+/// mention, even when those variables belong to an outer block.
 #[test]
-fn neg_parse_no_theories() {
-    let src = "theory T\n  assume ax: forall x. P x\n";
-    assert_eq!(fail(src), "failure: line 1: there are no theories: define the axioms, and a theorem assumes what it uses");
-    let src = "predicate P x\ntheorem t:\n  variable y\n  k: P y by forall_e T.ax y\n  therefore forall y. P y\n";
-    assert_eq!(fail(src), "failure: line 4: `T.` names a theory member, and there are no theories: assume the axiom and cite its label");
+fn closing_weakens_under_outer_variables() {
+    let src = "predicate P x\npredicate A\ntheorem t:\n  variable w\n  lemma k:\n    assume a: A\n    assume p: P w\n    r: A by reit a\n    therefore A -> P w -> A\n  therefore forall w. A -> P w -> A\n";
+    assert_eq!(ok(src), ["t: forall w. A -> P w -> A"]);
+}
+
+/// Modus ponens with nothing open reports in the file's syntax, like everywhere else.
+#[test]
+fn neg_check_mp_at_top() {
+    let src = "predicate A\npredicate B\ntheorem s:\n  assume a: A and B\n  r: A by and_e a\n  therefore A and B -> A\ntheorem e:\n  assume a: B\n  therefore B -> B\ntheorem t:\n  k: A by imp_e s e\n  therefore A\n";
+    assert_eq!(fail(src), "failure: line 11: t: A and B -> A needs A and B, but got B -> B");
+}
+
+/// `exists_e` takes the `exists` first: the message says so when the two are swapped.
+#[test]
+fn neg_check_exists_e_order() {
+    let src = "predicate P x\ntheorem t:\n  assume e: exists x. P x\n  lemma c:\n    variable x\n    assume p: P x\n    k: exists y. P y by exists_i p\n    therefore forall x. P x -> exists y. P y\n  r: exists y. P y by exists_e c e\n  therefore (exists x. P x) -> exists y. P y\n";
+    assert_eq!(fail(src), "failure: line 9: t: `c` is forall x. P x -> exists y. P y, which is not an `exists`: `exists_e` takes the `exists` first, then the lemma");
 }
 
 /// A misspelled rule, line or theorem gets a suggestion, when one name is close.
@@ -438,7 +446,7 @@ fn neg_check_did_you_mean() {
     let src = "predicate A\ntheorem t:\n  assume a: A\n  b: A by riet a\n  therefore A -> A\n";
     assert_eq!(fail(src), "failure: line 4: t: `riet` is not a rule, a line here, or a theorem: did you mean `reit`?");
     let src = "predicate A\ntheorem lemma_one:\n  assume a: A\n  therefore A -> A\ntheorem t:\n  assume a: A\n  b: A by imp_e lemma_on a\n  therefore A -> A\n";
-    assert_eq!(fail(src), "failure: line 7: t: `lemma_on` is not a line here: did you mean `lemma_one`?");
+    assert_eq!(fail(src), "failure: line 7: t: `lemma_on` is not a line or a theorem here: did you mean `lemma_one`?");
 }
 
 /// A cited theorem takes its lines, then variables for what is left.
@@ -456,7 +464,7 @@ fn reit_brings_a_line_down() {
     let src = "theorem k:\n predicate A\n predicate B\n assume a: A\n assume b: B\n r: A by reit a\n therefore A -> B -> A";
     assert_eq!(ok(src), ["k: A -> B -> A"]);
     let src = "theorem k:\n predicate A\n predicate B\n assume a: A\n assume b: B\n therefore A -> B -> A";
-    assert_eq!(err(src), "k: `b`, closed over the assumption A, the assumption B gives A -> B -> B, not A -> B -> A");
+    assert_eq!(err(src), "k: `b`, closed over `a` and `b`, gives A -> B -> B, not A -> B -> A");
 }
 
 #[test]
@@ -525,4 +533,17 @@ fn imports_across_directories() {
     assert!(check("sub/deep/b").is_ok());
     assert!(check("y").unwrap_err().msg.starts_with("import cycle: "));
     std::fs::remove_dir_all(&dir).unwrap();
+}
+
+#[test]
+fn keyword_as_label() {
+    let src = "predicate P x\ntheorem t:\n  variable x\n  assume by: P x\n  therefore forall x. P x -> P x\n";
+    assert_eq!(fail(src), "failure: line 4: expected the assumption's label, and `by` is a keyword");
+}
+
+#[test]
+fn exists_i_witness_named_like_an_inner_binder() {
+    // The witness for k is k1, the name of the next binder: it must not be captured.
+    let src = "predicate P x y\ntheorem t:\n  variable k k1\n  assume h: P k1 k\n  e: exists k k1. P k k1 by exists_i h\n  therefore forall k k1. P k1 k -> exists k k1. P k k1\n";
+    ok(src);
 }

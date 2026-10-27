@@ -217,6 +217,10 @@ impl Parser<'_> {
                 Ok(n)
             }
             Some(Tok::Upper(n)) => Err(self.err(format!("expected {what}, which is lowercase, not `{n}`"))),
+            Some(Tok::Kw(k)) => {
+                let word = crate::lexer::KEYWORDS.iter().find(|(_, x)| x == k).map_or("?", |(w, _)| w);
+                Err(self.err(format!("expected {what}, and `{word}` is a keyword")))
+            }
             _ => Err(self.err(format!("expected {what}"))),
         }
     }
@@ -263,7 +267,7 @@ impl Parser<'_> {
         Ok(holes)
     }
 
-    /// A parameter of a definition or a schema member: `(P x y)`, `(A)`, or a lowercase
+    /// A parameter of a definition: `(P x y)`, `(A)`, or a lowercase
     /// individual.
     fn param(&mut self) -> Result<Option<Param>, Error> {
         let line = self.line();
@@ -313,9 +317,6 @@ impl Parser<'_> {
                 Ok(Item::Theorem { name, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
-            Some(Tok::Lower(w)) if w == "theory" => {
-                Err(self.err("there are no theories: define the axioms, and a theorem assumes what it uses"))
-            }
             _ => Err(self.err("expected `theorem`, `define` or `predicate`")),
         }
     }
@@ -392,7 +393,9 @@ impl Parser<'_> {
                 }
                 _ if self.at_label() => steps.push(Step::Line(self.step_line()?)),
                 _ if self.at_item_keyword() => {
-                    return Err(self.err(format!("the block `{name}` has no `therefore`")));
+                    // The `therefore` belongs after the block's last line, so that is where it's missing.
+                    let last = self.toks.get(self.pos.wrapping_sub(1)).map_or(1, |t| t.line);
+                    return Err(Error::new(last, format!("the block `{name}` has no `therefore`")));
                 }
                 _ => return Err(self.step_error(&steps)),
             }
@@ -429,9 +432,6 @@ impl Parser<'_> {
     fn name_after_by(&mut self) -> Result<String, Error> {
         match self.peek() {
             Some(Tok::Lower(_)) => self.lower(""),
-            Some(Tok::Upper(n)) if self.peek2() == Some(&Tok::Sym(Sym::Dot)) => {
-                Err(self.err(format!("`{n}.` names a theory member, and there are no theories: assume the axiom and cite its label")))
-            }
             Some(Tok::Upper(n)) => Err(self.err(format!("`{n}` is capitalized, so it isn't a rule, line or theorem: templates go in an instance, `(t {n})`"))),
             _ => Err(self.err("expected a rule, line, variable or theorem")),
         }
@@ -700,8 +700,6 @@ mod tests {
         assert_eq!(e.msg, "`x` is lowercase, so it isn't a statement or predicate");
         let e = parse(&lex("define X\nimport a").unwrap()).unwrap_err();
         assert!(e.msg.contains("expected `=`"));
-        let e = parse(&lex("theory T\n assume ax: A").unwrap()).unwrap_err();
-        assert_eq!(e.msg, "there are no theories: define the axioms, and a theorem assumes what it uses");
     }
 
     #[test]
