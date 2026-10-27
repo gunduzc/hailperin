@@ -37,6 +37,9 @@ struct Item {
     /// The segment the item's `by` aligns with, if it has one. A segment is a run of steps in
     /// one block that no lemma interrupts. A `therefore` stands alone.
     group: Option<usize>,
+    /// For a definition, the column of its `=`, shared by a run of definitions with no blank
+    /// line between them.
+    equals: Option<usize>,
 }
 
 /// A comment: its line, its text from `--` on, and whether tokens precede it on its line.
@@ -49,7 +52,13 @@ struct Comment {
 pub fn format(src: &str, opts: &Options) -> Result<String, Error> {
     let toks = lex(src)?;
     let comments = comments(src);
+    // Whether the source has a blank line strictly between two lines.
+    let blanks: Vec<usize> = src.lines().enumerate().filter(|(_, l)| l.trim().is_empty()).map(|(i, _)| i + 1).collect();
+    let blank_between = |a: usize, b: usize| blanks.iter().any(|&l| a < l && l < b);
     let mut items = items(&toks, opts.theorem_wide);
+    if opts.pad {
+        equals_columns(&mut items, &blank_between);
+    }
     if let Some(width) = opts.width {
         for it in &mut items {
             break_long(it, width, opts);
@@ -72,16 +81,25 @@ pub fn format(src: &str, opts: &Options) -> Result<String, Error> {
             }
         }
         // A blank line between top-level items, except inside a run of declarations,
-        // definitions or imports.
+        // definitions or imports, and wherever the source has one.
         let same_run = k > 0 && top && matches!((head(&items[k - 1]), head(it)), (Some(Tok::Kw(a)), Some(Tok::Kw(b))) if a == b && matches!(a, Kw::Predicate | Kw::Define | Kw::Import));
-        if k > 0 && !same_run && (top || prev_top_level && !pending.is_empty()) {
+        let mut last = items.get(k.wrapping_sub(1)).map_or(0, |p| p.lines.last().map_or(0, |(l, _)| *l));
+        let first = pending.first().map_or(it.first_line, |c| c.line);
+        if k > 0 && (!same_run && (top || prev_top_level && !pending.is_empty()) || blank_between(last, first)) {
             out.push('\n');
         }
         let indent = " ".repeat(it.depth * opts.indent);
         let cont = " ".repeat(it.depth * opts.indent + opts.continuation);
         for c in pending {
+            if c.line != first && blank_between(last, c.line) {
+                out.push('\n');
+            }
             out.push_str(&indent);
             out.push_str(&c.text);
+            out.push('\n');
+            last = c.line;
+        }
+        if first != it.first_line && blank_between(last, it.first_line) {
             out.push('\n');
         }
         let rendered = render(it, it.group.map(|g| columns[g]), opts);
@@ -186,7 +204,7 @@ fn items(toks: &[Token], theorem_wide: bool) -> Vec<Item> {
                 segments - 1
             }));
         }
-        items.push(Item { lines, first_line: toks[s].line, depth, group });
+        items.push(Item { lines, first_line: toks[s].line, depth, group, equals: None });
         match head {
             Some(Kw::Theorem) | Some(Kw::Lemma) => stack.push(None),
             Some(Kw::Therefore) => {
@@ -200,6 +218,34 @@ fn items(toks: &[Token], theorem_wide: bool) -> Vec<Item> {
         }
     }
     items
+}
+
+/// The `=` column of each run of definitions with no blank line between them: one past the
+/// longest name and parameters in it.
+fn equals_columns(items: &mut [Item], blank_between: &dyn Fn(usize, usize) -> bool) {
+    let header = |it: &Item| {
+        let line = &it.lines[0].1;
+        let p = line.iter().position(|t| *t == Tok::Sym(Sym::Equals))?;
+        (line[0] == Tok::Kw(Kw::Define)).then(|| render_toks(&line[..p]).len())
+    };
+    let mut k = 0;
+    while k < items.len() {
+        let mut end = k;
+        while header(&items[end]).is_some() && end + 1 < items.len() && header(&items[end + 1]).is_some() {
+            let gap = (items[end].lines.last().map_or(0, |(l, _)| *l), items[end + 1].first_line);
+            if blank_between(gap.0, gap.1) {
+                break;
+            }
+            end += 1;
+        }
+        let col = (k..=end).filter_map(|i| header(&items[i])).max().map(|w| w + 1);
+        for it in &mut items[k..=end] {
+            if header(it).is_some() {
+                it.equals = col;
+            }
+        }
+        k = end + 1;
+    }
 }
 
 /// Where line `j` of an item starts: its indentation, or the continuation's.
@@ -330,10 +376,18 @@ fn render(it: &Item, column: Option<usize>, opts: &Options) -> Vec<String> {
                 s.push_str(&" ".repeat(pad));
                 s.push_str(&render_toks(&line[p..]));
             }
-            None => {
-                s.push_str(&" ".repeat(at));
-                s.push_str(&render_toks(line));
-            }
+            None => match line.iter().position(|t| *t == Tok::Sym(Sym::Equals)).zip(it.equals).filter(|_| j == 0) {
+                Some((p, col)) => {
+                    let name = render_toks(&line[..p]);
+                    s.push_str(&name);
+                    s.push_str(&" ".repeat(col - name.len()));
+                    s.push_str(&render_toks(&line[p..]));
+                }
+                None => {
+                    s.push_str(&" ".repeat(at));
+                    s.push_str(&render_toks(line));
+                }
+            },
         }
         out.push(s);
     }
@@ -395,7 +449,7 @@ mod tests {
     #[test]
     fn definitions_assumptions_comments_and_spacing() {
         let src = "define X = A\ndefine Ax (P x) = forall x.\nP x  -- all\ntheorem u:\nassume ax: Ax Q\nk: forall x. Q x by reit ax\ntherefore Ax Q -> forall x. Q x\n";
-        let want = "define X = A\ndefine Ax (P x) = forall x.\n    P x  -- all\n\ntheorem u:\n  assume ax: Ax Q\n  k: forall x. Q x by reit ax\n  therefore Ax Q -> forall x. Q x\n";
+        let want = "define X        = A\ndefine Ax (P x) = forall x.\n    P x  -- all\n\ntheorem u:\n  assume ax: Ax Q\n  k: forall x. Q x by reit ax\n  therefore Ax Q -> forall x. Q x\n";
         assert_eq!(fmt(src), want);
     }
 
@@ -409,9 +463,18 @@ mod tests {
     }
 
     #[test]
-    fn declarations_stay_together() {
-        assert_eq!(fmt("import a\nimport b\npredicate P x\n\npredicate Q\ndefine X = Q\n"), "import a\nimport b\n\npredicate P x\npredicate Q\n\ndefine X = Q\n");
-        assert_eq!(fmt("define X = Q\n\ndefine Y = X\ntheorem t:\n assume x: X\n therefore X -> X\n"), "define X = Q\ndefine Y = X\n\ntheorem t:\n  assume x: X\n  therefore X -> X\n");
+    fn declarations_stay_together_unless_a_blank_line_parts_them() {
+        assert_eq!(fmt("import a\nimport b\npredicate P x\npredicate Q\ndefine X = Q\n"), "import a\nimport b\n\npredicate P x\npredicate Q\n\ndefine X = Q\n");
+        assert_eq!(fmt("define X = Q\n\n\ndefine Y = X\ntheorem t:\n assume x: X\n\n therefore X -> X\n"), "define X = Q\n\ndefine Y = X\n\ntheorem t:\n  assume x: X\n\n  therefore X -> X\n");
+    }
+
+    #[test]
+    fn equals_align_per_run_of_definitions() {
+        let src = "define A1 = Q\ndefine Long x y =   Q\n-- apart\ndefine Ab = Q\n\ndefine B = Q\n";
+        let want = "define A1       = Q\ndefine Long x y = Q\n-- apart\ndefine Ab       = Q\n\ndefine B = Q\n";
+        assert_eq!(fmt(src), want);
+        let space = format(src, &Options { pad: false, ..Options::default() }).unwrap();
+        assert_eq!(space, "define A1 = Q\ndefine Long x y = Q\n-- apart\ndefine Ab = Q\n\ndefine B = Q\n");
     }
 
     #[test]

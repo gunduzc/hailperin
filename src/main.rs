@@ -8,7 +8,7 @@ const USAGE: &str = "usage: hailperin [FILE]          check a file (`-` or nothi
            --indent N            spaces per level (2)
            --continue N          spaces a continued line goes past its item (4)
            --width N             break lines longer than N (never)
-           --by pad|space        `by` in one column per segment, or after one space (pad)
+           --by pad|space        `by` and `=` in one column per group, or after one space (pad)
            --scope segment|theorem
                                  a column per run of steps, or per theorem (segment)
        hailperin explain FILE    print each line's scope and formula";
