@@ -152,7 +152,7 @@ pub fn parse(toks: &[Token]) -> Result<File, Error> {
     }
     let mut items = Vec::new();
     while p.pos < toks.len() {
-        items.push(p.item()?);
+        items.push(p.item(items.is_empty())?);
     }
     Ok(File { imports, items })
 }
@@ -302,7 +302,8 @@ impl Parser<'_> {
         }
     }
 
-    fn item(&mut self) -> Result<Item, Error> {
+    /// An item; `first` when nothing but imports came before it, so one more could.
+    fn item(&mut self, first: bool) -> Result<Item, Error> {
         let line = self.line();
         match self.peek() {
             Some(Tok::Kw(Kw::Predicate)) => {
@@ -330,6 +331,7 @@ impl Parser<'_> {
                 Ok(Item::Theorem { name, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
+            _ if first => Err(self.err("expected `import`, `theorem`, `define` or `predicate`")),
             _ => Err(self.err("expected `theorem`, `define` or `predicate`")),
         }
     }
@@ -741,6 +743,10 @@ mod tests {
         assert_eq!((e.line, e.msg.as_str()), (3, "a lemma's name is followed by a colon, like every name that can be cited: `lemma l:`"));
         let e = parse(&lex("theorem t:\n a: A by reit x\n p Person x by reit a\n therefore A").unwrap()).unwrap_err();
         assert_eq!((e.line, e.msg.as_str()), (3, "`p` was read as an argument of the line above. If it is a label, it needs a colon: `p:`"));
+        let e = parse(&lex("x").unwrap()).unwrap_err();
+        assert_eq!(e.msg, "expected `import`, `theorem`, `define` or `predicate`");
+        let e = parse(&lex("predicate A\nx:").unwrap()).unwrap_err();
+        assert_eq!(e.msg, "expected `theorem`, `define` or `predicate`");
         let e = parse(&lex("define X = x").unwrap()).unwrap_err();
         assert_eq!(e.msg, "`x` is lowercase, so it isn't a statement or predicate");
         let e = parse(&lex("define X\nimport a").unwrap()).unwrap_err();
