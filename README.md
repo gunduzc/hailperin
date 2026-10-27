@@ -49,17 +49,25 @@ theorem socrates_is_mortal:
 
 The result is this repository.
 
-It technically doesn't allow infinite axiomatization or axiom schemas anywhere.
+One small limitation is that while it allows axiom schemas, there is no way to restrict axiom schemas by the properties of the predicate.
 
-Systems that are infinitely axiomatized (or systems that are only finitely axiomatizable via coding) would require serious arithmetization.
+Which means the traditional presentations of finitely axiomatized $ACA_0$ and $I\Sigma_1$ are unavailable, and so are the traditional presentations of some infinitely axiomatized theories like PRA.
+
+Systems that possess this property would require serious arithmetization work. (Or you could apply Goedel's trick that transforms ZFC into NBG, but I'm not entirely sure how.)
 
 But they're possible, and I'm willing to bet that one day, it will be fun to make them happen.
 
-You have two workarounds for that purpose. The first is, you can assert the instances of the schemas you want individually, but that's clunky. I'd only recommend it if you wanted to comfortably define coding in the first place.
+As a result, the theories I recommend you work in are those that are either naturally finitely axiomatized or those that are infinitely axiomatized without restricted predicates.
 
-The second is, you could just prefer to go for a naturally finitely axiomatized theory. HF, NBG and NF are fun options. NF's finite axiomatization is also courtesy of Hailperin, the awesome logician who made all of this possible.
+HF is a good choice, because it has no trouble expressing syntax and has a known (and a small, conservative) proof theoretic ordinal, and proves the same theorems PA proves.
+
+Other theories I would recommend are ZFC, NBG, IZF, HA, PA... you get the idea. The usual bunch. Presburger arithmetic is also possible.
+
+Quine's NF is also there, and thanks to Hailperin, the logician, it's finitely axiomatized! Isn't that nice?
 
 Q also presents very naturally in Hailperin for those who like living life in higher difficulty settings.
+
+Anyway.
 
 I hope you enjoy Hailperin. I certainly did.
 
@@ -67,11 +75,10 @@ I hope you enjoy Hailperin. I certainly did.
 
 - Diaconescu's theorem: choice implies excluded middle, over an intuitionistic core of ZF ([diaconescu.hai](examples/diaconescu.hai))
 - Foundation implies excluded middle ([zfc.hai](examples/zfc.hai), `em_from_foundation`)
-- Russell's paradox: there is no set of all sets ([russell.hai](examples/russell.hai), `russell`)
+- Russell's paradox in pure logic: for any relation, nothing has exactly the non-self-members as members ([russell.hai](examples/russell.hai), `russell`)
 - Cantor's theorem: no function from a set onto its subsets, by the diagonal set ([cantor.hai](examples/cantor.hai), `cantor`)
 - Commutativity of addition in Peano arithmetic, with relations instead of functions ([plus_comm.hai](examples/plus_comm.hai))
 - A universal set in New Foundations, from Hailperin's finite axiomatization ([nf.hai](examples/nf.hai), `universe`)
-- $\in$-induction from adduction in intuitionistic hereditarily finite set theory ([hf.hai](examples/hf.hai), `eps_induction`)
 
 ## Usage
 
