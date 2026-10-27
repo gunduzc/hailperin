@@ -266,6 +266,15 @@ fn placeholders(n: usize, taken: &BTreeSet<Name>) -> Vec<Name> {
     out
 }
 
+/// What a global already is, for a clash.
+fn already(g: &Global) -> &'static str {
+    match g {
+        Global::Prim(_) => "is already declared",
+        Global::Def(_) => "is already defined",
+        Global::Theorem(_) => "is already a theorem",
+    }
+}
+
 /// A parameter with placeholders for its places, in backticks: `P x`.
 fn shown_param(p: &str, n: usize) -> String {
     let holes = placeholders(n, &BTreeSet::new());
@@ -321,22 +330,20 @@ impl Checker {
         if RULES.contains(&name) {
             return Err(Error::new(line, format!("`{name}` is a rule, so it can't be a theorem's name")));
         }
-        if let Some(what) = self.taken(name) {
-            return Err(Error::new(line, format!("`{name}` {what}")));
+        // One namespace for every file, so a clash names the other file.
+        if let Some((f, g)) = self.globals.get(name) {
+            let elsewhere = if *f == self.file() { String::new() } else { format!(" in {}", self.files[*f]) };
+            return Err(Error::new(line, format!("`{name}` {}{elsewhere}", already(g))));
         }
         Ok(())
     }
 
-    /// What a name already is, if anything.
+    /// What a name already is in the file being checked, if anything.
     fn taken(&self, name: &str) -> Option<&'static str> {
         if RULES.contains(&name) {
             return Some("is a rule");
         }
-        self.globals.get(name).map(|(_, g)| match g {
-            Global::Prim(_) => "is already declared",
-            Global::Def(_) => "is already defined",
-            Global::Theorem(_) => "is already a theorem",
-        })
+        self.global(name).map(already)
     }
 
     /// Starts a file: its number, from `add_file`, and the files it sees.

@@ -153,6 +153,17 @@ fn a_file_sees_only_what_it_imports() {
     ];
     assert!(run_files("sees", &files, "b.hai").contains("`X` is not declared"));
     assert_eq!(run_files("sees", &files, "c.hai"), "failure: b.hai: line 3: tb: `X` is from a.hai, which this file doesn't import\n");
+    // A theorem's predicate may share a name with a predicate it doesn't see, but two globals
+    // never share one, and the clash names the other file.
+    let files = [
+        ("a.hai", "predicate P x\n"),
+        ("b.hai", "theorem tb:\n  predicate P x\n  variable y\n  assume h: P y\n  therefore forall y. P y -> P y\n"),
+        ("c.hai", "import a\nimport b\n"),
+        ("d.hai", "predicate P\n"),
+        ("e.hai", "import a\nimport d\n"),
+    ];
+    assert_eq!(run_files("sees", &files, "c.hai"), "success\n");
+    assert_eq!(run_files("sees", &files, "e.hai"), "failure: d.hai: line 1: `P` is already declared in a.hai\n");
 }
 
 #[test]
