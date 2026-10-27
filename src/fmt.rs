@@ -302,9 +302,11 @@ fn split_line(it: &mut Item, j: usize, p: usize) {
 fn break_long(it: &mut Item, width: usize, opts: &Options) {
     let mut j = 0;
     while j < it.lines.len() {
-        let at = start(it, j, opts);
+        // As printed, with any padding before a definition's `=`.
+        let printed = render(it, None, opts)[j].len();
         let line = &it.lines[j].1;
-        if at + render_toks(line).len() > width {
+        let at = printed - render_toks(line).len();
+        if printed > width {
             let by = line.iter().position(|t| *t == Tok::Kw(Kw::By)).filter(|&p| p > 0);
             if let Some(p) = by.or_else(|| break_point(&line[..by.unwrap_or(line.len())], width.saturating_sub(at))) {
                 split_line(it, j, p);
@@ -361,7 +363,9 @@ fn render(it: &Item, column: Option<usize>, opts: &Options) -> Vec<String> {
         let mut s = String::new();
         match by {
             Some(0) => {
+                // The segment's column, unless that would run past the width.
                 let col = column.filter(|_| opts.pad).unwrap_or(0).max(at);
+                let col = if opts.width.is_some_and(|w| col + render_toks(line).len() > w) { at } else { col };
                 s.push_str(&" ".repeat(col));
                 s.push_str(&render_toks(line));
             }
@@ -506,5 +510,14 @@ mod tests {
         assert_eq!(format(&once, &opts).unwrap(), once);
         // Without a width, nothing is broken.
         assert_eq!(fmt(src).lines().count(), 9);
+    }
+
+    #[test]
+    fn a_width_counts_padding_and_moves_a_far_by_in() {
+        // `define A`'s line fits until `=` is padded, and the own-line `by` at its segment's
+        // column would run past the width.
+        let src = "predicate Q\ndefine A = Q and Q and Q\ndefine Longer x = Q\ntheorem t:\n  assume q: Q\n  longish_label: Q by reit q\n  s: Q\n  by and_i q q q\n  therefore Q -> Q\n";
+        let want = "predicate Q\n\ndefine A        = Q and Q\n    and Q\ndefine Longer x = Q\n\ntheorem t:\n  assume q: Q\n  longish_label: Q by reit q\n  s: Q\n      by and_i q q q\n  therefore Q -> Q\n";
+        assert_eq!(format(src, &Options { width: Some(28), ..Options::default() }).unwrap(), want);
     }
 }
