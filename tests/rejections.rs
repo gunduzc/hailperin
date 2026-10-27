@@ -57,7 +57,7 @@ fn names_never_meet() {
     let src = "theorem bad:\n predicate P y\n variable x\n lemma l:\n  variable x\n  therefore forall x. absurd -> absurd\n therefore absurd";
     assert_eq!(err(src), "bad: `x` is already a variable in scope");
     let src = "theorem bad:\n predicate P x\n variable x\n assume h: P x\n therefore forall x. P x -> P x";
-    assert_eq!(err(src), "bad: `x` is a name here, so it can't be a placeholder of `P`");
+    assert_eq!(err(src), "bad: `x` is a variable in scope, so it can't be a placeholder of `P`");
 }
 
 #[test]
@@ -548,12 +548,13 @@ fn nothing_shadows() {
     assert_eq!(err(src), "t: `k` is already a variable in scope");
     assert_eq!(err("predicate P x\ndefine D = forall x. exists x. P x"), "`x` is already bound here");
     assert_eq!(err("predicate P x\ndefine D = forall x x. P x"), "`x` is already bound here");
+    assert_eq!(err("predicate P x\ndefine D = forall reit. P reit"), "`reit` is a rule, so it can't be a variable");
     assert_eq!(err("predicate P x\ndefine D y = forall y. P y"), "`y` is already a parameter of this definition");
     let src = "predicate P x\ntheorem t:\n  assume h: forall x. P x\n  j: forall x. P x by reit h\n  k: forall j. P j by reit h\n  therefore (forall x. P x) -> forall x. P x\n";
-    assert_eq!(err(src), "t: `j` is a label here, so it can't be a variable");
+    assert_eq!(err(src), "t: `j` is a label in scope, so it can't be a variable");
     // A line's own label counts.
     let src = "predicate P x\ntheorem t:\n  assume h: forall x. P x\n  k: forall k. P k by reit h\n  therefore (forall x. P x) -> forall x. P x\n";
-    assert_eq!(err(src), "t: `k` is a label here, so it can't be a variable");
+    assert_eq!(err(src), "t: `k` is a label in scope, so it can't be a variable");
     // A `therefore` restates the variables its block closes.
     let src = "predicate P x\ntheorem t:\n  variable a\n  assume h: P a\n  therefore forall a. P a -> P a\n";
     ok(src);

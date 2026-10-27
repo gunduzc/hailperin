@@ -266,6 +266,15 @@ fn placeholders(n: usize, taken: &BTreeSet<Name>) -> Vec<Name> {
     out
 }
 
+/// The error for a new name, wanted as `role`, that is already `kind`.
+fn clash(x: &str, kind: &str, role: &str) -> String {
+    if kind.starts_with(role) {
+        format!("`{x}` is already {kind}")
+    } else {
+        format!("`{x}` is {kind}, so it can't be {role}")
+    }
+}
+
 /// What a global already is, for a clash.
 fn already(g: &Global) -> &'static str {
     match g {
@@ -451,24 +460,15 @@ impl Checker {
 
     fn block_body(&self, b: &Block, cx: &mut Cx, name: &str, start_depth: usize) -> Result<(Open, Formula), Error> {
         for (x, line) in &b.variables {
-            if cx.var_index(x).is_some() {
-                return Err(Error::new(*line, format!("`{x}` is already a variable in scope")));
-            }
-            if cx.lookup(x).is_some() {
-                return Err(Error::new(*line, format!("`{x}` is a label here, so it can't be a variable")));
-            }
-            if RULES.contains(&x.as_str()) {
-                return Err(Error::new(*line, format!("`{x}` is a rule, so it can't be a variable")));
-            }
-            if self.global(x).is_some() {
-                return Err(Error::new(*line, format!("`{x}` is a theorem, so it can't be a variable")));
+            if let Some(kind) = self.lower_kind(x, cx.lookup(x).is_some(), cx.var_index(x).is_some()) {
+                return Err(Error::new(*line, clash(x, kind, "a variable")));
             }
             cx.stack.push(Entry::Var(x.as_str().into()));
         }
         for p in &b.predicates {
             for h in &p.holes {
-                if cx.var_index(h).is_some() || cx.lookup(h).is_some() || self.global(h).is_some() {
-                    return Err(Error::new(p.line, format!("`{h}` is a name here, so it can't be a placeholder of `{}`", p.name)));
+                if let Some(kind) = self.lower_kind(h, cx.lookup(h).is_some(), cx.var_index(h).is_some()) {
+                    return Err(Error::new(p.line, clash(h, kind, &format!("a placeholder of `{}`", p.name))));
                 }
             }
         }
@@ -558,19 +558,26 @@ impl Checker {
     }
 
     fn claim_label(&self, cx: &Cx, label: &str, line: usize) -> Result<(), Error> {
-        if RULES.contains(&label) {
-            return Err(Error::new(line, format!("`{label}` is a rule, so it can't be a label")));
+        match self.lower_kind(label, cx.lookup(label).is_some(), cx.var_index(label).is_some()) {
+            Some(kind) => Err(Error::new(line, clash(label, kind, "a label"))),
+            None => Ok(()),
         }
-        if cx.var_index(label).is_some() {
-            return Err(Error::new(line, format!("`{label}` is a variable in scope, so it can't be a label")));
+    }
+
+    /// What a lowercase name already is, where a new variable, label or placeholder would take
+    /// it: a rule, a theorem the file sees, or a label or variable in scope.
+    fn lower_kind(&self, x: &str, label: bool, variable: bool) -> Option<&'static str> {
+        if RULES.contains(&x) {
+            Some("a rule")
+        } else if self.global(x).is_some() {
+            Some("a theorem")
+        } else if label {
+            Some("a label in scope")
+        } else if variable {
+            Some("a variable in scope")
+        } else {
+            None
         }
-        if self.global(label).is_some() {
-            return Err(Error::new(line, format!("`{label}` is a theorem, so it can't be a label")));
-        }
-        if cx.lines.iter().any(|l| l.label == label) {
-            return Err(Error::new(line, format!("`{label}` is already a label in scope")));
-        }
-        Ok(())
     }
 
     /// Reads the formula of a line or assumption, inside a proof: its free variables must be
@@ -1268,20 +1275,15 @@ impl Checker {
             FExpr::Forall(xs, body, line) | FExpr::Exists(xs, body, line) => {
                 let names: Vec<Name> = xs.iter().map(|x| Name::from(x.as_str())).collect();
                 for (x, name) in xs.iter().zip(&names) {
-                    if RULES.contains(&x.as_str()) {
-                        return Err(Error::new(*line, format!("`{x}` is a rule, not a variable")));
-                    }
                     // Nothing shadows: a bound variable's name is new where it is bound.
-                    let taken = match scope.bound.iter().position(|b| b == name) {
-                        Some(i) if i < scope.fixed => Some("is already a parameter of this definition"),
-                        Some(_) => Some("is already bound here"),
-                        None if scope.in_scope.contains(name) && !scope.closing.contains(name) => Some("is already a variable in scope"),
-                        None if scope.labels.iter().any(|l| l == x) => Some("is a label here, so it can't be a variable"),
-                        None if self.global(x).is_some() => Some("is a theorem, so it can't be a variable"),
-                        None => None,
-                    };
-                    if let Some(what) = taken {
-                        return Err(Error::new(*line, format!("`{x}` {what}")));
+                    match scope.bound.iter().position(|b| b == name) {
+                        Some(i) if i < scope.fixed => return Err(Error::new(*line, format!("`{x}` is already a parameter of this definition"))),
+                        Some(_) => return Err(Error::new(*line, format!("`{x}` is already bound here"))),
+                        None => {}
+                    }
+                    let variable = scope.in_scope.contains(name) && !scope.closing.contains(name);
+                    if let Some(kind) = self.lower_kind(x, scope.labels.iter().any(|l| l == x), variable) {
+                        return Err(Error::new(*line, clash(x, kind, "a variable")));
                     }
                     scope.bound.push(name.clone());
                 }
