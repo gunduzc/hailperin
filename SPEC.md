@@ -154,7 +154,7 @@ theorem socrates_is_mortal:
 
 A theorem and a lemma are the same construct, a block. Its name is followed by a colon, like every name that can be cited: labels, assumptions, lemmas and theorems. A theorem is a block at top level, and its `therefore` is a closed formula. A lemma is a block inside a block, and its `therefore` may rest on the variables, assumptions and lines of the blocks around it, which stay open on its result. A lemma's name is visible after it, in the block that contains it, and nowhere else.
 
-**Declarations first, in order.** A block opens with its `predicate` lines, then `variable`, then `assume`, each section possibly empty, then its steps and lemmas, then `therefore`. Read in order: what the theorem is about, for which individuals, given what. The header says everything a theorem rests on, and so does its statement.
+**Declarations first, in order.** A theorem opens with its `predicate` lines, and every block with `variable`, then `assume`, each section possibly empty, then its steps and lemmas, then `therefore`. Read in order: what the theorem is about, for which individuals, given what. The header says everything a theorem rests on, and so does its statement.
 
 - `predicate P x` declares a predicate the theorem is schematic over, its arity fixed by the placeholders: the theorem holds for every predicate of that arity, and a citation picks one. It is the same declaration as at file level, with the theorem for its scope, and the same thing as a definition's `(P x)`. Only theorems declare predicates, and their lemmas use them.
 - `variable x y` opens one layer per name, outermost first. A variable occurs free only inside a block whose `variable` named it. Nothing after `by` brings a variable into scope.
