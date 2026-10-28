@@ -638,3 +638,35 @@ fn arity_messages_count_in_words() {
     assert_eq!(err("predicate A\ndefine D = A x"), "`A` takes no arguments, and is given 1");
     assert_eq!(err("predicate In x y\ndefine D = forall x. In x"), "`In` takes 2 arguments, and is given 1");
 }
+
+#[test]
+fn unusual_but_valid_forms_check() {
+    let two = "predicate P x\npredicate R x y\ntheorem two:\n  predicate K x\n  predicate L x\n  variable a\n  assume k: K a\n  assume l: L a\n  c: K a and L a by and_i k l\n  therefore forall a. K a -> L a -> K a and L a\n";
+    let sources = [
+        // or_e over three alternatives
+        "predicate A\npredicate B\npredicate C\ntheorem t:\n  assume d: A or B or C\n  lemma a:\n    assume h: A\n    k: A or B or C by or_i h\n    therefore A -> A or B or C\n  lemma b:\n    assume h: B\n    k: A or B or C by or_i h\n    therefore B -> A or B or C\n  lemma c:\n    assume h: C\n    k: A or B or C by or_i h\n    therefore C -> A or B or C\n  r: A or B or C by or_e d a b c\n  therefore (A or B or C) -> A or B or C\n",
+        // and_e deep on the left and on the right
+        "predicate A\npredicate B\npredicate C\npredicate D\ntheorem t:\n  assume h: (A and B) and (C and D)\n  b: B by and_e h\n  c: C by and_e h\n  therefore (A and B) and (C and D) -> C\n",
+        // exists_e and exists_i with two binders, one witness twice
+        "predicate R x y\npredicate Q\ntheorem t:\n  assume e: exists x y. R x y\n  assume q: Q\n  lemma g:\n    variable u v\n    assume r: R u v\n    k: Q by reit q\n    therefore forall u v. R u v -> Q\n  k: Q by exists_e e g\n  therefore (exists x y. R x y) -> Q -> Q\n",
+        "predicate R x y\ntheorem t:\n  variable u\n  assume h: R u u\n  k: exists x y. R x y by exists_i h\n  therefore forall u. R u u -> exists x y. R x y\n",
+        // forall_e through a definition, or_i into the middle
+        "predicate P x\ndefine All = forall x. P x\ntheorem t:\n  variable u\n  assume h: All\n  k: P u by forall_e h u\n  therefore forall u. All -> P u\n",
+        "predicate A\npredicate B\npredicate C\ntheorem t:\n  assume b: B\n  k: A or B or C by or_i b\n  therefore B -> A or B or C\n",
+        // a lemma two deep resting on the outermost assumption, a variable closed unused
+        "predicate A\npredicate B\ntheorem t:\n  assume a: A\n  lemma l:\n    assume b: B\n    lemma m:\n      assume b2: B\n      k: A by reit a\n      therefore B -> A\n    j: A by imp_e m b\n    therefore B -> A\n  therefore A -> B -> A\n",
+        "predicate A\ntheorem t:\n  assume a: A\n  lemma l:\n    variable x\n    k: A by reit a\n    therefore forall x. A\n  therefore A -> forall x. A\n",
+        // exists_e whose conclusion mentions a variable from outside
+        "predicate R x y\ntheorem t:\n  variable u\n  assume e: exists x. R u x\n  lemma g:\n    variable w\n    assume r: R u w\n    k: exists y. R u y by exists_i r\n    therefore forall w. R u w -> exists y. R u y\n  k: exists y. R u y by exists_e e g\n  therefore forall u. (exists x. R u x) -> exists y. R u y\n",
+    ];
+    for src in sources {
+        if let Err(e) = hailperin::verify(src) {
+            panic!("{e}\n{src}");
+        }
+    }
+    // Templates: a definition applied to its first individual, a compound statement.
+    let src = format!("{two}define Rb b x = R x b\ntheorem use:\n  variable u v\n  assume p: P u\n  assume r: R u v\n  c: P u and R u v by imp_e two P (Rb v) p r\n  therefore forall u v. P u -> R u v -> P u and R u v\n");
+    assert_eq!(ok(&src).len(), 2);
+    let src = "predicate P x\ntheorem id:\n  predicate A\n  assume a: A\n  therefore A -> A\ntheorem use:\n  variable u\n  assume h: P u and P u\n  k: P u and P u by imp_e id (P u and P u) h\n  therefore forall u. P u and P u -> P u and P u\n";
+    assert_eq!(ok(src).len(), 2);
+}
