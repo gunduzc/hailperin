@@ -709,3 +709,9 @@ fn a_lost_colon_after_an_assumption() {
     let e = hailperin::verify("predicate A\ntheorem t:\n  assume a: A\n  k A by reit a\n  therefore A -> A\n").unwrap_err();
     assert_eq!((e.line, e.msg.as_str()), (4, "`k` was read into the formula above. If it is a label, it needs a colon: `k:`"));
 }
+
+#[test]
+fn a_theorem_without_its_keyword() {
+    let src = "predicate A\nt:\n  assume a: A\n  therefore A -> A\n";
+    assert_eq!(err(src), "`t:` opens a block outside every theorem: write `theorem t:`");
+}

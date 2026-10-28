@@ -334,6 +334,10 @@ impl Parser<'_> {
             // What belongs in a block, outside every block.
             Some(Tok::Kw(Kw::Therefore)) => Err(self.err("this `therefore` is outside every theorem, with no block to close")),
             Some(Tok::Kw(Kw::Lemma | Kw::Variable | Kw::Assume)) => Err(self.err("this belongs inside a theorem")),
+            // A name and colon followed by what opens a block: a theorem without its keyword.
+            Some(Tok::Lower(n)) if self.at_label() && matches!(self.toks.get(self.pos + 2).map(|t| &t.tok), Some(Tok::Kw(Kw::Predicate | Kw::Variable | Kw::Assume | Kw::Lemma))) => {
+                Err(self.err(format!("`{n}:` opens a block outside every theorem: write `theorem {n}:`")))
+            }
             _ if self.at_label() => Err(self.err("this step is outside every theorem")),
             _ if first => Err(self.err("expected `import`, `theorem`, `define` or `predicate`")),
             _ => Err(self.err("expected `theorem`, `define` or `predicate`")),
