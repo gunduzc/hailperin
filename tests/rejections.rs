@@ -609,3 +609,11 @@ fn an_unfinished_formula_and_a_case_split_on_no_disjunction() {
     let src = "predicate A\ntheorem t:\n  assume em: A\n  lemma yes:\n    assume a: A\n    therefore A -> A\n  lemma no:\n    assume b: A\n    therefore A -> A\n  a: A by or_e em yes no\n  therefore A -> A\n";
     assert_eq!(err(src), "t: `or_e` takes a disjunction first, and A isn't one");
 }
+
+#[test]
+fn a_line_too_many_and_cases_in_the_wrong_order() {
+    let src = "predicate A\npredicate B\ntheorem t:\n  assume ab: A -> B\n  assume a: A\n  b: B by imp_e ab a a\n  therefore (A -> B) -> A -> B\n";
+    assert_eq!(err(src), "t: B has no antecedent left for this line");
+    let src = "predicate A\npredicate B\ntheorem t:\n  assume em: A or B\n  assume ab: A -> B\n  assume bb: B -> B\n  b: B by or_e em bb ab\n  therefore (A or B) -> (A -> B) -> (B -> B) -> B\n";
+    assert_eq!(err(src), "t: the case for A should be A -> B, and it is B -> B");
+}

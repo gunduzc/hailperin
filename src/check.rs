@@ -792,6 +792,9 @@ impl Checker {
                 cur = b;
             }
             if metas.is_empty() {
+                if !matches!(body.node(), Node::Imp(..)) {
+                    return Err(err(format!("{} has no antecedent left for this line", show(&body))));
+                }
                 o = self.apply_open(cx, &o, &lines[k]).map_err(err)?;
                 k += 1;
                 continue;
@@ -1010,7 +1013,7 @@ impl Checker {
                     let fc = self.body(cx, case).map_err(err)?;
                     match fc.node() {
                         Node::Imp(a, k) if a == alt && c.as_ref().is_none_or(|c| c == k) => c = Some(k.clone()),
-                        _ => return Err(err(format!("`or_e` needs {} -> C for each alternative, got {}", show(alt), show(&fc)))),
+                        _ => return Err(err(format!("the case for {} should be {}, and it is {}", show(alt), show(&imp(alt.clone(), want.clone())), show(&fc)))),
                     }
                 }
                 let c = c.expect("at least two cases");
