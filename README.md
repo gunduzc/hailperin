@@ -4,9 +4,9 @@ Hailperin is a small proof checker characterizing intuitionistic and universally
 
 I wanted to write a proof assistant that expresses any logically valid proof. That I could also learn in its entirety. (Source-bootstrappable version in C99 possibly coming soon.)
 
-However, when I first designed it, I noticed that `forall x (P x)` implied `exists x (P x)`, and I thought to myself, what if `forall x (P x)` was vacuously true?
+However, when I first designed it, I noticed that `forall x. P x` implied `exists x. P x`, and I thought to myself, what if `forall x. P x` was vacuously true?
 
-I didn't realize at the moment that for `forall x (P x)` to be vacuously true, no constants (i.e. literally nothing) would have to exist. But I kept thinking about it, searching about what's known, looking for answers.
+I didn't realize at the moment that for `forall x. P x` to be vacuously true, no constants (i.e. literally nothing) would have to exist. But I kept thinking about it, searching about what's known, looking for answers.
 
 To gain some understanding, I thought of the titular "Socrates is mortal" proof, in FOL.
 
@@ -85,7 +85,7 @@ I hope you enjoy Hailperin. I certainly did.
 ```
 cargo run --release -- examples/socrates.hai            # prints `success`
 cargo run --release -- - < file.hai                      # reads standard input
-cargo run --release -- fmt examples/socrates.hai        # the canonical layout (--indent, --by, --scope)
+cargo run --release -- fmt examples/socrates.hai        # the canonical layout (--indent, --continue, --width, --by, --scope)
 cargo run --release -- explain examples/socrates.hai    # each line's scope and formula
 cargo test
 ```
