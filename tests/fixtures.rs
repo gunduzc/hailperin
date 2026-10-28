@@ -271,3 +271,23 @@ fn explain_shows_what_checked_before_a_failure() {
     assert_eq!(r.code, Some(1));
     assert_eq!(r.stdout, "theorem t\n  a: [ | a] A\n  k: [ | a] A\nfailure: line 6: t: this gives A, not B\n");
 }
+
+/// Every complete example in SPEC.md checks: a block that starts like a file, has a theorem,
+/// and leaves nothing out with `...`.
+#[test]
+fn spec_examples_check() {
+    let spec = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("SPEC.md")).unwrap();
+    let mut checked = 0;
+    for block in spec.split("```").skip(1).step_by(2) {
+        let code = block.split_once('\n').map_or("", |(_, c)| c);
+        let starts = ["predicate ", "define ", "import ", "theorem ", "--"].iter().any(|k| code.starts_with(k));
+        if !starts || !code.lines().any(|l| l.starts_with("theorem ")) || code.contains("...") {
+            continue;
+        }
+        if let Err(e) = hailperin::verify(code) {
+            panic!("a SPEC.md example fails: {e}\n{code}");
+        }
+        checked += 1;
+    }
+    assert!(checked >= 2, "only {checked} complete examples found in SPEC.md");
+}
