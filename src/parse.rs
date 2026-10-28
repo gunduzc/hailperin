@@ -331,6 +331,10 @@ impl Parser<'_> {
                 Ok(Item::Theorem { name, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
+            // What belongs in a block, outside every block.
+            Some(Tok::Kw(Kw::Therefore)) => Err(self.err("this `therefore` is outside every theorem, with no block to close")),
+            Some(Tok::Kw(Kw::Lemma | Kw::Variable | Kw::Assume)) => Err(self.err("this belongs inside a theorem")),
+            _ if self.at_label() => Err(self.err("this step is outside every theorem")),
             _ if first => Err(self.err("expected `import`, `theorem`, `define` or `predicate`")),
             _ => Err(self.err("expected `theorem`, `define` or `predicate`")),
         }
@@ -411,6 +415,10 @@ impl Parser<'_> {
                 }
                 _ if self.at_label() => steps.push(Step::Line(self.step_line()?)),
                 _ if self.at_item_keyword() => {
+                    // A lemma that ends the block took the last `therefore`: probably its own is missing.
+                    if let Some(Step::Lemma { name: lemma, line, .. }) = steps.last() {
+                        return Err(Error::new(*line, format!("the block `{name}` has no `therefore`, and lemma `{lemma}` took the last one: does `{lemma}` lack its own?")));
+                    }
                     // The `therefore` belongs after the block's last line, so that is where it's missing.
                     let last = self.toks.get(self.pos.wrapping_sub(1)).map_or(1, |t| t.line);
                     return Err(Error::new(last, format!("the block `{name}` has no `therefore`")));
@@ -755,7 +763,7 @@ mod tests {
         assert_eq!((e.line, e.msg.as_str()), (3, "`p` was read as an argument of the line above. If it is a label, it needs a colon: `p:`"));
         let e = parse(&lex("x").unwrap()).unwrap_err();
         assert_eq!(e.msg, "expected `import`, `theorem`, `define` or `predicate`");
-        let e = parse(&lex("predicate A\nx:").unwrap()).unwrap_err();
+        let e = parse(&lex("predicate A\n)").unwrap()).unwrap_err();
         assert_eq!(e.msg, "expected `theorem`, `define` or `predicate`");
         let e = parse(&lex("define X = x").unwrap()).unwrap_err();
         assert_eq!(e.msg, "`x` is lowercase, so it isn't a statement or predicate");

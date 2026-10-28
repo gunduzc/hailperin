@@ -678,3 +678,15 @@ fn nothing_after_by_is_pointed_at() {
     // The rule may still stand on the next line.
     assert_eq!(ok("predicate A\ntheorem t:\n  assume a: A\n  k: A by\n  reit a\n  therefore A -> A\n").len(), 1);
 }
+
+#[test]
+fn blocks_that_close_wrongly() {
+    // A lemma without its own `therefore` takes the theorem's.
+    let src = "predicate A\npredicate B\ntheorem t:\n  assume a: A\n  lemma l:\n    assume b: B\n    k: A by reit a\n  therefore A -> A\n";
+    let e = hailperin::verify(src).unwrap_err();
+    assert_eq!((e.line, e.msg.as_str()), (5, "the block `t` has no `therefore`, and lemma `l` took the last one: does `l` lack its own?"));
+    let after = |s: &str| format!("predicate A\ntheorem t:\n  assume a: A\n  therefore A -> A\n{s}");
+    assert_eq!(err(&after("  therefore A -> A\n")), "this `therefore` is outside every theorem, with no block to close");
+    assert_eq!(err(&after("  k: A by reit a\n")), "this step is outside every theorem");
+    assert_eq!(err("predicate A\nlemma l:\n  assume a: A\n  therefore A -> A\n"), "this belongs inside a theorem");
+}
