@@ -1,0 +1,20 @@
+{
+  "grammars": [
+    {
+      "name": "hailperin",
+      "camelcase": "Hailperin",
+      "scope": "source.hailperin",
+      "path": ".",
+      "file-types": ["hai"],
+      "highlights": "queries/highlights.scm",
+      "injection-regex": "^hailperin$"
+    }
+  ],
+  "metadata": {
+    "version": "0.1.0",
+    "license": "MIT",
+    "description": "Hailperin proof files",
+    "authors": [{ "name": "gunduzc", "email": "gunduzc@r20y.net" }],
+    "links": { "repository": "https://github.com/gunduzc/hailperin" }
+  }
+}

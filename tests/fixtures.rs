@@ -262,6 +262,21 @@ fn the_editor_syntax_knows_the_words() {
     assert_eq!(listed, words);
 }
 
+/// Every editor's highlighting knows every keyword and rule.
+#[test]
+fn every_editor_knows_the_words() {
+    let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("editors");
+    let files = ["vim/syntax/hailperin.vim", "hailperin.nanorc", "vscode/syntaxes/hailperin.tmLanguage.json", "tree-sitter-hailperin/grammar.js"];
+    let words: Vec<&str> = hailperin::lexer::KEYWORDS.iter().map(|(w, _)| *w).chain(hailperin::check::RULES.iter().copied()).collect();
+    for file in files {
+        let text = fs::read_to_string(dir.join(file)).unwrap();
+        let found: Vec<&str> = text.split(|c: char| !c.is_ascii_alphanumeric() && c != '_').collect();
+        for word in &words {
+            assert!(found.contains(word), "{file} doesn't know `{word}`");
+        }
+    }
+}
+
 /// `explain` shows the lines that checked before a failure, then the failure.
 #[test]
 fn explain_shows_what_checked_before_a_failure() {

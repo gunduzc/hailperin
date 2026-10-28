@@ -1,0 +1,58 @@
+{
+  "name": "hailperin",
+  "displayName": "Hailperin",
+  "description": "Hailperin proof files: highlighting, indentation, and formatting with hailperin fmt",
+  "version": "0.1.0",
+  "publisher": "gunduzc",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.60.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Formatters"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:hailperin"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "hailperin",
+        "aliases": [
+          "Hailperin",
+          "hailperin"
+        ],
+        "extensions": [
+          ".hai"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "hailperin",
+        "scopeName": "source.hailperin",
+        "path": "./syntaxes/hailperin.tmLanguage.json"
+      }
+    ],
+    "configurationDefaults": {
+      "[hailperin]": {
+        "editor.tabSize": 2,
+        "editor.insertSpaces": true,
+        "editor.formatOnType": true
+      }
+    },
+    "configuration": {
+      "title": "Hailperin",
+      "properties": {
+        "hailperin.path": {
+          "type": "string",
+          "default": "hailperin",
+          "description": "The hailperin command, for formatting."
+        }
+      }
+    }
+  }
+}

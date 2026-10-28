@@ -1,0 +1,127 @@
+================================================================================
+Precedence: not, and, or, then implication, all to the right
+================================================================================
+
+define X = not A and B or C -> D
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (definition
+    name: (upper_name)
+    body: (implication
+      (disjunction
+        (conjunction
+          (negation
+            (atom
+              (upper_name)))
+          (atom
+            (upper_name)))
+        (atom
+          (upper_name)))
+      (atom
+        (upper_name)))))
+
+================================================================================
+A quantifier reaches as far right as it can
+================================================================================
+
+define X = A and forall x. P x -> B
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (definition
+    name: (upper_name)
+    body: (conjunction
+      (atom
+        (upper_name))
+      (quantified
+        (lower_name)
+        (implication
+          (atom
+            (upper_name)
+            (lower_name))
+          (atom
+            (upper_name)))))))
+
+================================================================================
+A theorem with a lemma, a citation with templates, and a comment
+================================================================================
+
+theorem t:
+  predicate P x
+  assume h: forall x. P x  -- all of them
+  lemma l:
+    variable a
+    k: P a by imp_e h a
+    therefore forall a. P a
+  j: forall a. P a by imp_e two P (R a) h
+  therefore (forall x. P x) -> forall a. P a
+
+--------------------------------------------------------------------------------
+
+(source_file
+  (theorem
+    name: (lower_name)
+    (predicate
+      name: (upper_name)
+      (lower_name))
+    (assumption
+      label: (lower_name)
+      formula: (quantified
+        (lower_name)
+        (atom
+          (upper_name)
+          (lower_name))))
+    (comment)
+    (lemma
+      name: (lower_name)
+      (variable
+        (lower_name))
+      (step
+        label: (lower_name)
+        formula: (atom
+          (upper_name)
+          (lower_name))
+        (justification
+          (rule)
+          (argument
+            (lower_name))
+          (argument
+            (lower_name))))
+      (therefore
+        formula: (quantified
+          (lower_name)
+          (atom
+            (upper_name)
+            (lower_name)))))
+    (step
+      label: (lower_name)
+      formula: (quantified
+        (lower_name)
+        (atom
+          (upper_name)
+          (lower_name)))
+      (justification
+        (rule)
+        (argument
+          (lower_name)
+          (upper_name)
+          (atom
+            (upper_name)
+            (lower_name)))
+        (argument
+          (lower_name))))
+    (therefore
+      formula: (implication
+        (quantified
+          (lower_name)
+          (atom
+            (upper_name)
+            (lower_name)))
+        (quantified
+          (lower_name)
+          (atom
+            (upper_name)
+            (lower_name)))))))

@@ -1,0 +1,10 @@
+## Hailperin proof files. Add `include "/path/to/hailperin.nanorc"` to ~/.nanorc.
+syntax hailperin "\.hai$"
+comment "--"
+
+color brightcyan "\<[A-Z][A-Za-z0-9_]*\>"
+color yellow "\<[a-z][A-Za-z0-9_]*[[:space:]]*:"
+color brightblue "\<(theorem|lemma|define|import|predicate|variable|assume|therefore|by)\>"
+color magenta "\<(forall|exists|and|or|not|absurd)\>" "->"
+color green "\<(imp_e|and_i|and_e|or_i|or_e|absurd_e|forall_e|exists_i|exists_e|reit|auto)\>"
+color brightblack "--.*$"

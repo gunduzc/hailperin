@@ -1,0 +1,20 @@
+{
+  "comments": { "lineComment": "--" },
+  "brackets": [["(", ")"]],
+  "autoClosingPairs": [{ "open": "(", "close": ")" }],
+  "surroundingPairs": [["(", ")"]],
+  "indentationRules": {
+    "increaseIndentPattern": "^\\s*(theorem|lemma)\\s+[a-z][A-Za-z0-9_]*\\s*:\\s*(--.*)?$",
+    "decreaseIndentPattern": "^(?!)"
+  },
+  "onEnterRules": [
+    {
+      "beforeText": "(->|\\band|\\bor|\\bnot|\\.)\\s*(--.*)?$",
+      "action": { "indent": "indent", "appendText": "  " }
+    },
+    {
+      "beforeText": "^\\s*therefore\\b.*$",
+      "action": { "indent": "outdent" }
+    }
+  ]
+}

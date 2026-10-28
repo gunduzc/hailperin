@@ -1,0 +1,15 @@
+{
+  "name": "Hailperin",
+  "scopeName": "source.hailperin",
+  "fileTypes": ["hai"],
+  "patterns": [
+    { "name": "comment.line.double-dash.hailperin", "match": "--.*$" },
+    { "name": "keyword.control.hailperin", "match": "\\b(theorem|lemma|define|import|predicate|variable|assume|therefore|by)\\b" },
+    { "name": "keyword.operator.logical.hailperin", "match": "\\b(forall|exists|and|or|not|absurd)\\b" },
+    { "name": "support.function.rule.hailperin", "match": "\\b(imp_e|and_i|and_e|or_i|or_e|absurd_e|forall_e|exists_i|exists_e|reit|auto)\\b" },
+    { "name": "keyword.operator.arrow.hailperin", "match": "->" },
+    { "name": "entity.name.type.hailperin", "match": "\\b[A-Z][A-Za-z0-9_]*\\b" },
+    { "name": "variable.other.label.hailperin", "match": "\\b[a-z][A-Za-z0-9_]*(?=\\s*:)" },
+    { "name": "punctuation.hailperin", "match": "[().=]" }
+  ]
+}
