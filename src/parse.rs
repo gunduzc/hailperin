@@ -446,7 +446,11 @@ impl Parser<'_> {
             }
         }
         match self.peek() {
-            Some(Tok::Lower(n)) => self.err(format!("expected a label: `{n}:`")),
+            // A `by` later on the line: a step whose label lost its colon.
+            Some(Tok::Lower(n)) if self.toks[self.pos..].iter().take_while(|t| t.line == self.line()).any(|t| t.tok == Tok::Kw(Kw::By)) => {
+                self.err(format!("expected a label: `{n}:`"))
+            }
+            Some(Tok::Lower(n)) => self.err(format!("`{n}` starts nothing here: a step starts with its label, `k: formula by rule`")),
             _ => self.err("expected a labeled line, a `lemma`, or `therefore`"),
         }
     }

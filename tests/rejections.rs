@@ -698,3 +698,8 @@ fn an_introduction_is_not_suggested_for_an_elimination() {
     let src = "predicate A\ntheorem t:\n  assume a: A\n  b: A by imp_r a\n  therefore A -> A\n";
     assert_eq!(err(src), "t: `imp_r` is not a rule, a line here, or a theorem: did you mean `imp_e`?");
 }
+
+#[test]
+fn a_word_that_starts_nothing() {
+    assert_eq!(err("predicate A\ntheorem t:\n  include T\n  therefore A\n"), "`include` starts nothing here: a step starts with its label, `k: formula by rule`");
+}
