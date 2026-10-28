@@ -291,3 +291,16 @@ fn spec_examples_check() {
     }
     assert!(checked >= 2, "only {checked} complete examples found in SPEC.md");
 }
+
+/// SPEC.md has a row for every rule and mentions every flag `--help` lists.
+#[test]
+fn spec_knows_every_rule_and_flag() {
+    let spec = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("SPEC.md")).unwrap();
+    for rule in hailperin::check::RULES {
+        assert!(spec.contains(&format!("| `{rule}")), "SPEC.md has no row for `{rule}`");
+    }
+    let help = run(&["--help"]).stdout;
+    for flag in help.split_whitespace().filter(|w| w.starts_with("--")) {
+        assert!(spec.contains(&format!("`{flag}")), "SPEC.md doesn't mention `{flag}`");
+    }
+}
