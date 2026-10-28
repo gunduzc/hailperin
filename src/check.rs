@@ -991,6 +991,9 @@ impl Checker {
                 let d = self.arg_open(&args[0], cx)?;
                 let cases = args[1..].iter().map(|a| self.arg_open(a, cx)).collect::<Result<Vec<_>, _>>()?;
                 let fd = self.body(cx, &d).map_err(err)?;
+                if !matches!(fd.node(), Node::Or(..)) {
+                    return Err(err(format!("`or_e` takes a disjunction first, and {} isn't one", show(&fd))));
+                }
                 // The alternatives: the `or` nests to the right, and the last case takes what is left.
                 let mut alts: Vec<Formula> = Vec::new();
                 let mut rest = fd.clone();

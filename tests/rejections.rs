@@ -600,3 +600,12 @@ fn messages_name_fresh_variables_writably() {
     let src = "predicate Q x\npredicate R x y\ntheorem t:\n predicate P x\n variable a\n assume p: P a\n therefore forall a. P a -> P a\ntheorem use:\n variable a b\n assume q: Q a\n k: Q a by imp_e t (R a) q\n therefore forall a b. Q a -> Q a";
     assert_eq!(err(src), "use: Q a doesn't fit antecedent 1 of forall a1. R a a1 -> R a a1");
 }
+
+#[test]
+fn an_unfinished_formula_and_a_case_split_on_no_disjunction() {
+    let src = "predicate A\ntheorem t:\n  assume a: A\n  na: not\n  f: A by reit a\n  therefore A -> A\n";
+    let e = hailperin::verify(src).unwrap_err();
+    assert_eq!((e.line, e.msg.as_str()), (4, "this formula is unfinished, and `f:` starts the next step"));
+    let src = "predicate A\ntheorem t:\n  assume em: A\n  lemma yes:\n    assume a: A\n    therefore A -> A\n  lemma no:\n    assume b: A\n    therefore A -> A\n  a: A by or_e em yes no\n  therefore A -> A\n";
+    assert_eq!(err(src), "t: `or_e` takes a disjunction first, and A isn't one");
+}

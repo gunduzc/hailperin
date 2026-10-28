@@ -636,6 +636,11 @@ impl Parser<'_> {
                 self.close(line)?;
                 Ok(f)
             }
+            // A label: the formula stopped short, on the line before it.
+            Some(Tok::Lower(n)) if self.at_label() => {
+                let line = self.toks[self.pos.saturating_sub(1)].line;
+                Err(Error::new(line, format!("this formula is unfinished, and `{n}:` starts the next step")))
+            }
             Some(Tok::Lower(n)) => Err(self.err(format!("`{n}` is lowercase, so it isn't a statement or predicate"))),
             _ => Err(self.err("expected a formula")),
         }
