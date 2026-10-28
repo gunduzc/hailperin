@@ -46,8 +46,8 @@ impl TArg {
     }
 }
 
-/// An argument after the rule: a line, variable or theorem by name, or a theorem's instance
-/// in parentheses with templates.
+/// An argument after the rule: a line, variable or theorem by name, or a theorem's instance,
+/// its name followed by templates: `t T1 (T2 a)`.
 #[derive(Clone, Debug)]
 pub enum Arg {
     Ident(String, usize),
@@ -70,8 +70,8 @@ pub struct Just {
     pub line: usize,
 }
 
-/// A declared parameter: a predicate with placeholders fixing its arity, `(P x y)`, or a
-/// lowercase individual of a definition. A theorem's `predicate P x y` is the same without
+/// A declared parameter: a predicate with placeholders fixing its arity, `(P x y)`, a
+/// statement, `A`, or a lowercase individual of a definition. A theorem's `predicate P x y` is the same without
 /// parentheses.
 #[derive(Clone, Debug)]
 pub struct Param {
