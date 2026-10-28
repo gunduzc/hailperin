@@ -216,7 +216,12 @@ pub fn upper(name: &str) -> bool {
 }
 
 fn takes(h: &str, n: usize, got: usize, line: usize) -> Error {
-    Error::new(line, format!("`{h}` takes {n} argument(s), got {got}"))
+    let n = match n {
+        0 => "no arguments".to_string(),
+        1 => "1 argument".to_string(),
+        _ => format!("{n} arguments"),
+    };
+    Error::new(line, format!("`{h}` takes {n}, and is given {got}"))
 }
 
 /// The union of two increasing lists of layers.

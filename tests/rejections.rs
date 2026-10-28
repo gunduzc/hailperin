@@ -65,7 +65,7 @@ fn predicates_are_declared() {
     let src = "define X = P a";
     assert_eq!(err(src), "`P` is not declared: add `predicate P x` before this, or to the theorem");
     let src = "predicate P x\ntheorem bad:\n assume a: P\n therefore P -> P";
-    assert_eq!(err(src), "bad: `P` takes 1 argument(s), got 0");
+    assert_eq!(err(src), "bad: `P` takes 1 argument, and is given 0");
 }
 
 #[test]
@@ -155,7 +155,7 @@ fn neg_check_missing_template() {
 #[test]
 fn neg_check_arity() {
     let src = "-- A predicate is used with the wrong number of arguments.\npredicate P x\ntheorem bad:\n  variable x y\n  assume h: P x\n  therefore forall x y. P x -> P x y\n";
-    assert_eq!(fail(src), "failure: line 6: bad: `P` takes 1 argument(s), got 2");
+    assert_eq!(fail(src), "failure: line 6: bad: `P` takes 1 argument, and is given 2");
 }
 
 #[test]
@@ -633,4 +633,10 @@ fn citing_a_step_below_says_so() {
     assert_eq!(err(src), "t: `l` comes later: a step cites only what is above it");
     let src = "predicate A\ntheorem t:\n  assume a: A\n  lemma l:\n    j: A by reit k\n    therefore A\n  k: A by reit a\n  therefore A -> A\n";
     assert_eq!(err(src), "t: `k` comes later: a step cites only what is above it");
+}
+
+#[test]
+fn arity_messages_count_in_words() {
+    assert_eq!(err("predicate A\ndefine D = A x"), "`A` takes no arguments, and is given 1");
+    assert_eq!(err("predicate In x y\ndefine D = forall x. In x"), "`In` takes 2 arguments, and is given 1");
 }
