@@ -105,6 +105,8 @@ struct Cx {
     blocks: Vec<usize>,
     /// The labels of lemmas that have closed, with the lemma each belonged to, for messages.
     closed: Vec<(String, String)>,
+    /// The labels of the steps and lemmas of the open blocks, checked or not, for messages.
+    ahead: Vec<String>,
 }
 
 impl Cx {
@@ -448,7 +450,13 @@ impl Checker {
         let start_depth = cx.stack.len();
         let start_lines = cx.lines.len();
         cx.blocks.push(start_lines);
+        let start_ahead = cx.ahead.len();
+        cx.ahead.extend(b.steps.iter().map(|s| match s {
+            Step::Line(l) => l.label.clone(),
+            Step::Lemma { name, .. } => name.clone(),
+        }));
         let res = self.block_body(b, cx, name, start_depth);
+        cx.ahead.truncate(start_ahead);
         cx.blocks.pop();
         if !theorem {
             let gone: Vec<(String, String)> = cx.lines[start_lines..].iter().map(|l| (l.label.clone(), name.to_string())).collect();
@@ -724,6 +732,7 @@ impl Checker {
                     _ if self.unseen(n, *line).is_some() => Err(self.unseen(n, *line).expect("just checked")),
                     _ => match cx.closed.iter().rev().find(|(l, _)| l == n) {
                         Some((_, lemma)) => Err(Error::new(*line, format!("`{n}` was a line of lemma `{lemma}`, which has closed"))),
+                        None if cx.ahead.contains(n) => Err(Error::new(*line, format!("`{n}` comes later: a step cites only what is above it"))),
                         None => Err(Error::new(*line, format!("`{n}` is not a line or a theorem here{}", self.did_you_mean(n, cx)))),
                     },
                 }

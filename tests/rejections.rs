@@ -626,3 +626,11 @@ fn a_variable_among_imp_e_arguments_instantiates() {
     let src = "predicate P x\ntheorem all:\n  assume h: forall x. P x\n  therefore (forall x. P x) -> forall x. P x\ntheorem use:\n  variable u\n  assume h: forall x. P x\n  k: P u by imp_e all h u\n  therefore forall u. (forall x. P x) -> P u\n";
     assert_eq!(ok(src).len(), 2);
 }
+
+#[test]
+fn citing_a_step_below_says_so() {
+    let src = "predicate A\ntheorem t:\n  assume a: A\n  k: A by imp_e l a\n  lemma l:\n    assume b: A\n    therefore A -> A\n  therefore A -> A\n";
+    assert_eq!(err(src), "t: `l` comes later: a step cites only what is above it");
+    let src = "predicate A\ntheorem t:\n  assume a: A\n  lemma l:\n    j: A by reit k\n    therefore A\n  k: A by reit a\n  therefore A -> A\n";
+    assert_eq!(err(src), "t: `k` comes later: a step cites only what is above it");
+}
