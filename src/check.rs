@@ -730,7 +730,10 @@ impl Checker {
     fn did_you_mean(&self, n: &str, cx: &Cx) -> String {
         let lines = cx.lines.iter().map(|l| l.label.as_str());
         let theorems = self.globals.iter().filter(|(_, (f, g))| self.sees.contains(f) && matches!(g, Global::Theorem(_))).map(|(t, _)| t.as_str());
-        let mut near: Vec<&str> = RULES.iter().copied().chain(lines).chain(theorems).filter(|c| close(n, c)).collect();
+        // `_i` and `_e` introduce and eliminate: one is never a misspelling of the other.
+        let opposite = |c: &str| matches!((n.strip_suffix("_i"), c.strip_suffix("_e")), (Some(a), Some(b)) if a == b)
+            || matches!((n.strip_suffix("_e"), c.strip_suffix("_i")), (Some(a), Some(b)) if a == b);
+        let mut near: Vec<&str> = RULES.iter().copied().chain(lines).chain(theorems).filter(|c| close(n, c) && !opposite(c)).collect();
         near.sort_unstable();
         near.dedup();
         match near.as_slice() {
