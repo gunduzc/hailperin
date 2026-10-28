@@ -1,4 +1,4 @@
-//! Checks a file: definitions, theories and theorems, in order.
+//! Checks a file: declarations, definitions and theorems, in order.
 //!
 //! Nothing here is trusted. Every theorem comes from the kernel; this module only decides
 //! which kernel functions to call, by reading formulas and choosing axiom instances.
@@ -97,7 +97,7 @@ struct Labeled {
 /// Everything in scope inside one theorem.
 #[derive(Default)]
 struct Cx {
-    /// The theorem's predicate parameters, in order of first use.
+    /// The theorem's predicate parameters, in declaration order, the order of its templates.
     params: Vec<(String, usize)>,
     stack: Vec<Entry>,
     lines: Vec<Labeled>,
