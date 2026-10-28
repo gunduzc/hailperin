@@ -445,6 +445,15 @@ impl Parser<'_> {
                 return Error::new(l, format!("`{n}` was read as an argument of the line above. If it is a label, it needs a colon: `{n}:`"));
             }
         }
+        // A `by` where a step should start, on a line that starts with a name: that name lost its
+        // colon, and what follows it was read into the formula above.
+        if self.peek() == Some(&Tok::Kw(Kw::By)) {
+            let line = self.line();
+            let first = self.toks[..self.pos].iter().rev().take_while(|t| t.line == line).last();
+            if let Some(Token { tok: Tok::Lower(n), .. }) = first {
+                return Error::new(line, format!("`{n}` was read into the formula above. If it is a label, it needs a colon: `{n}:`"));
+            }
+        }
         match self.peek() {
             // A `by` later on the line: a step whose label lost its colon.
             Some(Tok::Lower(n)) if self.toks[self.pos..].iter().take_while(|t| t.line == self.line()).any(|t| t.tok == Tok::Kw(Kw::By)) => {

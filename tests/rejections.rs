@@ -703,3 +703,9 @@ fn an_introduction_is_not_suggested_for_an_elimination() {
 fn a_word_that_starts_nothing() {
     assert_eq!(err("predicate A\ntheorem t:\n  include T\n  therefore A\n"), "`include` starts nothing here: a step starts with its label, `k: formula by rule`");
 }
+
+#[test]
+fn a_lost_colon_after_an_assumption() {
+    let e = hailperin::verify("predicate A\ntheorem t:\n  assume a: A\n  k A by reit a\n  therefore A -> A\n").unwrap_err();
+    assert_eq!((e.line, e.msg.as_str()), (4, "`k` was read into the formula above. If it is a label, it needs a colon: `k:`"));
+}
