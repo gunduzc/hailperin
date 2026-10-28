@@ -65,7 +65,11 @@ fn main() {
         None => read_stdin(),
     };
     let src = src.unwrap_or_else(|e| {
-        eprintln!("hailperin: {e}");
+        match (path, e.kind()) {
+            (Some(p), std::io::ErrorKind::NotFound) => eprintln!("hailperin: `{}` doesn't exist", p.display()),
+            (Some(p), _) => eprintln!("hailperin: can't read `{}`: {e}", p.display()),
+            (None, _) => eprintln!("hailperin: can't read standard input: {e}"),
+        }
         exit(2);
     });
     // Imports are found next to the file, or in the current directory for standard input.

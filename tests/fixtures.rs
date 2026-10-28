@@ -119,6 +119,13 @@ fn fmt_is_stable_and_preserves_meaning() {
 }
 
 #[test]
+fn a_missing_file_is_named() {
+    let r = run(&["no_such_file.hai"]);
+    assert_eq!(r.code, Some(2));
+    assert_eq!(r.stderr, "hailperin: `no_such_file.hai` doesn't exist\n");
+}
+
+#[test]
 fn bad_usage_exits_2() {
     let r = run(&["a.hai", "b.hai"]);
     assert_eq!(r.code, Some(2));
