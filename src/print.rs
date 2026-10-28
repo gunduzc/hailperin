@@ -1,11 +1,12 @@
 //! Formulas in the file's own syntax, for messages. `imp A absurd` prints as `not A`, and an
-//! instance of a definition over individuals prints as the definition's name.
+//! instance of a definition over individuals and statements prints as the definition's name.
 
 use crate::kernel::formula::{Formula, Name, Node};
 use std::cell::RefCell;
 use std::collections::{BTreeSet, HashMap};
 
-/// A definition that messages print by name: `name params = body`, the parameters individuals.
+/// A definition that messages print by name: `name params = body`, the parameters individuals
+/// and statements.
 pub struct Fold {
     pub name: String,
     pub params: Vec<Name>,
@@ -48,15 +49,24 @@ fn folded(f: &Formula) -> Option<String> {
         let visible = sees.iter().rev().flat_map(|file| folds.iter().rev().filter(move |(f, _)| f == file).map(|(_, fold)| fold));
         for fold in visible {
             let metas: BTreeSet<Name> = fold.params.iter().cloned().collect();
-            let mut sol = HashMap::new();
-            if !crate::check::match_vars(&fold.body, f, &metas, &mut Vec::new(), &mut sol) {
+            let (mut sol, mut statements) = (HashMap::new(), HashMap::new());
+            if !crate::check::fit(&fold.body, f, &metas, &mut Vec::new(), &mut sol, &mut statements) {
                 continue;
             }
-            if let Some(args) = fold.params.iter().map(|p| sol.get(p)).collect::<Option<Vec<_>>>() {
+            // A statement is in parentheses unless it is a name alone.
+            let arg = |p: &Name| {
+                sol.get(p).map(|v| v.to_string()).or_else(|| {
+                    statements.get(p).map(|s| match s.node() {
+                        Node::Atom(_, xs) if xs.is_empty() => show(s),
+                        _ => format!("({})", show(s)),
+                    })
+                })
+            };
+            if let Some(args) = fold.params.iter().map(arg).collect::<Option<Vec<_>>>() {
                 let mut s = fold.name.clone();
                 for a in args {
                     s.push(' ');
-                    s.push_str(a);
+                    s.push_str(&a);
                 }
                 return Some(s);
             }

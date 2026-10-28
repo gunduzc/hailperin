@@ -101,7 +101,7 @@ define Eq x y = forall z. Iff (In z x) (In z y)
 define Induction (P x) = (forall x. Zero x -> P x) -> (forall y x. P x -> Succ x y -> P y) -> forall x. P x
 ```
 
-A definition names a formula and asserts nothing. A parameter in parentheses is a predicate, with placeholders fixing its arity: `(P x)`. An uppercase parameter alone is a statement: `A`. A lowercase parameter is an individual. Definitions unfold and fold silently wherever a rule needs it, and messages print an instance of a definition over individuals by its name, the latest the file sees when several fit. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
+A definition names a formula and asserts nothing. A parameter in parentheses is a predicate, with placeholders fixing its arity: `(P x)`. An uppercase parameter alone is a statement: `A`. A lowercase parameter is an individual. Definitions unfold and fold silently wherever a rule needs it, and messages print an instance of a definition over individuals and statements by its name, the latest the file sees when several fit. Applied to fewer individuals than it takes, a definition is a template: `EqOr A e` is the predicate `z |-> Eq z e or A`.
 
 ### Axioms and schemas
 

@@ -316,9 +316,10 @@ impl Checker {
             Item::Define { name, params, body, line } => {
                 self.new_global(name, *line)?;
                 let def = self.definition(params, body)?;
-                // Messages print an instance by name, unless the definition only renames an atom.
-                let individuals = def.params.iter().all(|(_, k)| matches!(k, Kind::Individual));
-                if individuals && !matches!(def.body.node(), Node::Atom(..)) {
+                // Messages print an instance by name, unless the definition only renames an atom or
+                // takes a predicate with places.
+                let foldable = def.params.iter().all(|(_, k)| matches!(k, Kind::Individual | Kind::Pred(0)));
+                if foldable && !matches!(def.body.node(), Node::Atom(..)) {
                     let params = def.params.iter().map(|(p, _)| Name::from(p.as_str())).collect();
                     crate::print::add_fold(self.file(), crate::print::Fold { name: name.clone(), params, body: def.body.clone() });
                 }
@@ -1743,6 +1744,20 @@ pub(crate) fn match_vars(
     env: &mut Vec<(Name, Name)>,
     sol: &mut HashMap<Name, Name>,
 ) -> bool {
+    fit(pat, tgt, metas, env, sol, &mut HashMap::new())
+}
+
+/// `match_vars`, where a statement in `metas`, an uppercase name with no arguments, also stands
+/// for a whole subformula of `tgt`, the same one wherever it occurs, that mentions no variable
+/// bound around it.
+pub(crate) fn fit(
+    pat: &Formula,
+    tgt: &Formula,
+    metas: &BTreeSet<Name>,
+    env: &mut Vec<(Name, Name)>,
+    sol: &mut HashMap<Name, Name>,
+    statements: &mut HashMap<Name, Formula>,
+) -> bool {
     fn var(x: &Name, y: &Name, metas: &BTreeSet<Name>, env: &[(Name, Name)], sol: &mut HashMap<Name, Name>) -> bool {
         if let Some(i) = env.iter().rposition(|(p, _)| p == x) {
             return env[i].1 == *y && !env[i + 1..].iter().any(|(_, t)| t == y);
@@ -1761,17 +1776,31 @@ pub(crate) fn match_vars(
         }
         x == y
     }
+    if let Node::Atom(p, xs) = pat.node() {
+        if xs.is_empty() && metas.contains(p) {
+            if tgt.free_vars().iter().any(|v| env.iter().any(|(_, t)| t == v)) {
+                return false;
+            }
+            return match statements.get(p) {
+                Some(s) => s == tgt,
+                None => {
+                    statements.insert(p.clone(), tgt.clone());
+                    true
+                }
+            };
+        }
+    }
     match (pat.node(), tgt.node()) {
         (Node::Atom(p, xs), Node::Atom(q, ys)) => {
             p == q && xs.len() == ys.len() && xs.iter().zip(ys).all(|(x, y)| var(x, y, metas, env, sol))
         }
         (Node::Absurd, Node::Absurd) => true,
         (Node::And(a, b), Node::And(c, d)) | (Node::Or(a, b), Node::Or(c, d)) | (Node::Imp(a, b), Node::Imp(c, d)) => {
-            match_vars(a, c, metas, env, sol) && match_vars(b, d, metas, env, sol)
+            fit(a, c, metas, env, sol, statements) && fit(b, d, metas, env, sol, statements)
         }
         (Node::All(x, a), Node::All(y, b)) | (Node::Ex(x, a), Node::Ex(y, b)) => {
             env.push((x.clone(), y.clone()));
-            let ok = match_vars(a, b, metas, env, sol);
+            let ok = fit(a, b, metas, env, sol, statements);
             env.pop();
             ok
         }

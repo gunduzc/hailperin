@@ -101,7 +101,7 @@ fn a_citation_passes_every_template() {
 #[test]
 fn definitions_fold_and_unfold_silently() {
     let src = "define Iff A B = (A -> B) and (B -> A)\ntheorem ok:\n predicate A\n lemma aa:\n  assume a: A\n  therefore A -> A\n i: Iff A A by and_i aa aa\n therefore Iff A A";
-    assert_eq!(ok(src), ["ok: (A -> A) and (A -> A)"]);
+    assert_eq!(ok(src), ["ok: Iff A A"]);
 }
 
 #[test]
