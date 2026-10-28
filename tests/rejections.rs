@@ -502,7 +502,7 @@ fn neg_imports() {
     assert_eq!(check("import_cycle_a"), "failure: import_cycle_b.hai: line 1: import cycle: import_cycle_a -> import_cycle_b -> import_cycle_a");
     assert_eq!(check("import_cycle_b"), "failure: import_cycle_a.hai: line 1: import cycle: import_cycle_b -> import_cycle_a -> import_cycle_b");
     assert_eq!(check("import_late"), "failure: line 5: imports come before everything else");
-    assert_eq!(check("import_missing"), "failure: line 1: can't import `nonexistent`: No such file or directory (os error 2)");
+    assert_eq!(check("import_missing"), "failure: line 1: can't import `nonexistent`: `nonexistent.hai` doesn't exist");
     assert_eq!(check("import_self"), "failure: line 1: import cycle: import_self -> import_self");
     std::fs::remove_dir_all(&dir).unwrap();
 }

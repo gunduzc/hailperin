@@ -116,7 +116,10 @@ impl Loader {
         let name = &import.name;
         let err = |msg: String| Error::new(import.line, msg);
         let path = dir.join(format!("{name}.hai"));
-        let canon = path.canonicalize().map_err(|e| err(format!("can't import `{name}`: {e}")))?;
+        let canon = path.canonicalize().map_err(|e| match e.kind() {
+            std::io::ErrorKind::NotFound => err(format!("can't import `{name}`: `{name}.hai` doesn't exist")),
+            _ => err(format!("can't import `{name}`: {e}")),
+        })?;
         if let Some(i) = self.open.iter().position(|(p, _)| *p == canon) {
             let mut cycle: Vec<&str> = self.open[i..].iter().map(|(_, n)| n.as_str()).collect();
             cycle.push(name);
