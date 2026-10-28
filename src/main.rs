@@ -76,11 +76,14 @@ fn main() {
     let dir = path.and_then(Path::parent).filter(|d| !d.as_os_str().is_empty()).unwrap_or(Path::new("."));
     let result = match mode {
         "fmt" => hailperin::fmt::format(&src, &opts).map(|out| print!("{out}")),
-        "explain" => hailperin::explain_in(&src, dir, path).map(|lines| {
+        // The lines that checked, even when a later one fails.
+        "explain" => {
+            let (lines, checked) = hailperin::explain_in(&src, dir, path);
             for l in lines {
                 println!("{l}");
             }
-        }),
+            checked
+        }
         _ => hailperin::verify_in(&src, dir, path, &mut |_, _| {}).map(|()| println!("success")),
     };
     if let Err(e) = result {

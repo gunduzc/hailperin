@@ -249,3 +249,15 @@ fn the_editor_syntax_knows_the_words() {
     words.sort_unstable();
     assert_eq!(listed, words);
 }
+
+/// `explain` shows the lines that checked before a failure, then the failure.
+#[test]
+fn explain_shows_what_checked_before_a_failure() {
+    let src = "predicate A\npredicate B\ntheorem t:\n  assume a: A\n  k: A by reit a\n  j: B by reit a\n  therefore A -> B\n";
+    let tmp = std::env::temp_dir().join(format!("hailperin-explain-{}.hai", std::process::id()));
+    fs::write(&tmp, src).unwrap();
+    let r = run(&["explain", tmp.to_str().unwrap()]);
+    fs::remove_file(&tmp).unwrap();
+    assert_eq!(r.code, Some(1));
+    assert_eq!(r.stdout, "theorem t\n  a: [ | a] A\n  k: [ | a] A\nfailure: line 6: t: this gives A, not B\n");
+}

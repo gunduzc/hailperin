@@ -50,13 +50,16 @@ pub fn verify(src: &str) -> Result<Vec<(String, kernel::formula::Formula)>, Erro
     Ok(proved)
 }
 
-/// Checks a file and returns, for each line of each theorem, its variables in scope, its
-/// open assumptions and its formula.
-pub fn explain_in(src: &str, dir: &Path, path: Option<&Path>) -> Result<Vec<String>, Error> {
-    let mut l = loader(path, dir)?;
+/// Checks a file and returns, for each line of each theorem that checked, its variables in
+/// scope, its open assumptions and its formula, then whether the whole file checked.
+pub fn explain_in(src: &str, dir: &Path, path: Option<&Path>) -> (Vec<String>, Result<(), Error>) {
+    let mut l = match loader(path, dir) {
+        Ok(l) => l,
+        Err(e) => return (Vec::new(), Err(e)),
+    };
     l.checker.explain = true;
-    l.source(src, dir, &mut |_, _| {})?;
-    Ok(l.checker.take_trace())
+    let checked = l.source(src, dir, &mut |_, _| {}).map(drop);
+    (l.checker.take_trace(), checked)
 }
 
 fn loader(path: Option<&Path>, dir: &Path) -> Result<Loader, Error> {
