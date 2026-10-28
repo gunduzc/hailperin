@@ -1,4 +1,5 @@
-//! Runs the binary on every example: `examples/*.hai` must pass, printing only `success`.
+//! Runs the binary on every example: `examples/*.hai` must pass, printing only `success`, and
+//! so must the files in each directory under `examples`, checked through those nothing imports.
 //! What must fail is in `rejections.rs`, as source text.
 
 use std::fs;
@@ -188,4 +189,45 @@ fn an_imported_file_is_named_from_the_checked_file() {
         ("top.hai", "import sub/s\n"),
     ];
     assert_eq!(run_files("names", &files, "top.hai"), "failure: a.hai: line 5: bad: `q` is not a line or a theorem here\n");
+}
+
+/// The `.hai` files in each directory under `examples`, with those no other file there imports.
+fn subdirectories() -> Vec<(Vec<PathBuf>, Vec<PathBuf>)> {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples");
+    let mut out = Vec::new();
+    for entry in fs::read_dir(&root).unwrap() {
+        let dir = entry.unwrap().path();
+        if !dir.is_dir() {
+            continue;
+        }
+        let mut files: Vec<PathBuf> = fs::read_dir(&dir).unwrap().map(|e| e.unwrap().path()).filter(|p| p.extension().is_some_and(|e| e == "hai")).collect();
+        files.sort();
+        let imported: Vec<String> = files
+            .iter()
+            .flat_map(|f| fs::read_to_string(f).unwrap().lines().filter_map(|l| l.strip_prefix("import ").map(|p| p.trim().rsplit('/').next().unwrap().to_string())).collect::<Vec<_>>())
+            .collect();
+        let leaves = files.iter().filter(|f| !imported.contains(&f.file_stem().unwrap().to_string_lossy().into_owned())).cloned().collect();
+        out.push((files, leaves));
+    }
+    out
+}
+
+/// A file in a subdirectory is checked as an import of the files nothing there imports, and
+/// formatting it twice gives the same text.
+#[test]
+fn every_example_in_a_subdirectory_passes() {
+    for (files, leaves) in subdirectories() {
+        assert!(!leaves.is_empty(), "every file in {} is imported by another", files[0].parent().unwrap().display());
+        for leaf in &leaves {
+            let r = run(&[leaf.to_str().unwrap()]);
+            assert_eq!(r.stdout, "success\n", "{}", leaf.display());
+        }
+        for f in &files {
+            let once = run(&["fmt", f.to_str().unwrap()]);
+            let tmp = std::env::temp_dir().join(format!("hailperin-sub-{}", f.file_name().unwrap().to_str().unwrap()));
+            fs::write(&tmp, &once.stdout).unwrap();
+            assert_eq!(run(&["fmt", tmp.to_str().unwrap()]).stdout, once.stdout, "{}: fmt is not idempotent", f.display());
+            fs::remove_file(&tmp).unwrap();
+        }
+    }
 }
