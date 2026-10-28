@@ -463,6 +463,11 @@ impl Parser<'_> {
     }
 
     fn just(&mut self) -> Result<Just, Error> {
+        // Nothing after `by` on its line: the rule is missing there, not on the next line.
+        let by_line = self.toks[self.pos.saturating_sub(1)].line;
+        if !matches!(self.peek(), Some(Tok::Lower(_))) && self.line() > by_line {
+            return Err(Error::new(by_line, "nothing follows `by`: name the rule, then its lines"));
+        }
         let line = self.line();
         let rule = self.name_after_by()?;
         let mut args = Vec::new();

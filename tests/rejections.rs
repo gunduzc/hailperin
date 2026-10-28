@@ -670,3 +670,11 @@ fn unusual_but_valid_forms_check() {
     let src = "predicate P x\ntheorem id:\n  predicate A\n  assume a: A\n  therefore A -> A\ntheorem use:\n  variable u\n  assume h: P u and P u\n  k: P u and P u by imp_e id (P u and P u) h\n  therefore forall u. P u and P u -> P u and P u\n";
     assert_eq!(ok(src).len(), 2);
 }
+
+#[test]
+fn nothing_after_by_is_pointed_at() {
+    let e = hailperin::verify("predicate A\ntheorem t:\n  assume a: A\n  k: A by\n  therefore A -> A\n").unwrap_err();
+    assert_eq!((e.line, e.msg.as_str()), (4, "nothing follows `by`: name the rule, then its lines"));
+    // The rule may still stand on the next line.
+    assert_eq!(ok("predicate A\ntheorem t:\n  assume a: A\n  k: A by\n  reit a\n  therefore A -> A\n").len(), 1);
+}
