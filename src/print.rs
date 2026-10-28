@@ -69,7 +69,38 @@ fn folded(f: &Formula) -> Option<String> {
 pub fn show(f: &Formula) -> String {
     let mut s = String::new();
     write(f, 0, &mut s);
-    s
+    plain(&s)
+}
+
+/// The text with every name the checker made fresh, `a'`, renamed to one a reader could have
+/// written, `a1`: the base with the smallest number the text doesn't use.
+fn plain(s: &str) -> String {
+    let word = |c: char| c.is_ascii_alphanumeric() || c == '_' || c == '\'';
+    let words: Vec<&str> = s.split(|c: char| !word(c)).filter(|w| !w.is_empty()).collect();
+    let mut taken: BTreeSet<String> = words.iter().map(|w| w.to_string()).collect();
+    let mut renamed: HashMap<&str, String> = HashMap::new();
+    for w in words.iter().filter(|w| w.contains('\'')) {
+        if !renamed.contains_key(w) {
+            let base = w.trim_end_matches('\'');
+            let new = (1..).map(|k| format!("{base}{k}")).find(|n| !taken.contains(n)).expect("some number is free");
+            taken.insert(new.clone());
+            renamed.insert(w, new);
+        }
+    }
+    if renamed.is_empty() {
+        return s.to_string();
+    }
+    let mut out = String::new();
+    let mut rest = s;
+    while let Some(i) = rest.find(word) {
+        out.push_str(&rest[..i]);
+        let len = rest[i..].find(|c: char| !word(c)).unwrap_or(rest.len() - i);
+        let w = &rest[i..i + len];
+        out.push_str(renamed.get(w).map_or(w, String::as_str));
+        rest = &rest[i + len..];
+    }
+    out.push_str(rest);
+    out
 }
 
 fn write(f: &Formula, level: u8, out: &mut String) {

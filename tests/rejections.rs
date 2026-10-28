@@ -593,3 +593,10 @@ fn an_unclosed_paren_is_pointed_at() {
     let e = hailperin::verify(src).unwrap_err();
     assert_eq!((e.line, e.msg.as_str()), (5, "this `(` has no `)`"));
 }
+
+#[test]
+fn messages_name_fresh_variables_writably() {
+    // The cited theorem's binder is renamed apart from the template's `a`, and printed as `a1`.
+    let src = "predicate Q x\npredicate R x y\ntheorem t:\n predicate P x\n variable a\n assume p: P a\n therefore forall a. P a -> P a\ntheorem use:\n variable a b\n assume q: Q a\n k: Q a by imp_e t (R a) q\n therefore forall a b. Q a -> Q a";
+    assert_eq!(err(src), "use: Q a doesn't fit antecedent 1 of forall a1. R a a1 -> R a a1");
+}
