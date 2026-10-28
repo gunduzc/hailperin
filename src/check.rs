@@ -273,6 +273,23 @@ fn placeholders(n: usize, taken: &BTreeSet<Name>) -> Vec<Name> {
     out
 }
 
+/// The path from `f` down to `target` through a tree of `and`s, or of `or`s: left or right at
+/// each node, outermost first.
+fn path(f: &Formula, target: &Formula, and: bool, out: &mut Vec<bool>) -> bool {
+    if f == target {
+        return true;
+    }
+    let ((Node::And(l, r), true) | (Node::Or(l, r), false)) = (f.node(), and) else { return false };
+    for (left, side) in [(true, l), (false, r)] {
+        out.push(left);
+        if path(side, target, and, out) {
+            return true;
+        }
+        out.pop();
+    }
+    false
+}
+
 /// The error for a new name, wanted as `role`, that is already `kind`.
 fn clash(x: &str, kind: &str, role: &str) -> String {
     if kind.starts_with(role) {
@@ -925,27 +942,9 @@ impl Checker {
                 if !matches!(fc.node(), Node::And(..)) {
                     return Err(err(format!("`and_e` needs an `and`, and {} isn't one", show(&fc))));
                 }
-                // The path to the stated formula in the tree of `and`s: left or right at each node.
-                fn path(f: &Formula, want: &Formula, out: &mut Vec<bool>) -> bool {
-                    if f == want {
-                        return true;
-                    }
-                    if let Node::And(a, b) = f.node() {
-                        out.push(true);
-                        if path(a, want, out) {
-                            return true;
-                        }
-                        out.pop();
-                        out.push(false);
-                        if path(b, want, out) {
-                            return true;
-                        }
-                        out.pop();
-                    }
-                    false
-                }
+                // The path to the stated formula in the tree of `and`s.
                 let mut steps = Vec::new();
-                if !path(&fc, want, &mut steps) {
+                if !path(&fc, want, true, &mut steps) {
                     return Err(err(format!("{} is not a conjunct of {}", show(want), show(&fc))));
                 }
                 let mut o = c;
@@ -967,26 +966,8 @@ impl Checker {
                     return Err(err(format!("`or_i` gives an `or`, and the stated formula {} isn't one", show(want))));
                 }
                 // The path from the stated formula down to the line in the tree of `or`s.
-                fn path(f: &Formula, line: &Formula, out: &mut Vec<bool>) -> bool {
-                    if f == line {
-                        return true;
-                    }
-                    if let Node::Or(l, r) = f.node() {
-                        out.push(true);
-                        if path(l, line, out) {
-                            return true;
-                        }
-                        out.pop();
-                        out.push(false);
-                        if path(r, line, out) {
-                            return true;
-                        }
-                        out.pop();
-                    }
-                    false
-                }
                 let mut steps = Vec::new();
-                if !path(want, &fa, &mut steps) {
+                if !path(want, &fa, false, &mut steps) {
                     return Err(err(format!("{} is not an alternative of {}", show(&fa), show(want))));
                 }
                 // Build upward from the line: the node at each step, innermost first.
