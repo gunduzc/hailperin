@@ -1,6 +1,8 @@
 //! Runs the binary on every example: `examples/*.hai` must pass, printing only `success`, and
 //! so must the files in each directory under `examples`, checked through those nothing imports.
-//! What must fail is in `rejections.rs`, as source text.
+//! Also the command line, files that import each other, and what must agree with the code: the
+//! examples and words in SPEC.md, and the editor syntax. What must fail is in `rejections.rs`,
+//! as source text.
 
 use std::fs;
 use std::io::Read;
