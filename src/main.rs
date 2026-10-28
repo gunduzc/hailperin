@@ -19,6 +19,11 @@ fn main() {
     let mut opts = hailperin::fmt::Options::default();
     let (mode, file) = match argv.as_slice() {
         [_] => ("check", None),
+        // Asked for, the usage is the answer: on standard output, and no error.
+        [_, "--help" | "-h"] => {
+            println!("{USAGE}");
+            return;
+        }
         [_, "fmt", rest @ ..] => {
             let mut file = None;
             let mut i = 0;
@@ -56,7 +61,7 @@ fn main() {
             }
         }
         [_, "explain", f] => ("explain", Some(*f)),
-        [_, f] if !matches!(*f, "fmt" | "explain" | "--help" | "-h") => ("check", Some(*f)),
+        [_, f] if !matches!(*f, "fmt" | "explain") => ("check", Some(*f)),
         _ => usage(),
     };
     let path = file.filter(|f| *f != "-").map(Path::new);

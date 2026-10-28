@@ -119,6 +119,16 @@ fn fmt_is_stable_and_preserves_meaning() {
 }
 
 #[test]
+fn help_is_an_answer() {
+    for flag in ["--help", "-h"] {
+        let r = run(&[flag]);
+        assert_eq!(r.code, Some(0));
+        assert!(r.stdout.starts_with("usage: hailperin [FILE]"), "{}", r.stdout);
+        assert!(r.stderr.is_empty());
+    }
+}
+
+#[test]
 fn a_missing_file_is_named() {
     let r = run(&["no_such_file.hai"]);
     assert_eq!(r.code, Some(2));
