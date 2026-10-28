@@ -617,3 +617,12 @@ fn a_line_too_many_and_cases_in_the_wrong_order() {
     let src = "predicate A\npredicate B\ntheorem t:\n  assume em: A or B\n  assume ab: A -> B\n  assume bb: B -> B\n  b: B by or_e em bb ab\n  therefore (A or B) -> (A -> B) -> (B -> B) -> B\n";
     assert_eq!(err(src), "t: the case for A should be A -> B, and it is B -> B");
 }
+
+#[test]
+fn a_variable_among_imp_e_arguments_instantiates() {
+    let src = "predicate P x\npredicate Q x\ntheorem t:\n  variable u\n  assume h: forall x. P x -> Q x\n  assume p: P u\n  k: Q u by imp_e h u p\n  therefore forall u. (forall x. P x -> Q x) -> P u -> Q u\n";
+    assert_eq!(ok(src).len(), 1);
+    // A theorem takes the lines up to the first variable, and the rest apply to its result.
+    let src = "predicate P x\ntheorem all:\n  assume h: forall x. P x\n  therefore (forall x. P x) -> forall x. P x\ntheorem use:\n  variable u\n  assume h: forall x. P x\n  k: P u by imp_e all h u\n  therefore forall u. (forall x. P x) -> P u\n";
+    assert_eq!(ok(src).len(), 2);
+}

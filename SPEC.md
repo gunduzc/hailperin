@@ -170,7 +170,7 @@ A theorem and a lemma are the same construct, a block. Its name is followed by a
 
 | rule | from | gives |
 |---|---|---|
-| `imp_e f a...` | a fact `f : A -> B -> ...`, `a : A`, ... | what is left after the antecedents given. Each run of `forall`s of `f` is instantiated by matching the lines after it, and the stated formula |
+| `imp_e f a...` | a fact `f : A -> B -> ...`, `a : A`, ... | what is left after the antecedents given. Each run of `forall`s of `f` is instantiated by matching the lines after it, and the stated formula. A variable among the arguments instantiates the next `forall` itself, as `forall_e` does |
 | `and_i a b...` | `A`, `B`, ... | `A and B and ...`, nested to the right like the formula |
 | `and_e c` | `A and B and ...`, stated as one of its conjuncts | that conjunct. The stated formula says which |
 | `or_i a` | `A`, stated as an `or` with `A` among its alternatives | the stated `or`. The stated formula says where |
