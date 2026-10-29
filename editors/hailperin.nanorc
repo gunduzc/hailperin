@@ -1,6 +1,11 @@
 ## Hailperin proof files. Add `include "/path/to/hailperin.nanorc"` to ~/.nanorc.
 syntax hailperin "\.hai$"
 comment "--"
+tabgives "  "
+## nano adds the buffer's temporary copy as the last argument. Options for `fmt` go before it:
+## formatter hailperin fmt --write --indent 4 --width 80
+formatter hailperin fmt --write
+linter hailperin --lint
 
 color brightcyan "\<[A-Z][A-Za-z0-9_]*\>"
 color yellow "\<[a-z][A-Za-z0-9_]*[[:space:]]*:"

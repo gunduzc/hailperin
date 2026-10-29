@@ -120,6 +120,34 @@ fn fmt_is_stable_and_preserves_meaning() {
     }
 }
 
+/// What nano's formatter and linter need: `fmt --write` rewrites the file, `--lint` gives
+/// `file:line:col: message` and says nothing when the file checks.
+#[test]
+fn fmt_write_and_lint_serve_an_editor() {
+    let dir = std::env::temp_dir();
+    let flat = dir.join(format!("hailperin-write-{}.hai", std::process::id()));
+    let canonical = fs::read_to_string("examples/socrates.hai").unwrap();
+    let unindented: String = canonical.lines().map(|l| format!("{}\n", l.trim_start())).collect();
+    fs::write(&flat, &unindented).unwrap();
+    let out = run(&["fmt", "--write", flat.to_str().unwrap()]);
+    assert_eq!((out.code, out.stdout.as_str()), (Some(0), ""));
+    assert_eq!(fs::read_to_string(&flat).unwrap(), run(&["fmt", "examples/socrates.hai"]).stdout);
+    assert_eq!(run(&["--lint", flat.to_str().unwrap()]).stdout, "");
+
+    fs::write(&flat, "theorem t:\n  oops\n").unwrap();
+    let out = run(&["--lint", flat.to_str().unwrap()]);
+    assert_eq!(out.code, Some(1));
+    assert!(out.stdout.starts_with(&format!("{}:", flat.display())) && out.stdout.contains(":1: "), "{}", out.stdout);
+    // A file that doesn't parse is left as it was.
+    let before = fs::read_to_string(&flat).unwrap();
+    let out = run(&["fmt", "--write", flat.to_str().unwrap()]);
+    if out.code != Some(0) {
+        assert_eq!(fs::read_to_string(&flat).unwrap(), before);
+    }
+    fs::remove_file(&flat).unwrap();
+    assert_eq!(run(&["fmt", "--write", "-"]).code, Some(2));
+}
+
 #[test]
 fn help_is_an_answer() {
     for flag in ["--help", "-h"] {

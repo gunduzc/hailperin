@@ -85,7 +85,7 @@ I hope you enjoy Hailperin. I certainly did.
 ```
 cargo run --release -- examples/socrates.hai            # prints `success`
 cargo run --release -- - < file.hai                      # reads standard input
-cargo run --release -- fmt examples/socrates.hai        # the canonical layout (--indent, --continue, --width, --by, --scope)
+cargo run --release -- fmt examples/socrates.hai        # the canonical layout (--indent, --continue, --width, --by, --scope, --write)
 cargo run --release -- explain examples/socrates.hai    # each line's scope and formula
 cargo test
 ```
@@ -109,7 +109,7 @@ Vim, with highlighting, indentation the way `fmt` lays a file out, and `:Hailper
 mkdir -p ~/.vim/pack/hailperin/start && cp -r editors/vim ~/.vim/pack/hailperin/start/hailperin
 ```
 
-nano, for highlighting:
+nano, with highlighting, a two-space Tab, and `hailperin fmt` and the checker behind the Execute menu (`Ctrl+T`, then `Ctrl+O` to format or `Ctrl+Y` to lint). The options of `fmt` go on the `formatter` line of the file:
 
 ```
 echo "include \"$PWD/editors/hailperin.nanorc\"" >> ~/.nanorc

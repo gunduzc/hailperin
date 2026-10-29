@@ -224,6 +224,8 @@ theorem russell:
 
 The source's line breaks and blank lines are kept, and its spacing is forgotten: a continued line is indented a fixed amount past its item, and a `by` that starts a line stands in its segment's column. Nothing is broken unless a width is given. Then a longer line breaks before its `by`, then before an operator, the outermost first.
 
-The flags are `--indent N`, `--continue N`, `--width N`, `--by pad|space` for all these columns, and `--scope segment|theorem`, and each person formats their own way.
+The flags are `--indent N`, `--continue N`, `--width N`, `--by pad|space` for all these columns, and `--scope segment|theorem`, and each person formats their own way. `--write` rewrites the file instead of printing, and leaves it alone when it can't be formatted.
+
+`hailperin --lint FILE`, with the flag `--lint`, checks like `hailperin FILE` but for an editor: it prints nothing when the file checks, and otherwise one line, `FILE:LINE:1: message`, with the exit code 1. An error in an imported file is put at line 1, with the import's own line in the message.
 
 `hailperin explain FILE` prints each line's scope and formula, indented by block, as `label: [variables | assumptions] formula`: the variables and the labels of the assumptions the line rests on, which its closure is taken over. `d9: [e u x f a | hx ha] In a u and EqOr A e a` rests on five variables and two assumptions. When a line fails, the lines before it are printed, then the failure.
