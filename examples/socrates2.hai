@@ -26,3 +26,22 @@ theorem socrates_is_mortal:
     therefore forall x. Socrates x -> Mortal x
 
   therefore (forall x. Socrates x -> Person x) -> (forall x. Person x -> Mortal x) -> forall x. Socrates x -> Mortal x
+
+define SocratesIsPerson = forall x. Socrates x -> Person x
+define PersonIsMortal   = forall x. Person x -> Mortal x
+
+define CommonSense      = SocratesIsPerson and PersonIsMortal
+define SocratesIsMortal = forall x. Socrates x -> Mortal x
+
+theorem socrates_is_concise:
+  assume cs: CommonSense
+  sp: forall x. Socrates x -> Person x by and_e cs
+  pm: forall x. Person x -> Mortal x   by and_e cs
+
+  lemma sm:
+    variable x
+    assume s: Socrates x
+    p: Person x by imp_e sp s
+    m: Mortal x by imp_e pm p
+    therefore SocratesIsMortal
+  therefore CommonSense -> SocratesIsMortal
