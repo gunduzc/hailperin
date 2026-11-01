@@ -92,13 +92,6 @@ cargo test
 
 Exit codes: `0` success, `1` failure (`failure: line N: ...`), `2` usage error.
 
-Syntax highlighting for [bat](https://github.com/sharkdp/bat):
-
-```
-cp editors/hailperin.sublime-syntax ~/.config/bat/syntaxes/ && bat cache --build
-export BAT_THEME=ansi    # the terminal's own colours, so it reads on light and dark alike
-```
-
 ## Editors
 
 Formatting runs `hailperin fmt`, so put the checker on your path first: `cargo install --path .`
@@ -115,12 +108,10 @@ nano, with highlighting, a two-space Tab, and `hailperin fmt` and the checker be
 echo "include \"$PWD/editors/hailperin.nanorc\"" >> ~/.nanorc
 ```
 
-VS Code, with Format Document and indentation as you type. The package builds without Node:
+Kakoune, with highlighting, a two-space indent, `:format` for the whole buffer and `:lint` for the checker:
 
 ```
-python3 editors/vscode/vsix.py && code --install-extension editors/vscode/hailperin-0.1.0.vsix
+echo "source \"$PWD/editors/hailperin.kak\"" >> ~/.config/kak/kakrc
 ```
-
-Tree-sitter, for Helix, Zed and Neovim: the grammar is in [editors/tree-sitter-hailperin](editors/tree-sitter-hailperin), with the generated parser in `src/` and the highlighting and indentation queries in `queries/`.
 
 The language is described in [SPEC.md](SPEC.md); more examples are in [examples/](examples/).

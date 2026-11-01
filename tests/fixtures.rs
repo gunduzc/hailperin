@@ -282,7 +282,7 @@ fn every_example_in_a_subdirectory_passes() {
 /// The editor syntax highlights every keyword and rule of the language, and nothing else.
 #[test]
 fn the_editor_syntax_knows_the_words() {
-    let syntax = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("editors/hailperin.sublime-syntax")).unwrap();
+    let syntax = fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("editors/hailperin.kak")).unwrap();
     let mut listed: Vec<&str> = syntax.split("\\b(").skip(1).flat_map(|s| s.split(")\\b").next().unwrap().split('|')).collect();
     let mut words: Vec<&str> = hailperin::lexer::KEYWORDS.iter().map(|(w, _)| *w).chain(hailperin::check::RULES.iter().copied()).collect();
     listed.sort_unstable();
@@ -294,7 +294,7 @@ fn the_editor_syntax_knows_the_words() {
 #[test]
 fn every_editor_knows_the_words() {
     let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("editors");
-    let files = ["vim/syntax/hailperin.vim", "hailperin.nanorc", "vscode/syntaxes/hailperin.tmLanguage.json", "tree-sitter-hailperin/grammar.js"];
+    let files = ["vim/syntax/hailperin.vim", "hailperin.nanorc", "hailperin.kak"];
     let words: Vec<&str> = hailperin::lexer::KEYWORDS.iter().map(|(w, _)| *w).chain(hailperin::check::RULES.iter().copied()).collect();
     for file in files {
         let text = fs::read_to_string(dir.join(file)).unwrap();
