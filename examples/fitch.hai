@@ -22,7 +22,7 @@ define Knowable = forall p known w. Kn p known -> True p w -> exists v. R w v an
 define Fitch = AndOut and NotOut and Fact and Split and Knowable
 
 -- The secret is known nowhere: knowing it means knowing p, yet it says p is unknown.
-theorem unknowable:
+theorem unknowable: intuitionistic
   variable p known unknown secret secret_known v
   assume ax:              Fitch
   assume known_is:        Kn p known
@@ -46,7 +46,7 @@ theorem unknowable:
 
 -- The secret is true nowhere: where it is true, knowability makes it known somewhere.
 -- Intuitionistic: not (p and not known), not p -> known.
-theorem fitch:
+theorem fitch: intuitionistic
   variable p known unknown secret secret_known w
   assume ax:              Fitch
   assume known_is:        Kn p known

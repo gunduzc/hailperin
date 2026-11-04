@@ -3,7 +3,7 @@
 define ExcludedMiddle A = A or not A
 
 -- Peirce's law, from excluded middle for A.
-theorem peirce:
+theorem peirce: intuitionistic
   predicate A
   predicate B
   assume em: ExcludedMiddle A
@@ -24,7 +24,7 @@ theorem peirce:
   therefore ExcludedMiddle A -> ((A -> B) -> A) -> A
 
 -- Double negation elimination.
-theorem dne:
+theorem dne: intuitionistic
   predicate A
   assume em:  ExcludedMiddle A
   assume nna: not (not A)
@@ -40,7 +40,7 @@ theorem dne:
   therefore ExcludedMiddle A -> not (not A) -> A
 
 -- Contraposition, the classical direction.
-theorem contrapositive:
+theorem contrapositive: intuitionistic
   predicate A
   predicate B
   assume em: ExcludedMiddle B

@@ -9,7 +9,7 @@ define Induction (P x) = (forall x. Zero x -> P x) -> (forall y x. P x -> Succ x
 -- Everything is zero or a successor, by induction.
 define ZeroOrSucc x = Zero x or exists p. Succ p x
 
-theorem zero_or_succ:
+theorem zero_or_succ: intuitionistic
   assume ind: Induction ZeroOrSucc
   lemma base:
     variable x

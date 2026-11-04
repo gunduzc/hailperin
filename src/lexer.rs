@@ -33,6 +33,9 @@ pub enum Kw {
     Or,
     Not,
     Absurd,
+    Minimal,
+    Intuitionistic,
+    Classical,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -79,6 +82,9 @@ pub const KEYWORDS: &[(&str, Kw)] = &[
     ("or", Kw::Or),
     ("not", Kw::Not),
     ("absurd", Kw::Absurd),
+    ("minimal", Kw::Minimal),
+    ("intuitionistic", Kw::Intuitionistic),
+    ("classical", Kw::Classical),
 ];
 
 pub fn keyword(word: &str) -> Option<Kw> {

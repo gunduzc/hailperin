@@ -2,12 +2,12 @@
 
 ## Logic
 
-Universally free (Hailperin-style) intuitionistic first-order logic.
+Universally free (Hailperin-style) first-order logic: classical, intuitionistic or minimal, as each theorem declares.
 
 - One domain, possibly empty.
 - Terms are variables. No sorts, no built-in equality. Individuals are predicates (`Socrates x`), functions are relations (`Succ x y`).
 - Theorems are closed formulas, and logical validities: whatever a theorem assumes, axioms included, is in its statement. Modus ponens is the only rule.
-- Classical logic is a schema, `define ExcludedMiddle A = A or not A`, assumed one instance at a time. Non-emptiness is a formula: `not (forall x. absurd)`.
+- Classical logic has `lem`, intuitionistic logic doesn't, and minimal logic has no `efq` either. Non-emptiness is a formula: `not (forall x. absurd)`.
 
 ### Formulas
 
@@ -33,20 +33,21 @@ Every closure (a `forall` prefix over the free variables, extra `forall`s allowe
 | `and_e1`, `and_e2` | `A and B -> A`, `A and B -> B` | |
 | `or_i1`, `or_i2` | `A -> A or B`, `B -> A or B` | |
 | `or_e` | `(A -> C) -> (B -> C) -> A or B -> C` | |
-| `efq` | `absurd -> A` | |
+| `efq` | `absurd -> A` | not in minimal logic |
 | `dist` | `(forall x. A -> B) -> (forall x. A) -> forall x. B` | |
 | `vac` | `A -> forall x. A` | `x` not free in `A` |
 | `inst` | `(forall x. A) -> A[y/x]` | the closure binds `y`, even if `y` doesn't occur |
 | `ex_i` | `A[y/x] -> exists x. A` | the closure binds `y`, even if `y` doesn't occur |
 | `ex_e` | `(forall x. A -> C) -> (exists x. A) -> C` | `x` not free in `C` |
+| `lem` | `A or not A` | classical logic only |
 
-These fourteen and modus ponens are the kernel. Everything below is translated into them.
+These fifteen and modus ponens are the kernel. Everything below is translated into them. The kernel records with each theorem the weakest logic its axioms belong to, so a theorem never proves more than its logic does, however it was checked.
 
 ## Language
 
 A file is ASCII. Whitespace only separates tokens. A comment runs from `--` to the end of its line, and belongs to the item after it, or to the line it trails. Everything is declared before it is used, and no name is ever two things at once. Nothing shadows: a quantifier binds a name that is new where it stands, not a variable in scope, a binder around it, a definition's parameter, a label (the line's own included) or a theorem. A `therefore` restates the variables its block closes, which is not shadowing: `variable a` ... `therefore forall a. P a -> P a`.
 
-**Names.** Uppercase: predicates, definitions, parameters. Lowercase: variables, labels, theorems, lemmas, rules. A name matches `letter (letter | digit | '_' (letter | digit))*`. Reserved: `theorem lemma define import predicate variable assume therefore by forall exists and or not absurd`, and the rule names, `auto` among them.
+**Names.** Uppercase: predicates, definitions, parameters. Lowercase: variables, labels, theorems, lemmas, rules. A name matches `letter (letter | digit | '_' (letter | digit))*`. Reserved: `theorem lemma define import predicate variable assume therefore by forall exists and or not absurd minimal intuitionistic classical`, and the rule names, `auto` among them.
 
 ```
 file      ::= import* item*
@@ -58,7 +59,8 @@ item      ::= predicate | define | theorem
 predicate ::= 'predicate' Name var*
 define    ::= 'define' Name param* '=' formula
 param     ::= '(' Name var+ ')' | Name | var
-theorem   ::= 'theorem' name ':' predicate* block
+theorem   ::= 'theorem' name ':' logic? predicate* block
+logic     ::= 'minimal' | 'intuitionistic' | 'classical'
 lemma     ::= 'lemma' name ':' block
 
 block     ::= ('variable' var+)*
@@ -152,6 +154,31 @@ theorem socrates_is_mortal:
               -> forall x. Socrates x -> Mortal x
 ```
 
+**Logic.** A theorem is classical unless it says otherwise after its colon: `theorem dni: minimal`, `theorem diaconescu: intuitionistic`, `theorem peirce: classical`. A minimal theorem can't use `absurd_e`, and only a classical one can use `lem`. A theorem cites only theorems in its own logic or a weaker one, minimal before intuitionistic before classical, by what they declare: an intuitionistic theorem that is undeclared is classical to whoever cites it. A lemma is in its theorem's logic.
+
+```
+predicate A
+predicate B
+
+theorem peirce:
+  assume f: (A -> B) -> A
+  em: A or not A                          by lem
+  lemma yes:
+    assume a: A
+    therefore A -> A
+  lemma no:
+    assume na: not A
+    lemma ab:
+      assume a: A
+      x: absurd                           by imp_e na a
+      b: B                                by absurd_e x
+      therefore A -> B
+    a: A                                  by imp_e f ab
+    therefore not A -> A
+  a: A                                    by or_e em yes no
+  therefore ((A -> B) -> A) -> A
+```
+
 A theorem and a lemma are the same construct, a block. Its name is followed by a colon, like every name that can be cited: labels, assumptions, lemmas and theorems. A theorem is a block at top level, and its `therefore` is a closed formula. A lemma is a block inside a block, and its `therefore` may rest on the variables, assumptions and lines of the blocks around it, which stay open on its result. A lemma's name is visible after it, in the block that contains it, and nowhere else.
 
 **Declarations first, in order.** A theorem opens with its `predicate` lines, and every block with `variable`, then `assume`, each section possibly empty, then its steps and lemmas, then `therefore`. Read in order: what the theorem is about, for which individuals, given what. The header says everything a theorem rests on, and so does its statement.
@@ -175,10 +202,11 @@ A theorem and a lemma are the same construct, a block. Its name is followed by a
 | `and_e c` | `A and B and ...`, stated as one of its conjuncts | that conjunct. The stated formula says which |
 | `or_i a` | `A`, stated as an `or` with `A` among its alternatives | the stated `or`. The stated formula says where |
 | `or_e d p q...` | `A or B or ...`, `A -> C`, `B -> C`, ... | `C`. One case per alternative, the last case taking what is left |
-| `absurd_e f` | `absurd` | the stated formula |
+| `absurd_e f` | `absurd` | the stated formula. Not in minimal logic |
 | `forall_e h y...` | `forall x.... A`, `y...` in scope | `A[y/x]...` |
 | `exists_i l` | `A[y/x]...`, stated as `exists x.... A`, for some `y...` in scope | `exists x.... A`. The witnesses are found by comparing the two, as many binders as the line accounts for |
 | `exists_e e g` | `e : exists x.... A`, `g : forall w.... A[w/x] -> C`, no `w` free in `C` | `C`. `g` is usually a lemma's `therefore`, one `variable` per binder |
+| `lem` | | the stated formula, `A or not A` for some `A`. Classical logic only |
 | `reit f` | a fact `f : F` | `F` restated: bound names renamed, definitions folded or unfolded. Nothing is instantiated |
 | `auto` | | reserved for a tool that fills lines in. The checker refuses it |
 

@@ -24,6 +24,7 @@ provide-module hailperin %{
   add-highlighter shared/hailperin/code/ regex (\b[a-z][A-Za-z0-9_]*)\s*: 1:variable
   add-highlighter shared/hailperin/code/ regex \b(theorem|lemma|define|import|predicate|variable|assume|therefore|by)\b 0:keyword
   add-highlighter shared/hailperin/code/ regex \b(forall|exists|and|or|not|absurd)\b 0:operator
+  add-highlighter shared/hailperin/code/ regex \b(minimal|intuitionistic|classical)\b 0:attribute
   add-highlighter shared/hailperin/code/ regex [-]> 0:operator
-  add-highlighter shared/hailperin/code/ regex \b(imp_e|and_i|and_e|or_i|or_e|absurd_e|forall_e|exists_i|exists_e|reit|auto)\b 0:builtin
+  add-highlighter shared/hailperin/code/ regex \b(imp_e|and_i|and_e|or_i|or_e|absurd_e|forall_e|exists_i|exists_e|lem|reit|auto)\b 0:builtin
 }

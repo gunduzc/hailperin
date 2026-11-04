@@ -12,7 +12,7 @@
 //! put under it first, by weakening.
 
 use crate::kernel::formula::{absurd, all, and, atom, ex, fresh, hole_names, imp, or, Formula, Name, Node, Template};
-use crate::kernel::{self, Axiom, Lemma, Thm};
+use crate::kernel::{self, Axiom, Lemma, Logic, Thm};
 use crate::parse::{Arg, Assume, Block, FExpr, Item, Just, Line, Param, Step, TArg, Therefore};
 use crate::print::show;
 use crate::Error;
@@ -22,7 +22,10 @@ use std::rc::Rc;
 
 /// The rules, and `auto`, which is reserved for a tool that fills lines in: the checker
 /// refuses it, so a file that still says `auto` is unfinished.
-pub const RULES: &[&str] = &["imp_e", "and_i", "and_e", "or_i", "or_e", "absurd_e", "forall_e", "exists_i", "exists_e", "reit", "auto"];
+pub const RULES: &[&str] = &["imp_e", "and_i", "and_e", "or_i", "or_e", "absurd_e", "forall_e", "exists_i", "exists_e", "lem", "reit", "auto"];
+
+/// The logic of a theorem that declares none.
+pub const DEFAULT_LOGIC: Logic = Logic::Classical;
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Kind {
@@ -95,8 +98,9 @@ struct Labeled {
 }
 
 /// Everything in scope inside one theorem.
-#[derive(Default)]
 struct Cx {
+    /// The logic the theorem declares.
+    logic: Logic,
     /// The theorem's predicate parameters, in declaration order, the order of its templates.
     params: Vec<(String, usize)>,
     stack: Vec<Entry>,
@@ -110,6 +114,10 @@ struct Cx {
 }
 
 impl Cx {
+    fn new(logic: Logic) -> Cx {
+        Cx { logic, params: Vec::new(), stack: Vec::new(), lines: Vec::new(), blocks: Vec::new(), closed: Vec::new(), ahead: Vec::new() }
+    }
+
     fn lookup(&self, label: &str) -> Option<&Labeled> {
         self.lines.iter().rev().find(|l| l.label == label)
     }
@@ -350,9 +358,9 @@ impl Checker {
                 self.globals.insert(name.clone(), (self.file(), Global::Def(Rc::new(def))));
                 Ok(None)
             }
-            Item::Theorem { name, block, line } => {
+            Item::Theorem { name, logic, block, line } => {
                 self.new_global(name, *line)?;
-                let info = self.theorem(name, block, *line).map_err(|e| Error::new(e.line, format!("{name}: {}", e.msg)))?;
+                let info = self.theorem(name, logic.unwrap_or(DEFAULT_LOGIC), block, *line).map_err(|e| Error::new(e.line, format!("{name}: {}", e.msg)))?;
                 let concl = info.lemma.concl().clone();
                 self.globals.insert(name.clone(), (self.file(), Global::Theorem(info)));
                 Ok(Some((name.clone(), concl)))
@@ -451,8 +459,8 @@ impl Checker {
 
     // ---- theorems ----
 
-    fn theorem(&mut self, name: &str, block: &Block, line: usize) -> Result<TheoremInfo, Error> {
-        let mut cx = Cx::default();
+    fn theorem(&mut self, name: &str, logic: Logic, block: &Block, line: usize) -> Result<TheoremInfo, Error> {
+        let mut cx = Cx::new(logic);
         cx.params = self.params(&block.predicates)?;
         if self.explain {
             self.trace.borrow_mut().push(format!("theorem {name}"));
@@ -462,7 +470,7 @@ impl Checker {
             return Err(Error::new(block.therefore.line, format!("{} is still open", describe(&cx.stack[i]))));
         }
         // No hypotheses: every theorem is a logical validity, and the kernel checks it.
-        let lemma = Lemma::new(cx.params.clone(), Vec::new(), concl, &result.thm).map_err(|m| Error::new(line, m))?;
+        let lemma = Lemma::new(logic, cx.params.clone(), Vec::new(), concl, &result.thm).map_err(|m| Error::new(line, m))?;
         Ok(TheoremInfo { lemma })
     }
 
@@ -1031,12 +1039,26 @@ impl Checker {
             }
             "absurd_e" => {
                 need(1, "one line, `absurd`")?;
+                if cx.logic < Logic::Intuitionistic {
+                    return Err(err(format!("`absurd_e` needs intuitionistic logic, and this theorem is {}", cx.logic.name())));
+                }
                 let f = self.arg_open(&args[0], cx)?;
                 let ff = self.body(cx, &f).map_err(err)?;
                 if ff != absurd() {
                     return Err(err(format!("`absurd_e` needs a line that is `absurd`, and {} isn't", show(&ff))));
                 }
                 self.apply_axiom(cx, Axiom::Efq(want.clone()), &[f]).map_err(err)
+            }
+            "lem" => {
+                need(0, "no lines: the stated formula, `A or not A`, says which `A`")?;
+                if cx.logic < Logic::Classical {
+                    return Err(err(format!("`lem` needs classical logic, and this theorem is {}", cx.logic.name())));
+                }
+                let a = match want.node() {
+                    Node::Or(a, na) if *na == imp(a.clone(), absurd()) => a.clone(),
+                    _ => return Err(err(format!("`lem` gives `A or not A`, and the stated formula {} isn't one", show(want)))),
+                };
+                self.apply_axiom(cx, Axiom::Lem(a), &[]).map_err(err)
             }
             "exists_i" => {
                 need(1, "one line, the instance")?;
@@ -1497,7 +1519,8 @@ impl Checker {
         let canonical: Vec<String> = names.iter().enumerate().map(|(i, n)| if *n == "#" { "#".to_string() } else { format!("_v{i}") }).collect();
         let proof = self.shape_proof(rule, &canonical.join(" "))?;
         let (_, params, hyps, concl) = Self::shape_statement(rule, &names);
-        let lemma = Rc::new(Lemma::new(params, hyps, concl, &proof)?);
+        // The shape rules use neither `efq` nor `lem`, so every logic has them.
+        let lemma = Rc::new(Lemma::new(Logic::Minimal, params, hyps, concl, &proof)?);
         self.rules.borrow_mut().insert(key, lemma.clone());
         Ok(lemma)
     }
@@ -1656,6 +1679,9 @@ impl Checker {
     fn call(&self, h: &str, info: &TheoremInfo, targs: &[TArg], args: &[Arg], cx: &mut Cx, want: Option<&Formula>, line: usize) -> Result<Open, Error> {
         let err = |m: String| Error::new(line, m);
         let lemma = &info.lemma;
+        if lemma.logic() > cx.logic {
+            return Err(err(format!("`{h}` is {}, and this theorem is {}", lemma.logic().name(), cx.logic.name())));
+        }
         let params = lemma.params();
         if targs.len() != params.len() {
             let shown: Vec<String> = params.iter().map(|(p, arity)| shown_param(p, *arity)).collect();
@@ -1727,7 +1753,7 @@ fn axiom_formulas(ax: &Axiom) -> Vec<&Formula> {
     match ax {
         Axiom::Imp1(a, b) | Axiom::AndI(a, b) | Axiom::AndE1(a, b) | Axiom::AndE2(a, b) | Axiom::OrI1(a, b) | Axiom::OrI2(a, b) => vec![a, b],
         Axiom::Imp2(a, b, c) | Axiom::OrE(a, b, c) => vec![a, b, c],
-        Axiom::Efq(a) | Axiom::Vac(_, a) | Axiom::Inst(_, _, a) | Axiom::ExI(_, _, a) => vec![a],
+        Axiom::Efq(a) | Axiom::Lem(a) | Axiom::Vac(_, a) | Axiom::Inst(_, _, a) | Axiom::ExI(_, _, a) => vec![a],
         Axiom::Dist(_, a, b) | Axiom::ExE(_, a, b) => vec![a, b],
     }
 }

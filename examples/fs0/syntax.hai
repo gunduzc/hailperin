@@ -822,7 +822,7 @@ theorem node2_fun:
 define NatShape x = Nil x or exists z n. Nil z and Nat n and Pair z n x
 define NatInv x   = Nat x and NatShape x
 
-theorem nat_inv:
+theorem nat_inv: intuitionistic
   assume nat:   NAT
   assume least: NatLeast NatInv
   zn: Zn by and_e nat
@@ -853,7 +853,7 @@ theorem nat_inv:
 -- Equality of numerals is decidable.
 define EqDec x = forall y. Nat y -> Eq x y or not (Eq x y)
 
-theorem nat_eq_dec:
+theorem nat_eq_dec: intuitionistic
   assume nat: NAT
   assume inv: NatLeast NatInv
   assume dec: NatLeast EqDec

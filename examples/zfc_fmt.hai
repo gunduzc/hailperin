@@ -62,7 +62,7 @@ define EpsInduction (P x) = (forall x. (forall y. In y x -> P y) -> P x) -> fora
 define NotSelf x = not (In x x)
 
 -- Every set has a subset that isn't one of its elements. Constructive.
-theorem subset_outside:
+theorem subset_outside: intuitionistic
   assume sep_ns: Separation NotSelf
   lemma all:
     variable a
@@ -126,7 +126,7 @@ theorem empty_unique:
   therefore forall a b. Empty a -> Empty b -> Eq a b
 
 -- No set is an element of itself, by membership induction. Constructive.
-theorem no_self_member:
+theorem no_self_member: intuitionistic
   assume eps: EpsInduction NotSelf
   lemma step:
     variable x
@@ -142,7 +142,7 @@ theorem no_self_member:
 -- Every set is empty or has an element, given excluded middle for "has an element".
 define Inhabited a = exists x. In x a
 
-theorem empty_or_not:
+theorem empty_or_not: intuitionistic
   assume em: forall a. Inhabited a or not (Inhabited a)
   lemma all:
     variable a
@@ -171,7 +171,7 @@ theorem empty_or_not_classical:
   therefore (forall a. ExcludedMiddle (Inhabited a)) -> forall a. Empty a or Inhabited a
 
 -- Equality, and pairs respecting it. Pure logic.
-theorem eq_refl:
+theorem eq_refl: intuitionistic
   lemma all:
     variable a
     lemma i:
@@ -184,7 +184,7 @@ theorem eq_refl:
     therefore forall a. Eq a a
   therefore forall a. Eq a a
 
-theorem eq_sym:
+theorem eq_sym: intuitionistic
   lemma all:
     variable a b
     assume e: Eq a b
@@ -198,7 +198,7 @@ theorem eq_sym:
     therefore forall a b. Eq a b -> Eq b a
   therefore forall a b. Eq a b -> Eq b a
 
-theorem eq_trans:
+theorem eq_trans: intuitionistic
   lemma all:
     variable a b c
     assume ab: Eq a b
@@ -226,7 +226,7 @@ theorem eq_trans:
     therefore forall a b c. Eq a b -> Eq b c -> Eq a c
   therefore forall a b c. Eq a b -> Eq b c -> Eq a c
 
-theorem single_move:
+theorem single_move: intuitionistic
   lemma all:
     variable s a b
     assume ab: Eq a b
@@ -252,7 +252,7 @@ theorem single_move:
     therefore forall s a b. Eq a b -> Single s a -> Single s b
   therefore forall s a b. Eq a b -> Single s a -> Single s b
 
-theorem doub_move:
+theorem doub_move: intuitionistic
   lemma all:
     variable d a b c
     assume ab: Eq a b
@@ -296,7 +296,7 @@ theorem doub_move:
     therefore forall d a b c. Eq a b -> Doub d a c -> Doub d b c
   therefore forall d a b c. Eq a b -> Doub d a c -> Doub d b c
 
-theorem pair_move:
+theorem pair_move: intuitionistic
   lemma all:
     variable p a b c
     assume ab: Eq a b
@@ -342,7 +342,7 @@ theorem pair_move:
     therefore forall p a b c. Eq a b -> OPair p a c -> OPair p b c
   therefore forall p a b c. Eq a b -> OPair p a c -> OPair p b c
 
-theorem maps_move:
+theorem maps_move: intuitionistic
   lemma all:
     variable f a b c
     assume ab: Eq a b
@@ -362,7 +362,7 @@ theorem maps_move:
 
 -- Facts about the defined sets, each proved once, so that the proofs below read at the level
 -- of the construction.
-theorem eq_in:
+theorem eq_in: intuitionistic
   lemma all:
     variable x y a
     assume e: Eq x y
@@ -373,7 +373,7 @@ theorem eq_in:
     therefore forall x y a. Eq x y -> In a x -> In a y
   therefore forall x y a. Eq x y -> In a x -> In a y
 
-theorem eq_in_back:
+theorem eq_in_back: intuitionistic
   lemma all:
     variable x y a
     assume e: Eq x y
@@ -384,7 +384,7 @@ theorem eq_in_back:
     therefore forall x y a. Eq x y -> In a y -> In a x
   therefore forall x y a. Eq x y -> In a y -> In a x
 
-theorem pairing_in1:
+theorem pairing_in1: intuitionistic
   lemma all:
     variable p a b
     assume h: Pairing p a b
@@ -396,7 +396,7 @@ theorem pairing_in1:
     therefore forall p a b. Pairing p a b -> In a p
   therefore forall p a b. Pairing p a b -> In a p
 
-theorem pairing_in2:
+theorem pairing_in2: intuitionistic
   lemma all:
     variable p a b
     assume h: Pairing p a b
@@ -413,7 +413,7 @@ define EqOr A e z = Eq z e or A
 
 define SepBy A s u e = forall z. Iff (In z s) (In z u and EqOr A e z)  -- s = {z in u | z = e or A}
 
-theorem sepby_in:
+theorem sepby_in: intuitionistic
   predicate A
   lemma all:
     variable s u e z
@@ -427,7 +427,7 @@ theorem sepby_in:
     therefore forall s u e z. SepBy A s u e -> In z u -> EqOr A e z -> In z s
   therefore forall s u e z. SepBy A s u e -> In z u -> EqOr A e z -> In z s
 
-theorem sepby_out:
+theorem sepby_out: intuitionistic
   predicate A
   lemma all:
     variable s u e z
@@ -440,7 +440,7 @@ theorem sepby_out:
   therefore forall s u e z. SepBy A s u e -> In z s -> In z u and EqOr A e z
 
 -- Foundation implies excluded middle.
-theorem em_from_foundation:
+theorem em_from_foundation: intuitionistic
   predicate A
   assume sets:  Sets
   assume found: Foundation
@@ -513,7 +513,7 @@ theorem em_from_foundation:
 
 -- The argument, flat: given the six sets and the choice function's two picks, A or not A.
 -- e = {}, o = {e}, u = {e, o}, x = {z in u | z = e or A}, y = {z in u | z = o or A}, s = {x, y}
-theorem diaconescu_core:
+theorem diaconescu_core: intuitionistic
   predicate A
   variable e o u x y f a b
   assume he: Empty e
@@ -586,7 +586,7 @@ theorem diaconescu_core:
   therefore forall e o u x y f a b. Empty e -> Pairing o e e -> Pairing u e o -> SepBy A x u e -> SepBy A y u o -> Picks f x a -> Picks f y b -> A or not A
 
 -- Given the six sets, choose: a function on s, its pick from x, its pick from y.
-theorem diaconescu_choose:
+theorem diaconescu_choose: intuitionistic
   predicate A
   variable e o u x y s
   assume choice: Choice
@@ -652,7 +652,7 @@ theorem diaconescu_choose:
 -- s = {x, y}. One box per let, and the innermost packs them.
 define Setup A e o u x y s = Empty e and Pairing o e e and Pairing u e o and SepBy A x u e and SepBy A y u o and Pairing s x y
 
-theorem diaconescu_sets:
+theorem diaconescu_sets: intuitionistic
   predicate A
   assume sets: Sets
   assume sep:  forall e. Separation (EqOr A e)
@@ -698,7 +698,7 @@ theorem diaconescu_sets:
   therefore Sets -> (forall e. Separation (EqOr A e)) -> exists e o u x y s. Setup A e o u x y s
 
 -- Given that the six sets exist, conclude.
-theorem diaconescu:
+theorem diaconescu: intuitionistic
   predicate A
   assume sets:   Sets
   assume choice: Choice
@@ -719,7 +719,7 @@ theorem diaconescu:
   therefore Sets -> Choice -> (forall e. Separation (EqOr A e)) -> A or not A
 
 -- `empty_or_not` without excluded middle as an assumption, via Diaconescu.
-theorem empty_or_not_from_choice:
+theorem empty_or_not_from_choice: intuitionistic
   assume sets:   Sets
   assume choice: Choice
   assume sep:    forall a e. Separation (EqOr (Inhabited a) e)

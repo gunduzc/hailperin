@@ -10,7 +10,8 @@ set cpo&vim
 
 syn keyword hailperinKeyword theorem lemma define import predicate variable assume therefore by
 syn keyword hailperinLogical forall exists and or not absurd
-syn keyword hailperinRule imp_e and_i and_e or_i or_e absurd_e forall_e exists_i exists_e reit auto
+syn keyword hailperinLogic minimal intuitionistic classical
+syn keyword hailperinRule imp_e and_i and_e or_i or_e absurd_e forall_e exists_i exists_e lem reit auto
 syn match hailperinArrow '->'
 syn match hailperinName '\<[A-Z][A-Za-z0-9_]*\>'
 syn match hailperinLabel '\<[a-z][A-Za-z0-9_]*\ze\s*:'
@@ -18,6 +19,7 @@ syn match hailperinComment '--.*$'
 
 hi def link hailperinKeyword Keyword
 hi def link hailperinLogical Operator
+hi def link hailperinLogic StorageClass
 hi def link hailperinRule Function
 hi def link hailperinArrow Operator
 hi def link hailperinName Type

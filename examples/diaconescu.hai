@@ -5,7 +5,7 @@ import zfc
 
 -- The argument, flat: given the six sets and the choice function's two picks, A or not A.
 -- e = {}, o = {e}, u = {e, o}, x = {z in u | z = e or A}, y = {z in u | z = o or A}, s = {x, y}
-theorem diaconescu_core:
+theorem diaconescu_core: intuitionistic
   predicate A
   variable e o u x y f a b
   assume he: Empty e
@@ -82,7 +82,7 @@ theorem diaconescu_core:
       -> SepBy A y u o -> Picks f x a -> Picks f y b -> A or not A
 
 -- Given the six sets, choose: a function on s, its pick from x, its pick from y.
-theorem diaconescu_choose:
+theorem diaconescu_choose: intuitionistic
   predicate A
   variable e o u x y s
   assume choice: Choice
@@ -151,7 +151,7 @@ theorem diaconescu_choose:
 define Setup A e o u x y s = Empty e and Pairing o e e and Pairing u e o and SepBy A x u e
     and SepBy A y u o and Pairing s x y
 
-theorem diaconescu_sets:
+theorem diaconescu_sets: intuitionistic
   predicate A
   assume sets: Sets
   assume sep:  forall e. Separation (EqOr A e)
@@ -204,7 +204,7 @@ theorem diaconescu_sets:
   therefore Sets -> (forall e. Separation (EqOr A e)) -> exists e o u x y s. Setup A e o u x y s
 
 -- Given that the six sets exist, conclude.
-theorem diaconescu:
+theorem diaconescu: intuitionistic
   predicate A
   assume sets:   Sets
   assume choice: Choice
@@ -226,7 +226,7 @@ theorem diaconescu:
   therefore Sets -> Choice -> (forall e. Separation (EqOr A e)) -> A or not A
 
 -- `empty_or_not` without excluded middle as an assumption, via Diaconescu.
-theorem empty_or_not_from_choice:
+theorem empty_or_not_from_choice: intuitionistic
   assume sets:   Sets
   assume choice: Choice
   assume sep:    forall a e. Separation (EqOr (Inhabited a) e)

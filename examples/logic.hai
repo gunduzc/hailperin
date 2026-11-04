@@ -6,7 +6,7 @@ import classical
 
 define Iff A B = (A -> B) and (B -> A)
 
-theorem and_comm:
+theorem and_comm: intuitionistic
   predicate A
   predicate B
   assume ab: A and B
@@ -15,7 +15,7 @@ theorem and_comm:
   ba: B and A by and_i b a
   therefore A and B -> B and A
 
-theorem trans:
+theorem trans: intuitionistic
   predicate A
   predicate B
   predicate C
@@ -27,7 +27,7 @@ theorem trans:
   therefore (A -> B) -> (B -> C) -> A -> C
 
 -- Chaining two implications under a forall.
-theorem trans_under:
+theorem trans_under: intuitionistic
   predicate A x
   predicate B x
   predicate C x
@@ -42,7 +42,7 @@ theorem trans_under:
   therefore (forall x. A x -> B x) -> (forall x. B x -> C x) -> forall x. A x -> C x
 
 -- Whatever is Socrates is mortal, by the lemma.
-theorem syllogism:
+theorem syllogism: intuitionistic
   predicate Man x
   predicate Mortal x
   predicate Socrates x
@@ -52,7 +52,7 @@ theorem syllogism:
   therefore (forall x. Man x -> Mortal x) -> (forall x. Socrates x -> Man x) -> forall x. Socrates x -> Mortal x
 
 -- If every P gives Q and some P exists, then Q.
-theorem use_exists:
+theorem use_exists: intuitionistic
   predicate P x
   predicate Q
   assume f: forall x. P x -> Q
@@ -65,13 +65,13 @@ theorem use_exists:
   k: Q by exists_e e c
   therefore (forall x. P x -> Q) -> (exists x. P x) -> Q
 
-theorem id:
+theorem id: intuitionistic
   predicate A
   assume a: A
   therefore A -> A
 
 -- Double negation introduction is intuitionistic.
-theorem dni:
+theorem dni: intuitionistic
   predicate A
   assume a:  A
   assume na: not A
@@ -79,7 +79,7 @@ theorem dni:
   therefore A -> not (not A)
 
 -- Swapping two quantifiers.
-theorem swap:
+theorem swap: intuitionistic
   predicate R x y
   assume h: forall x y. R x y
   lemma each:
@@ -90,7 +90,7 @@ theorem swap:
 
 -- Excluded middle isn't provable here, but its double negation is: refuting `A or not A`
 -- refutes `A`, which gives `not A`, which gives `A or not A`.
-theorem dnem:
+theorem dnem: intuitionistic
   predicate A
   assume n: not (A or not A)
   lemma na:
@@ -106,7 +106,7 @@ define True = absurd -> absurd
 
 -- A vacuous `forall x. absurd` is absurd conjoined zero times when nothing exists, so it's
 -- true. Mostowski (1951) read it as `absurd`, which makes this distribution fail.
-theorem dist_vacuous:
+theorem dist_vacuous: intuitionistic
   predicate P x
   assume h: forall x. not (P x)
   assume p: forall x. P x
@@ -123,7 +123,7 @@ theorem dist_vacuous:
 define NonEmpty  = not (forall x. absurd)  -- Hailperin's QE6, as a formula
 define Something = exists x. True
 
-theorem nonempty_from_something:
+theorem nonempty_from_something: intuitionistic
   assume s: Something
   assume h: forall x. absurd
   lemma c:
@@ -135,7 +135,7 @@ theorem nonempty_from_something:
   therefore Something -> NonEmpty
 
 -- The converse only up to double negation: QE6 gives nothing to `exists_e`.
-theorem not_not_something:
+theorem not_not_something: intuitionistic
   assume ne: NonEmpty
   assume n:  not Something
   lemma all:
@@ -151,7 +151,7 @@ theorem not_not_something:
 
 -- QE1, the swap of two quantifiers. An axiom for Hailperin, a theorem for Quine after Berry's
 -- redefinition of closure. Here the lemma opens `y` before `x`, which is the swap.
-theorem qe1:
+theorem qe1: intuitionistic
   predicate R x y
   assume h: forall x y. R x y
   lemma s:
@@ -162,7 +162,7 @@ theorem qe1:
 
 -- QE5, importation: a quantifier moves past an antecedent that doesn't mention its variable.
 -- Hailperin's axiom, dropped by Quine. Opening `x` outside `a` is this move.
-theorem qe5:
+theorem qe5: intuitionistic
   predicate A
   predicate P x
   assume h: A -> forall x. P x
@@ -176,7 +176,7 @@ theorem qe5:
 
 -- Hailperin's Lemma 4: when nothing exists, every universal statement holds. Mostowski read
 -- a vacuous `forall x. A` as `A`, which breaks this. Intuitionistic.
-theorem hailperin_lemma4:
+theorem hailperin_lemma4: intuitionistic
   predicate P x
   assume e: forall x. absurd
   lemma all:
@@ -188,7 +188,7 @@ theorem hailperin_lemma4:
 
 -- And every existential statement fails, which is Quine's test for the empty domain: mark
 -- universals true and existentials false.
-theorem empty_no_exists:
+theorem empty_no_exists: intuitionistic
   predicate P x
   assume e: forall x. absurd
   assume s: exists x. P x
@@ -203,7 +203,7 @@ theorem empty_no_exists:
 -- Hailperin's Lemma 2: with something in the domain, a vacuous `forall` can be dropped.
 -- This is the one step of ordinary logic that needs QE6, Theorem 1's Case 2, and it needs
 -- excluded middle as well.
-theorem hailperin_lemma2:
+theorem hailperin_lemma2: intuitionistic
   predicate A
   assume em: ExcludedMiddle A
   assume ne: NonEmpty
@@ -227,7 +227,7 @@ theorem hailperin_lemma2:
 -- Quine's remark that Hailperin understated his case: `A` and `A and (P x -> P x)` are
 -- equivalent, so if `forall` respects equivalence, a vacuous `forall x. A` has to mean
 -- `forall x. A and (P x -> P x)`, which is true when nothing exists. The equivalence.
-theorem quine_extensionality:
+theorem quine_extensionality: intuitionistic
   predicate A
   predicate P x
   lemma fwd:

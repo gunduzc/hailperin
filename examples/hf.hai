@@ -20,7 +20,7 @@ define Adduction (P x) = (forall x. Empty x -> P x)
     -> (forall x y z. not (In y x) -> P x -> P y -> Adj x y z -> P z)
     -> forall x. P x
 
-theorem eq_refl:
+theorem eq_refl: intuitionistic
   lemma all:
     variable x
     lemma i:
@@ -36,7 +36,7 @@ theorem eq_refl:
 -- No set is an element of a subset of itself (SMR, Proposition 2.2).
 define NoSelfSub x = forall z. Sub x z -> not (In z x)
 
-theorem sub_not_in:
+theorem sub_not_in: intuitionistic
   assume add: Adduction NoSelfSub
   lemma base:
     variable x
@@ -109,7 +109,7 @@ theorem sub_not_in:
   therefore Adduction NoSelfSub -> forall x. NoSelfSub x
 
 -- No set is an element of itself (SMR, Corollary 2.3).
-theorem no_self_member:
+theorem no_self_member: intuitionistic
   assume add: Adduction NoSelfSub
   lemma all:
     variable x
@@ -128,7 +128,7 @@ theorem no_self_member:
 -- Membership induction from adduction (SMR, Theorem 6.11).
 define UpTo (P x) y = forall z. In z y or Eq z y -> P z
 
-theorem eps_induction:
+theorem eps_induction: intuitionistic
   predicate P x
   assume add:  Adduction (UpTo P)
   assume step: forall x. (forall y. In y x -> P y) -> P x

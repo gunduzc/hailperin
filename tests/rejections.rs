@@ -715,3 +715,53 @@ fn a_theorem_without_its_keyword() {
     let src = "predicate A\nt:\n  assume a: A\n  therefore A -> A\n";
     assert_eq!(err(src), "`t:` opens a block outside every theorem: write `theorem t:`");
 }
+
+#[test]
+fn minimal_logic_has_no_absurd_e() {
+    let src = "predicate A\ntheorem bad: minimal\n assume f: absurd\n a: A by absurd_e f\n therefore absurd -> A";
+    assert_eq!(err(src), "bad: `absurd_e` needs intuitionistic logic, and this theorem is minimal");
+}
+
+#[test]
+fn intuitionistic_logic_has_no_lem() {
+    let src = "predicate A\ntheorem bad: intuitionistic\n em: A or not A by lem\n therefore A or not A";
+    assert_eq!(err(src), "bad: `lem` needs classical logic, and this theorem is intuitionistic");
+}
+
+#[test]
+fn lem_states_an_excluded_middle() {
+    let src = "predicate A\npredicate B\ntheorem bad:\n em: A or not B by lem\n therefore A or not B";
+    assert_eq!(err(src), "bad: `lem` gives `A or not A`, and the stated formula A or not B isn't one");
+}
+
+#[test]
+fn lem_takes_no_lines() {
+    let src = "predicate A\ntheorem bad:\n assume a: A\n em: A or not A by lem a\n therefore A -> A or not A";
+    assert_eq!(err(src), "bad: `lem` takes no lines: the stated formula, `A or not A`, says which `A`");
+}
+
+#[test]
+fn lem_under_a_variable_and_through_a_definition() {
+    // A theorem that declares no logic is classical.
+    let src = "predicate P x\ndefine ExcludedMiddle A = A or not A\ntheorem em:\n lemma all:\n  variable x\n  e: ExcludedMiddle (P x) by lem\n  therefore forall x. P x or not (P x)\n therefore forall x. ExcludedMiddle (P x)";
+    assert_eq!(ok(src), ["em: forall x. ExcludedMiddle (P x)"]);
+}
+
+#[test]
+fn a_weaker_logic_cites_no_stronger_theorem() {
+    // `id` is minimal in fact, but declares nothing, so it is classical to whoever cites it.
+    let src = "predicate A\ntheorem id:\n assume a: A\n therefore A -> A\ntheorem bad: intuitionistic\n assume a: A\n b: A by imp_e id a\n therefore A -> A";
+    assert_eq!(err(src), "bad: `id` is classical, and this theorem is intuitionistic");
+}
+
+#[test]
+fn a_stronger_logic_cites_a_weaker_theorem() {
+    let src = "predicate A\ntheorem id: minimal\n assume a: A\n therefore A -> A\ntheorem again: intuitionistic\n assume a: A\n b: A by imp_e id a\n therefore A -> A\ntheorem once_more:\n assume a: A\n b: A by imp_e again a\n therefore A -> A";
+    assert_eq!(ok(src), ["id: A -> A", "again: A -> A", "once_more: A -> A"]);
+}
+
+#[test]
+fn a_lemma_declares_no_logic() {
+    let src = "predicate A\ntheorem bad:\n lemma l: minimal\n  assume a: A\n  therefore A -> A\n therefore A -> A";
+    assert_eq!(err(src), "a lemma is in its theorem's logic: declare `minimal` after the theorem's name");
+}

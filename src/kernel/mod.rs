@@ -1,24 +1,47 @@
 //! The trusted kernel: everything under `src/kernel/` is trusted, and nothing else is.
 //! `Thm` and `Lemma` can only be made here; `formula` is the formula code their checks rely on.
 //!
-//! A `Thm` is a closed formula together with the hypotheses it rests on. The only rule is
-//! modus ponens; axioms are closures of the instances built by `axiom`. A `Lemma` is a
-//! checked proof, used afterwards by uniform substitution into its signature.
+//! A `Thm` is a closed formula together with the hypotheses it rests on and the weakest logic
+//! its axioms need. The only rule is modus ponens; axioms are closures of the instances built
+//! by `axiom`. A `Lemma` is a checked proof, used afterwards by uniform substitution into its
+//! signature, in the logic it declares.
 
 pub mod formula;
 
 use formula::{absurd, all, and, ex, imp, or, Formula, Name, Node, Template};
 use std::collections::BTreeSet;
 
+/// The logics, weakest first. Minimal logic has every axiom but `efq`, intuitionistic logic
+/// adds `efq`, and classical logic adds `lem` as well. Each proves what the ones before it do.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, PartialOrd, Ord)]
+pub enum Logic {
+    Minimal,
+    Intuitionistic,
+    Classical,
+}
+
+impl Logic {
+    pub fn name(self) -> &'static str {
+        match self {
+            Logic::Minimal => "minimal",
+            Logic::Intuitionistic => "intuitionistic",
+            Logic::Classical => "classical",
+        }
+    }
+}
+
 #[derive(Clone, Debug)]
 pub struct Thm {
     concl: Formula,
     hyps: Vec<Formula>,
+    /// The weakest logic with every axiom this theorem was proved from.
+    logic: Logic,
 }
 
 /// A checked proof: for any templates for its parameters, its hypotheses give its conclusion.
 #[derive(Clone, Debug)]
 pub struct Lemma {
+    logic: Logic,
     params: Vec<(String, usize)>,
     hyps: Vec<Formula>,
     concl: Formula,
@@ -41,6 +64,19 @@ pub enum Axiom {
     Inst(Name, Name, Formula),
     ExI(Name, Name, Formula),
     ExE(Name, Formula, Formula),
+    /// `A or not A`: classical only.
+    Lem(Formula),
+}
+
+impl Axiom {
+    /// The weakest logic with this axiom.
+    pub fn logic(&self) -> Logic {
+        match self {
+            Axiom::Efq(_) => Logic::Intuitionistic,
+            Axiom::Lem(_) => Logic::Classical,
+            _ => Logic::Minimal,
+        }
+    }
 }
 
 fn closed(f: &Formula, what: &str) -> Result<(), String> {
@@ -53,6 +89,10 @@ fn closed(f: &Formula, what: &str) -> Result<(), String> {
 impl Thm {
     pub fn concl(&self) -> &Formula {
         &self.concl
+    }
+
+    pub fn logic(&self) -> Logic {
+        self.logic
     }
 }
 
@@ -96,6 +136,7 @@ fn add_hyps(hyps: &mut Vec<Formula>, more: &[Formula]) {
 
 /// The closure of an axiom instance under `prefix`, outermost first.
 pub fn axiom(ax: Axiom, prefix: &[Name]) -> Result<Thm, String> {
+    let logic = ax.logic();
     let instance = match ax {
         Axiom::Imp1(a, b) => imp(a.clone(), imp(b, a)),
         Axiom::Imp2(a, b, c) => imp(
@@ -141,10 +182,11 @@ pub fn axiom(ax: Axiom, prefix: &[Name]) -> Result<Thm, String> {
             }
             imp(all(&x, imp(a.clone(), c.clone())), imp(ex(&x, a), c))
         }
+        Axiom::Lem(a) => or(a.clone(), imp(a, absurd())),
     };
     let concl = instance.close(prefix);
     closed(&concl, "this axiom instance")?;
-    Ok(Thm { concl, hyps: Vec::new() })
+    Ok(Thm { concl, hyps: Vec::new(), logic })
 }
 
 /// From `A` and `imp A B`, `B`.
@@ -157,19 +199,19 @@ pub fn mp(a: &Thm, ab: &Thm) -> Result<Thm, String> {
     }
     let mut hyps = a.hyps.clone();
     add_hyps(&mut hyps, &ab.hyps);
-    Ok(Thm { concl: q.clone(), hyps })
+    Ok(Thm { concl: q.clone(), hyps, logic: a.logic.max(ab.logic) })
 }
 
 /// A hypothesis of the proof being checked.
 pub fn assume(f: &Formula) -> Result<Thm, String> {
     closed(f, "this hypothesis")?;
-    Ok(Thm { concl: f.clone(), hyps: vec![f.clone()] })
+    Ok(Thm { concl: f.clone(), hyps: vec![f.clone()], logic: Logic::Minimal })
 }
 
 impl Lemma {
-    /// Checks that `body` proves `concl` from its hypotheses `hyps` only, that the parameters are
-    /// distinct and used with their arities, and that everything is closed.
-    pub fn new(params: Vec<(String, usize)>, hyps: Vec<Formula>, concl: Formula, body: &Thm) -> Result<Lemma, String> {
+    /// Checks that `body` proves `concl` from its hypotheses `hyps` only, in `logic`, that the
+    /// parameters are distinct and used with their arities, and that everything is closed.
+    pub fn new(logic: Logic, params: Vec<(String, usize)>, hyps: Vec<Formula>, concl: Formula, body: &Thm) -> Result<Lemma, String> {
         if !distinct(params.iter().map(|(p, _)| p)) {
             return Err("a parameter appears twice".into());
         }
@@ -189,7 +231,14 @@ impl Lemma {
                 return Err("the proof uses an assumption that isn't one of its hypotheses".into());
             }
         }
-        Ok(Lemma { params, hyps, concl })
+        if body.logic > logic {
+            return Err(format!("the proof needs {} logic, and this is {}", body.logic.name(), logic.name()));
+        }
+        Ok(Lemma { logic, params, hyps, concl })
+    }
+
+    pub fn logic(&self) -> Logic {
+        self.logic
     }
 
     pub fn params(&self) -> &[(String, usize)] {
@@ -213,16 +262,17 @@ impl Lemma {
         if args.len() != self.hyps.len() {
             return Err(format!("expected {} piece(s) of evidence, got {}", self.hyps.len(), args.len()));
         }
-        let mut hyps = Vec::new();
+        let (mut hyps, mut logic) = (Vec::new(), self.logic);
         for (i, (hyp, t)) in self.hyps.iter().zip(args).enumerate() {
             let want = hyp.subst_preds(&map)?.close(prefix);
             if *t.concl() != want {
                 return Err(format!("evidence {} should prove {want}, but proves {}", i + 1, t.concl()));
             }
             add_hyps(&mut hyps, &t.hyps);
+            logic = logic.max(t.logic);
         }
         let concl = self.concl.subst_preds(&map)?.close(prefix);
-        Ok(Thm { concl, hyps })
+        Ok(Thm { concl, hyps, logic })
     }
 }
 
@@ -281,8 +331,8 @@ mod tests {
     fn lemma_rejects_unlisted_assumptions() {
         let a = atom("A", &[]);
         let th = assume(&a).unwrap();
-        assert!(Lemma::new(vec![], vec![], a.clone(), &th).is_err());
-        assert!(Lemma::new(vec![], vec![a.clone()], a, &th).is_ok());
+        assert!(Lemma::new(Logic::Minimal, vec![], vec![], a.clone(), &th).is_err());
+        assert!(Lemma::new(Logic::Minimal, vec![], vec![a.clone()], a, &th).is_ok());
     }
 
     #[test]
@@ -290,12 +340,32 @@ mod tests {
         let a = atom("A", &[]);
         let th = assume(&a).unwrap();
         let twice = vec![("A".into(), 0), ("A".into(), 0)];
-        assert_eq!(Lemma::new(twice, vec![a.clone()], a.clone(), &th).unwrap_err(), "a parameter appears twice");
-        let e = Lemma::new(vec![("A".into(), 1)], vec![a.clone()], a.clone(), &th).unwrap_err();
+        assert_eq!(Lemma::new(Logic::Minimal, twice, vec![a.clone()], a.clone(), &th).unwrap_err(), "a parameter appears twice");
+        let e = Lemma::new(Logic::Minimal, vec![("A".into(), 1)], vec![a.clone()], a.clone(), &th).unwrap_err();
         assert_eq!(e, "`A` takes 1 argument(s), but is given 0");
         let open = atom("P", &["w"]);
-        let e = Lemma::new(vec![], vec![a.clone(), open], a, &th).unwrap_err();
+        let e = Lemma::new(Logic::Minimal, vec![], vec![a.clone(), open], a, &th).unwrap_err();
         assert_eq!(e, "a hypothesis or the conclusion has `w` free: formulas must be closed");
+    }
+
+    #[test]
+    fn logics_are_tracked() {
+        let a = atom("A", &[]);
+        let lem = axiom(Axiom::Lem(a.clone()), &[]).unwrap();
+        assert_eq!(lem.concl().to_string(), "or A (imp A absurd)");
+        assert_eq!(lem.logic(), Logic::Classical);
+        let efq = axiom(Axiom::Efq(a.clone()), &[]).unwrap();
+        assert_eq!(efq.logic(), Logic::Intuitionistic);
+        let f = efq.concl().clone();
+        let e = Lemma::new(Logic::Minimal, vec![], vec![], f.clone(), &efq).unwrap_err();
+        assert_eq!(e, "the proof needs intuitionistic logic, and this is minimal");
+        let lemma = Lemma::new(Logic::Intuitionistic, vec![], vec![], f, &efq).unwrap();
+        // A use of a lemma is in the logic the lemma declares, even with nothing to feed it.
+        assert_eq!(lemma.apply(&[], &[], &[]).unwrap().logic(), Logic::Intuitionistic);
+        // Modus ponens needs what both premises need.
+        let ab = axiom(Axiom::Imp1(lem.concl().clone(), a.clone()), &[]).unwrap();
+        assert_eq!(ab.logic(), Logic::Minimal);
+        assert_eq!(mp(&lem, &ab).unwrap().logic(), Logic::Classical);
     }
 
     #[test]
@@ -303,7 +373,7 @@ mod tests {
         // From P, get P: instantiate P := Q x, closed over x.
         let p = atom("P", &[]);
         let th = assume(&p).unwrap();
-        let lemma = Lemma::new(vec![("P".into(), 0)], vec![p.clone()], p, &th).unwrap();
+        let lemma = Lemma::new(Logic::Minimal, vec![("P".into(), 0)], vec![p.clone()], p, &th).unwrap();
         let t = Template::statement(atom("Q", &["x"]));
         let ev = assume(&all(&n("x"), atom("Q", &["x"]))).unwrap();
         let out = lemma.apply(&[&t], &["x".into()], &[&ev]).unwrap();

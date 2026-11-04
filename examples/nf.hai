@@ -31,7 +31,7 @@ define Incl         = exists x. forall y z. Iff (PairIn y z x) (Sub y z)
 define NF = Ext and AntiExists and SingleExists and One and Cross and Conv and Simage and Ins2 and Ins3 and Lower and Incl
 
 -- There is a universal set: 1 | (1 | 1). Constructive.
-theorem universe:
+theorem universe: intuitionistic
   assume nf: NF
   anti: AntiExists by and_e nf
   one:  One        by and_e nf

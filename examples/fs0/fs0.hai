@@ -29,7 +29,7 @@ define Induction (P x) = (forall n. Nil n -> P n)
     -> forall x. P x
 
 -- Equality is symmetric.
-theorem eq_sym:
+theorem eq_sym: intuitionistic
   assume fs0: FS0
   refl: Refl by and_e fs0
   ee:   Ee   by and_e fs0

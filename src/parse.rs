@@ -2,6 +2,7 @@
 //! arguments, a lowercase name is the next label if a colon follows it. Nothing here knows what a
 //! formula means: the checker reads the trees this produces.
 
+use crate::kernel::Logic;
 use crate::lexer::{Kw, Sym, Tok, Token};
 use crate::Error;
 
@@ -122,7 +123,8 @@ pub struct Block {
 pub enum Item {
     Predicate { name: String, holes: Vec<String>, line: usize },
     Define { name: String, params: Vec<Param>, body: FExpr, line: usize },
-    Theorem { name: String, block: Block, line: usize },
+    /// `logic` is what the theorem declares after its colon, if anything.
+    Theorem { name: String, logic: Option<Logic>, block: Block, line: usize },
 }
 
 /// `import PATH`: the file `PATH.hai`, relative to this one.
@@ -327,8 +329,17 @@ impl Parser<'_> {
                 self.pos += 1;
                 let name = self.lower("a theorem's name")?;
                 self.name_colon("theorem", &name)?;
+                let logic = match self.peek() {
+                    Some(Tok::Kw(Kw::Minimal)) => Some(Logic::Minimal),
+                    Some(Tok::Kw(Kw::Intuitionistic)) => Some(Logic::Intuitionistic),
+                    Some(Tok::Kw(Kw::Classical)) => Some(Logic::Classical),
+                    _ => None,
+                };
+                if logic.is_some() {
+                    self.pos += 1;
+                }
                 let block = self.block(&name, false)?;
-                Ok(Item::Theorem { name, block, line })
+                Ok(Item::Theorem { name, logic, block, line })
             }
             Some(Tok::Kw(Kw::Import)) => Err(self.err("imports come before everything else")),
             // What belongs in a block, outside every block.
@@ -402,6 +413,10 @@ impl Parser<'_> {
                     self.pos += 1;
                     let lemma = self.lower("the lemma's name")?;
                     self.name_colon("lemma", &lemma)?;
+                    if let Some(Tok::Kw(k @ (Kw::Minimal | Kw::Intuitionistic | Kw::Classical))) = self.peek() {
+                        let word = crate::lexer::KEYWORDS.iter().find(|(_, x)| x == k).map_or("?", |(w, _)| w);
+                        return Err(self.err(format!("a lemma is in its theorem's logic: declare `{word}` after the theorem's name")));
+                    }
                     let block = self.block(&lemma, true)?;
                     steps.push(Step::Lemma { name: lemma, block, line });
                 }
